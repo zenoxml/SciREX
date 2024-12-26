@@ -8,7 +8,7 @@ version = "1.0.0"
 description = "Scientific Research and Engineering eXcellence Framework"
 readme = "README.md"
 requires-python = ">=3.9"
-license = "AGPL-3.0-only"
+license = "Apache-2.0"
 keywords = [
     "scientific-computing",
     "machine-learning",
@@ -26,7 +26,7 @@ maintainers = [
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
-    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -71,11 +71,11 @@ cuda = [
 ]
 
 [project.urls]
-Homepage = "https://airexlab.cds.iisc.ac.in/scirex"
-Documentation = "https://airexlab.cds.iisc.ac.in/"
-Repository = "https://github.com/airex-lab/scirex"
-"Bug Tracker" = "https://github.com/airex-lab/scirex/issues"
-"Research Blog" = "https://airexlab.cds.iisc.ac.in/blog"
+Homepage = "https://scirex.org/"
+Documentation = "https://scirex.org/doc/"
+Repository = "https://github.com/zenoxml/SciREX"
+"Bug Tracker" = "https://github.com/zenoxml/SciREX/issues"
+"Research Blog" = "https://scirex.org/blog"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/scirex"]
