@@ -62,7 +62,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 ## Intellectual Property
 
 ### Copyright Holders
-- <a href="https://zenteiq.ai/" target="_blank">Zenteiq Aitech Innovations Private Limitede</a>
+- <a href="https://zenteiq.ai/" target="_blank">Zenteiq Aitech Innovations Private Limited</a>
 - <a href="https://airexlab.cds.iisc.ac.in/" target="_blank">The AiREX Lab at IISc Bangalore</a>
 
 ### Components and Libraries
