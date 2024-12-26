@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and 
+# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and
 # AiREX Lab, Indian Institute of Science, Bangalore.
 # All rights reserved.
 #
@@ -240,7 +240,7 @@ class Basis2DQNChebyshev2(BasisFunction2D):
     def gradx(self, xi, eta):
         """Computes x-derivatives of basis functions.
 
-        Evaluates partial derivatives with respect to x of all basis 
+        Evaluates partial derivatives with respect to x of all basis
         functions at given coordinates.
 
         Args:

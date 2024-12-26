@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and 
+# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and
 # AiREX Lab, Indian Institute of Science, Bangalore.
 # All rights reserved.
 #
@@ -20,35 +20,38 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 """
-The file `basis_function_2d.py` contains a wrapper class for all the finite element basis functions 
-used in the FE2D code. The 2D basis functions have methods to return the value 
-of the basis function and its derivatives at the reference point (xi, eta).
-
-Author: Thivin Anandh D
-
-Changelog: 30/Aug/2023 - First version
-
-Known issues: None
-
-Dependencies: None specified
+file: basis_function_3d.py
+description: Abstract class for all basis functions 3D
+authors: Thivin Anandh D
+changelog: 03/May/2024 - First version
+known_issues: None
+dependencies: None specified.
 """
 
 from abc import abstractmethod
 
 
-class BasisFunction2D:
+class BasisFunction3D:  # pragma: no cover
     """
-    This class defines the basis functions for a 2D element.
+    Represents a basis function in 3D.
 
-    :num_shape_functions (int): The number of shape functions.
-    :value(xi, eta): Evaluates the basis function at the given xi and eta coordinates.
+    Args:
+        num_shape_functions (int): The number of shape functions.
+
+    Methods:
+        value(xi, eta, zeta): Evaluates the basis function at the given xi and eta coordinates.
+        gradx(xi, eta, zeta): Computes the partial derivative of the basis function with respect to xi.
+        grady(xi, eta, zeta): Computes the partial derivative of the basis function with respect to eta.
+        gradxx(xi, eta, zeta): Computes the second partial derivative of the basis function with respect to xi.
+        gradxy(xi, eta, zeta): Computes the mixed partial derivative of the basis function with respect to xi and eta.
+        gradyy(xi, eta, zeta): Computes the second partial derivative of the basis function with respect to eta.
     """
 
     def __init__(self, num_shape_functions):
         self.num_shape_functions = num_shape_functions
 
     @abstractmethod
-    def value(self, xi, eta):
+    def value(self, xi, eta, zeta):
         """
         Evaluates the basis function at the given xi and eta coordinates.
 
@@ -57,10 +60,9 @@ class BasisFunction2D:
         :return: The value of the basis function at the given coordinates.
         :rtype: float
         """
-        pass
 
     @abstractmethod
-    def gradx(self, xi, eta):
+    def gradx(self, xi, eta, zeta):
         """
         Computes the partial derivative of the basis function with respect to xi.
 
@@ -69,10 +71,9 @@ class BasisFunction2D:
         :return: The partial derivative of the basis function with respect to xi.
         :rtype: float
         """
-        pass
 
     @abstractmethod
-    def grady(self, xi, eta):
+    def grady(self, xi, eta, zeta):
         """
         Computes the partial derivative of the basis function with respect to eta.
 
@@ -81,10 +82,9 @@ class BasisFunction2D:
         :return: The partial derivative of the basis function with respect to eta.
         :rtype: float
         """
-        pass
 
     @abstractmethod
-    def gradxx(self, xi, eta):
+    def gradxx(self, xi, eta, zeta):
         """
         Computes the second partial derivative of the basis function with respect to xi.
 
@@ -93,10 +93,9 @@ class BasisFunction2D:
         :return: The second partial derivative of the basis function with respect to xi.
         :rtype: float
         """
-        pass
 
     @abstractmethod
-    def gradxy(self, xi, eta):
+    def gradxy(self, xi, eta, zeta):
         """
         Computes the mixed partial derivative of the basis function with respect to xi and eta.
 
@@ -105,10 +104,9 @@ class BasisFunction2D:
         :return: The mixed partial derivative of the basis function with respect to xi and eta.
         :rtype: float
         """
-        pass
 
     @abstractmethod
-    def gradyy(self, xi, eta):
+    def gradyy(self, xi, eta, zeta):
         """
         Computes the second partial derivative of the basis function with respect to eta.
 
@@ -117,15 +115,3 @@ class BasisFunction2D:
         :return: The second partial derivative of the basis function with respect to eta.
         :rtype: float
         """
-        pass
-
-
-# ---------------- Legendre -------------------------- #
-from .basis_2d_QN_Legendre import *  # Normal Legendre from Jacobi -> J(n) = J(n-1) - J(n+1)
-from .basis_2d_QN_Legendre_Special import *  # L(n) = L(n-1) - L(n+1)
-
-# ---------------- Jacobi -------------------------- #
-from .basis_2d_QN_Jacobi import *  # Normal Jacobi
-
-# ---------------- Chebyshev -------------------------- #
-from .basis_2d_QN_Chebyshev_2 import *  # Normal Chebyshev
