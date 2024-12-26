@@ -62,8 +62,8 @@ Unless required by applicable law or agreed to in writing, software distributed 
 ## Intellectual Property
 
 ### Copyright Holders
-- [Zenteiq Aitech Innovations Private Limited](https://zenteiq.ai/)
-- [The AiREX Lab at IIsc Bangalore](https://airexlab.cds.iisc.ac.in/)
+- <a href="https://zenteiq.ai/" target="_blank">Zenteiq Aitech Innovations Private Limitede</a>
+- <a href="https://airexlab.cds.iisc.ac.in/" target="_blank">The AiREX Lab at IISc Bangalore</a>
 
 ### Components and Libraries
 - The core SciREX framework and its original components are copyright of the above holders
@@ -91,7 +91,7 @@ If you use SciREX in your research, please cite:
 
 ## 🤝 Community
 
-- [Discord](https://discord.gg/NWcCPx22Hq)
+- <a href="https://discord.gg/NWcCPx22Hq/" target="_blank">Discord</a>
 
 ## 🤝 Official Partners
 
