@@ -33,6 +33,7 @@ Convener, AiREX Lab
 -
 
 ## Core Teams
+**Thivin Anandh**, **Divij G**, **Dr. Naren Vohra**, **Lokesh M**, [Other members need to be added!]
 
 ### 🏗️ Lead Development Teams
 - Scientific Computing Architecture
