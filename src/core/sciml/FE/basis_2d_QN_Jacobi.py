@@ -1,4 +1,5 @@
-# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and
+
+# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and 
 # AiREX Lab, Indian Institute of Science, Bangalore.
 # All rights reserved.
 #
@@ -20,31 +21,32 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 """
-file: basis_2d_QN_Legendre.py
-description: This file contains the class Basis2DQNLegendre which is used 
-             to define the basis functions for a Legendre Polynomial.
-             Test functions and derivatives are inferred from the work by Ehsan Kharazmi et.al
-             (hp-VPINNs: Variational Physics-Informed Neural Networks With Domain Decomposition)
-             available at https://github.com/ehsankharazmi/hp-VPINNs/
-authors: Thivin Anandh D
-URL: https://thivinanandh.github.io
+The file `basis_2d_QN_Jacobi.py` contains the class Basis2DQNJacobi which is used
+to define the basis functions for a Jacobi Polynomial. Test functions and derivatives
+are inferred from the work by Ehsan Kharazmi et.al (hp-VPINNs: Variational
+Physics-Informed Neural Networks With Domain Decomposition) available at
+https://github.com/ehsankharazmi/hp-VPINNs/
+
+Author: Thivin Anandh D
+
 changelog: 30/Aug/2023
 26/Dec/2024 - Modified for Scirex
-known_issues: None
-dependencies: Requires scipy and numpy.
+
+Known issues: None
+
+Dependencies: scipy, numpy
 """
 
-import numpy as np
-
-# import the legendre polynomials
+# import the jacobi polynomials
 from scipy.special import jacobi
 
+import numpy as np
 from .basis_function_2d import BasisFunction2D
 
 
-class Basis2DQNLegendre(BasisFunction2D):
+class Basis2DQNJacobi(BasisFunction2D):
     """
-    This class defines the basis functions for a 2D Q1 element.
+    This class defines the basis functions for a 2D QN element.
     """
 
     def __init__(self, num_shape_functions: int):
@@ -69,6 +71,40 @@ class Basis2DQNLegendre(BasisFunction2D):
         x = np.array(x, dtype=np.float64)
         return jacobi(n, a, b)(x)
 
+    # Derivative of the Jacobi polynomials
+    def djacobi(self, n, a, b, x, k: int):
+        """
+        Evaluate the k-th derivative of the Jacobi polynomial of degree n with parameters a and b at the given points x.
+
+        :param n: Degree of the Jacobi polynomial.
+        :type n: int
+        :param a: First parameter of the Jacobi polynomial.
+        :type a: float
+        :param b: Second parameter of the Jacobi polynomial.
+        :type b: float
+        :param x: Points at which to evaluate the Jacobi polynomial.
+        :type x: array_like
+        :param k: Order of the derivative.
+        :type k: int
+
+        :return: Values of the k-th derivative of the Jacobi polynomial at the given points x.
+        :rtype: array_like
+
+        :raises ValueError: If the derivative order is not 1 or 2.
+
+        :raises ImportError: If the required module 'jacobi' is not found.
+
+        :raises Exception: If an unknown error occurs during the computation.
+        """
+        x = np.array(x, dtype=np.float64)
+        if k == 1:
+            return jacobi(n, a, b).deriv()(x)
+        if k == 2:
+            return jacobi(n, a, b).deriv(2)(x)
+        else:
+            print(f"Invalid derivative order {k} in {__name__}.")
+            raise ValueError("Derivative order should be 1 or 2.")
+
     ## Helper Function
     def test_fcnx(self, n_test, x):
         """
@@ -84,9 +120,7 @@ class Basis2DQNLegendre(BasisFunction2D):
         """
         test_total = []
         for n in range(1, n_test + 1):
-            test = self.jacobi_wrapper(n + 1, 0, 0, x) - self.jacobi_wrapper(
-                n - 1, 0, 0, x
-            )
+            test = self.jacobi_wrapper(n - 1, 0, 0, x)
             test_total.append(test)
         return np.asarray(test_total, np.float64)
 
@@ -94,19 +128,16 @@ class Basis2DQNLegendre(BasisFunction2D):
         """
         Compute the y-component of the test functions for a given number of test functions and y-coordinates.
 
-        :param n_test: Number of test functions.
-        :type n_test: int
-        :param y: y-coordinates at which to evaluate the test functions.
-        :type y: array_like
+        Parameters:
+            n_test (int): Number of test functions.
+            y (array_like): y-coordinates at which to evaluate the test functions.
 
-        :return: Values of the y-component of the test functions.
-        :rtype: array_like
+        Returns:
+            array_like: Values of the y-component of the test functions.
         """
         test_total = []
         for n in range(1, n_test + 1):
-            test = self.jacobi_wrapper(n + 1, 0, 0, y) - self.jacobi_wrapper(
-                n - 1, 0, 0, y
-            )
+            test = self.jacobi_wrapper(n - 1, 0, 0, y)
             test_total.append(test)
         return np.asarray(test_total, np.float64)
 
@@ -118,38 +149,33 @@ class Basis2DQNLegendre(BasisFunction2D):
         :type n_test: int
         :param x: x-coordinates at which to evaluate the test functions.
         :type x: array_like
-        :return: Values of the first and second x-derivatives of the test functions.
-        :rtype: tuple
+
+        :return: Values of the x-derivatives of the test functions.
+        :rtype: array_like
         """
         d1test_total = []
-        d2test_total = []
         for n in range(1, n_test + 1):
-            if n == 1:
-                d1test = ((n + 2) / 2) * self.jacobi_wrapper(n, 1, 1, x)
-                d2test = ((n + 2) * (n + 3) / (2 * 2)) * self.jacobi_wrapper(
-                    n - 1, 2, 2, x
-                )
-                d1test_total.append(d1test)
-                d2test_total.append(d2test)
-            elif n == 2:
-                d1test = ((n + 2) / 2) * self.jacobi_wrapper(n, 1, 1, x) - (
-                    (n) / 2
-                ) * self.jacobi_wrapper(n - 2, 1, 1, x)
-                d2test = ((n + 2) * (n + 3) / (2 * 2)) * self.jacobi_wrapper(
-                    n - 1, 2, 2, x
-                )
-                d1test_total.append(d1test)
-                d2test_total.append(d2test)
-            else:
-                d1test = ((n + 2) / 2) * self.jacobi_wrapper(n, 1, 1, x) - (
-                    (n) / 2
-                ) * self.jacobi_wrapper(n - 2, 1, 1, x)
-                d2test = ((n + 2) * (n + 3) / (2 * 2)) * self.jacobi_wrapper(
-                    n - 1, 2, 2, x
-                ) - ((n) * (n + 1) / (2 * 2)) * self.jacobi_wrapper(n - 3, 2, 2, x)
-                d1test_total.append(d1test)
-                d2test_total.append(d2test)
-        return np.asarray(d1test_total), np.asarray(d2test_total)
+            d1test = self.djacobi(n - 1, 0, 0, x, 1)
+            d1test_total.append(d1test)
+        return np.asarray(d1test_total)
+
+    def ddtest_fcn(self, n_test, x):
+        """
+        Compute the x-derivatives of the test functions for a given number of test functions and x-coordinates.
+
+        :param n_test: Number of test functions.
+        :type n_test: int
+        :param x: x-coordinates at which to evaluate the test functions.
+        :type x: array_like
+
+        :return: Values of the x-derivatives of the test functions.
+        :rtype: array_like
+        """
+        d1test_total = []
+        for n in range(1, n_test + 1):
+            d1test = self.djacobi(n - 1, 0, 0, x, 2)
+            d1test_total.append(d1test)
+        return np.asarray(d1test_total)
 
     def value(self, xi, eta):
         """
@@ -182,12 +208,11 @@ class Basis2DQNLegendre(BasisFunction2D):
         :type xi: array_like
         :param eta: y-coordinates at which to evaluate the basis functions.
         :type eta: array_like
-
         :return: Values of the x-derivatives of the basis functions.
         :rtype: array_like
         """
         num_shape_func_in_1d = int(np.sqrt(self.num_shape_functions))
-        grad_test_x = self.dtest_fcn(num_shape_func_in_1d, xi)[0]
+        grad_test_x = self.dtest_fcn(num_shape_func_in_1d, xi)
         test_y = self.test_fcny(num_shape_func_in_1d, eta)
         values = np.zeros((self.num_shape_functions, len(xi)), dtype=np.float64)
 
@@ -204,14 +229,16 @@ class Basis2DQNLegendre(BasisFunction2D):
 
         :param xi: x-coordinates at which to evaluate the basis functions.
         :type xi: array_like
+
         :param eta: y-coordinates at which to evaluate the basis functions.
         :type eta: array_like
+
         :return: Values of the y-derivatives of the basis functions.
         :rtype: array_like
         """
         num_shape_func_in_1d = int(np.sqrt(self.num_shape_functions))
         test_x = self.test_fcnx(num_shape_func_in_1d, xi)
-        grad_test_y = self.dtest_fcn(num_shape_func_in_1d, eta)[0]
+        grad_test_y = self.dtest_fcn(num_shape_func_in_1d, eta)
         values = np.zeros((self.num_shape_functions, len(xi)), dtype=np.float64)
 
         for i in range(num_shape_func_in_1d):
@@ -229,11 +256,12 @@ class Basis2DQNLegendre(BasisFunction2D):
         :type xi: array_like
         :param eta: y-coordinates at which to evaluate the basis functions.
         :type eta: array_like
+
         :return: Values of the xx-derivatives of the basis functions.
         :rtype: array_like
         """
         num_shape_func_in_1d = int(np.sqrt(self.num_shape_functions))
-        grad_grad_x = self.dtest_fcn(num_shape_func_in_1d, xi)[1]
+        grad_grad_x = self.ddtest_fcn(num_shape_func_in_1d, xi)
         test_y = self.test_fcny(num_shape_func_in_1d, eta)
         values = np.zeros((self.num_shape_functions, len(xi)), dtype=np.float64)
 
@@ -256,8 +284,8 @@ class Basis2DQNLegendre(BasisFunction2D):
         :rtype: array_like
         """
         num_shape_func_in_1d = int(np.sqrt(self.num_shape_functions))
-        grad_test_x = self.dtest_fcn(num_shape_func_in_1d, xi)[0]
-        grad_test_y = self.dtest_fcn(num_shape_func_in_1d, eta)[0]
+        grad_test_x = self.dtest_fcn(num_shape_func_in_1d, xi)
+        grad_test_y = self.dtest_fcn(num_shape_func_in_1d, eta)
         values = np.zeros((self.num_shape_functions, len(xi)), dtype=np.float64)
 
         for i in range(num_shape_func_in_1d):
@@ -281,7 +309,7 @@ class Basis2DQNLegendre(BasisFunction2D):
         """
         num_shape_func_in_1d = int(np.sqrt(self.num_shape_functions))
         test_x = self.test_fcnx(num_shape_func_in_1d, xi)
-        grad_grad_y = self.dtest_fcn(num_shape_func_in_1d, eta)[1]
+        grad_grad_y = self.ddtest_fcn(num_shape_func_in_1d, eta)
         values = np.zeros((self.num_shape_functions, len(xi)), dtype=np.float64)
 
         for i in range(num_shape_func_in_1d):

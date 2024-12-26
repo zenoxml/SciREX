@@ -22,8 +22,9 @@
 #
 # For any clarifications or special considerations,
 # please contact <scirex@zenteiq.ai>
+
 # Author: Thivin Anandh D
-#
+# URL: https://thivinanandh.github.io
 # The file `model_inverse_domain.py` hosts the Neural Network (NN) model and the training loop for variational Physics-Informed Neural Networks (PINNs).
 # This focuses on training variational PINNs for inverse problems where the inverse parameter is constant over the entire domain.
 # The focus is on the model architecture and the training loop, and not on the loss functions.
