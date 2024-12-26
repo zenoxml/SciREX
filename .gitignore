@@ -53,3 +53,19 @@ lib/
 lib64/
 include/
 share/
+etc/
+
+# egg-info
+*.egg-info
+*.egg-info/
+
+pyte
+
+# DS_Store
+.DS_Store
+
+#.benchmarks
+.benchmarks/
+
+# .pytest_cache
+.pytest_cache/
