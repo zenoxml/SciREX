@@ -1,0 +1,228 @@
+# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and AiREX Lab, 
+# Indian Institute of Science, Bangalore.
+# All rights reserved.
+#
+# This file is part of SciREX
+# (Scientific Research and Engineering eXcellence Platform),
+# developed jointly by Zenteiq Aitech Innovations and AiREX Lab
+# under the guidance of Prof. Sashikumaar Ganesan.
+#
+# SciREX is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# SciREX is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with SciREX. If not, see <https://www.gnu.org/licenses/>.
+#
+# For any clarifications or special considerations,
+# please contact <scirex@zenteiq.ai>
+
+[MASTER]
+# Python version to use for checks
+py-version=3.9
+
+# Add file patterns to skip
+ignore=CVS,.git,__pycache__,build,dist,*.pyc,*.pyo,*.pyd
+
+# Add directory patterns to skip
+ignore-paths=
+    docs/*,
+    tools/*,
+    build/*,
+    dist/*
+
+# Files or directories matching the regex patterns are skipped
+ignore-patterns=
+    ^\.#,
+    \.venv$,
+    test_.+\.py$
+
+# List of plugins to load
+load-plugins=
+    pylint.extensions.docparams,
+    pylint.extensions.docstyle,
+    pylint.extensions.typing,
+    pylint.extensions.code_style
+
+# Use multiple processes to speed up Pylint (use "0" for auto)
+jobs=0
+
+# Files to check
+recursive=yes
+
+# Allow loading modules/packages from top level directory
+init-hook='import sys; sys.path.append(".")'
+
+[MESSAGES CONTROL]
+# Disable specific warnings
+disable=
+    C0111,  # missing-docstring
+    C0103,  # invalid-name (for scientific computing variables like x, y, z)
+    W0621,  # redefined-outer-name (common in scientific computing)
+    R0914,  # too-many-locals (common in numerical methods)
+    R0913,  # too-many-arguments (common in scientific functions)
+    W0108,  # unnecessary-lambda (useful in scientific computing)
+    R0801,  # duplicate-code (similar equations/algorithms)
+    R0902,  # too-many-instance-attributes (common in scientific classes)
+    R0904,  # too-many-public-methods
+    W0511,  # fixme (allow TODOs in development)
+    C0301,  # line-too-long (handled by black)
+    ; C0330,  # wrong-hanging-indentation (handled by black)
+    ; C0326,  # bad-whitespace (handled by black)
+    W0212,  # protected-access (common in scientific computing)
+    E1101,  # no-member (issues with numpy/torch dynamic attributes)
+    R0915,  # too-many-statements (common in complex algorithms)
+
+# Enable specific warnings
+enable=
+    W0611,  # unused-import
+    W0612,  # unused-variable
+    W0613,  # unused-argument
+    W0703,  # broad-except
+    C0112,  # empty-docstring
+    C0115,  # missing-class-docstring
+    C0116,  # missing-function-docstring
+
+[REPORTS]
+# Set the output format
+output-format=text
+
+# Include a brief explanation of each error
+msg-template={path}:{line}: [{msg_id}({symbol}), {obj}] {msg}
+
+# Include a confidence score
+confidence=HIGH
+
+# Show statistics at the end
+evaluation=10.0 - ((float(5 * error + warning + refactor + convention) / statement) * 10)
+
+[FORMAT]
+# Maximum number of characters on a single line
+max-line-length=88  # Match black formatter
+
+# Maximum number of lines in a module
+max-module-lines=2000
+
+# Expected format of line ending
+expected-line-ending-format=LF
+
+[BASIC]
+# Good variable names
+good-names=i,j,k,ex,Run,_,x,y,z,t,dx,dy,dz,dt,n,m,f,g,h,u,v,w,p,q,r,s
+
+# Regular expression which should only match function or class names
+function-rgx=[a-z_][a-z0-9_]{2,50}$
+
+# Regular expression which should only match correct method names
+method-rgx=[a-z_][a-z0-9_]{2,50}$
+
+# Regular expression which should only match correct instance attribute names
+attr-rgx=[a-z_][a-z0-9_]{2,50}$
+
+# Regular expression which should only match correct variable names
+variable-rgx=[a-z_][a-z0-9_]{2,50}$
+
+[TYPECHECK]
+# List of module names for which member attributes should not be checked
+ignored-modules=
+    numpy,
+    torch,
+    scipy,
+    matplotlib,
+    tensorflow,
+    mpl_toolkits,
+    sympy
+
+# List of class names for which member attributes should not be checked
+ignored-classes=
+    numpy.ndarray,
+    torch.Tensor,
+    torch.nn.Module
+
+[MISCELLANEOUS]
+# List of note tags to take into consideration
+notes=FIXME,XXX,TODO
+
+[SIMILARITIES]
+# Minimum lines number of a similarity
+min-similarity-lines=10
+
+# Ignore comments when computing similarities
+ignore-comments=yes
+
+# Ignore docstrings when computing similarities
+ignore-docstrings=yes
+
+# Ignore imports when computing similarities
+ignore-imports=yes
+
+[VARIABLES]
+# A regular expression matching the name of dummy variables
+dummy-variables-rgx=_$|dummy|temp|tmp
+
+# List of additional names to consider as builtins
+additional-builtins=
+
+[CLASSES]
+# List of method names used to declare (i.e. assign) instance attributes
+defining-attr-methods=__init__,__new__,setUp
+
+# List of valid names for the first argument in a class method
+valid-classmethod-first-arg=cls
+
+# List of valid names for the first argument in a metaclass class method
+valid-metaclass-classmethod-first-arg=mcs
+
+[DESIGN]
+# Maximum number of arguments for function / method
+max-args=20
+
+# Maximum number of locals for function / method body
+max-locals=40
+
+# Maximum number of return / yield for function / method body
+max-returns=30
+
+# Maximum number of branch for function / method body
+max-branches=20
+
+# Maximum number of statements in function / method body
+max-statements=140
+
+# Maximum number of parents for a class
+max-parents=7
+
+# Maximum number of attributes for a class
+max-attributes=20
+
+# Minimum number of public methods for a class
+min-public-methods=0
+
+# Maximum number of public methods for a class
+max-public-methods=50
+
+[IMPORTS]
+# Allow wildcard imports from modules that define __all__
+allow-wildcard-with-all=yes
+
+# Force import order to recognize a module as part of the standard library
+known-standard-library=
+
+# Force import order to recognize a module as part of a third party library
+known-third-party=
+    numpy,
+    scipy,
+    torch,
+    matplotlib,
+    pandas,
+    sklearn
+
+[EXCEPTIONS]
+# Exceptions that will emit a warning when caught
+overgeneral-exceptions=Exception

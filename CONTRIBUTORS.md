@@ -146,7 +146,7 @@ SciREX is licensed under the Apache License, Version 2.0. You may obtain a copy 
 
 ## Citation
 
-If you use SciREX in your research, please cite: (To be Updated soon)
+If you use SciREX in your research, please cite: 
 
 ```bibtex
 @software{scirex2024,
