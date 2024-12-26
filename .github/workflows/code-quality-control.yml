@@ -24,7 +24,7 @@ jobs:
 
     - name: Run pylint
       run: |
-        pylint --rcfile=tools/lint/.pylintrc --fail-under=6.5 scirex/
+        pylint --rcfile=.pylintrc --fail-under=6.5 scirex/
     
     - name: Run black
       run: |
