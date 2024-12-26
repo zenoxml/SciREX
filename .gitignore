@@ -69,3 +69,5 @@ pyte
 
 # .pytest_cache
 .pytest_cache/
+
+pyvenv.cfg
