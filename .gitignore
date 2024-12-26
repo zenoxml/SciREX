@@ -71,3 +71,9 @@ pyte
 .pytest_cache/
 
 pyvenv.cfg
+
+# Any png files within the examples directory
+examples/**/*.png
+
+# remove all folders which has output in their name
+output/
