@@ -26,12 +26,12 @@ Chief AI Officer (CAiO), Zenteiq Aitech Innovations
 Professor, Indian Institute of Science, Bangalore  
 Convener, AiREX Lab
 
-### Technical Leads
-**Present**
+### Technical Leads (Present)
 **Thivin Anandh** & **Divij G** (Zenteiq Aitech Innovations), and **Dr. Naren Vohra** & **Lokesh M**  (AiREX Lab), 
-**Past**
- -
- 
+
+### Technical Leads (Past)
+-
+
 ## Core Teams
 
 ### 🏗️ Lead Development Teams
