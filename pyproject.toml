@@ -1,0 +1,125 @@
+[build-system]
+requires = ["hatchling>=1.18.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "scirex"
+version = "1.0.0"
+description = "Scientific Research and Engineering eXcellence Framework"
+readme = "README.md"
+requires-python = ">=3.9"
+license = "AGPL-3.0-only"
+keywords = [
+    "scientific-computing",
+    "machine-learning",
+    "physics-informed-neural-networks",
+    "differential-equations",
+    "scientific-visualization"
+]
+authors = [
+    { name = "Zenteiq Aitech Innovations Private Limited", email = "contact@zenteiq.ai" },
+    { name = "AiREX Lab, Indian Institute of Science", email = "contact@airexlab.org" }
+]
+maintainers = [
+    { name = "Zenteiq Aitech Innovations", email = "contact@scirex.org" }
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+dependencies = [
+    "numpy>=1.24.0",
+    "scipy>=1.10.0",
+    "torch>=2.0.0",
+    "matplotlib>=3.7.0",
+    "pandas>=2.0.0",
+    "scikit-learn>=1.2.0",
+    "plotly>=5.13.0",
+    "pyyaml>=6.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "isort>=5.12.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+    "sphinx>=6.0.0",
+    "sphinx-rtd-theme>=1.2.0",
+]
+research = [
+    "jupyter>=1.0.0",
+    "jupyterlab>=4.0.0",
+    "seaborn>=0.12.0",
+    "tensorboard>=2.12.0",
+    "wandb>=0.15.0",
+]
+cuda = [
+    "cupy>=12.0.0",
+    "torch>=2.0.0+cu118",
+]
+
+[project.urls]
+Homepage = "https://airexlab.cds.iisc.ac.in/scirex"
+Documentation = "https://airexlab.cds.iisc.ac.in/"
+Repository = "https://github.com/airex-lab/scirex"
+"Bug Tracker" = "https://github.com/airex-lab/scirex/issues"
+"Research Blog" = "https://airexlab.cds.iisc.ac.in/blog"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/scirex"]
+
+[tool.pytest.ini_options]
+minversion = "7.0"
+addopts = "-ra -q --cov=scirex"
+testpaths = [
+    "tests",
+]
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "if self.debug:",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "pass",
+    "raise ImportError",
+]
+ignore_errors = true
+omit = [
+    "tests/*",
+    "setup.py",
+]
