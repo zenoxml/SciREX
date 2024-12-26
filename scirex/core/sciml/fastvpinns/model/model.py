@@ -22,8 +22,9 @@
 #
 # For any clarifications or special considerations,
 # please contact <scirex@zenteiq.ai>
+
 # Author: Thivin Anandh D
-#
+# URL: https://thivinanandh.github.io
 # The file `model.py` hosts the Neural Network (NN) model and the training loop for variational Physics-Informed Neural Networks (PINNs).
 # The focus is on the model architecture and the training loop, and not on the loss functions.
 

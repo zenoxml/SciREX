@@ -22,7 +22,10 @@
 #
 # For any clarifications or special considerations,
 # please contact <scirex@zenteiq.ai>
+
 # Author: Thivin Anandh D
+# URL: https://thivinanandh.github.io
+# Loss functions for the CD2D inverse problem (Domain)
 
 import tensorflow as tf
 

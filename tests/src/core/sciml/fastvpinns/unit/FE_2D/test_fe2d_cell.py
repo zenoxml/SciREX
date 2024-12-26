@@ -21,6 +21,7 @@
 # please contact: contact@scirex.org
 
 # Author : Thivin Anandh. D
+# URL: https://thivinanandh.github.io
 # Added test cases for validating Quadrature routines by computing the areas.
 # The test cases are parametrized for different quadrature types and transformations.
 

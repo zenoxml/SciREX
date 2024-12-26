@@ -23,6 +23,7 @@
 file: basis_function_3d.py
 description: Abstract class for all basis functions 3D
 authors: Thivin Anandh D
+URL: https://thivinanandh.github.io
 changelog: 03/May/2024 - First version
 known_issues: None
 dependencies: None specified.

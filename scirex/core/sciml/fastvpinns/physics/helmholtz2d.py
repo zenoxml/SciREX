@@ -22,7 +22,11 @@
 #
 # For any clarifications or special considerations,
 # please contact <scirex@zenteiq.ai>
+
 # Author: Thivin Anandh D
+# URL: https://thivinanandh.github.io
+# Loss functions for the Helmholtz2D problem
+
 
 import tensorflow as tf
 

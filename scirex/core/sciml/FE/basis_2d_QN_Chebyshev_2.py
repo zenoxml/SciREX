@@ -27,7 +27,9 @@ description: This file contains the class Basis2DQNChebyshev2 which defines the 
              (hp-VPINNs: Variational Physics-Informed Neural Networks With Domain Decomposition)
              available at https://github.com/ehsankharazmi/hp-VPINNs/
 authors: Thivin Anandh D
-changelog: 30/Aug/2023 - Initial version
+URL: https://thivinanandh.github.io
+changelog: 30/Aug/2023
+26/Dec/2024 - Modified for Scirex
 known_issues: None
 """
 
