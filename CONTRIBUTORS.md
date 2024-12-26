@@ -27,8 +27,11 @@ Professor, Indian Institute of Science, Bangalore
 Convener, AiREX Lab
 
 ### Technical Leads
+**Present**
 **Thivin Anandh** & **Divij G** (Zenteiq Aitech Innovations), and **Dr. Naren Vohra** & **Lokesh M**  (AiREX Lab), 
-
+**Past**
+ -
+ 
 ## Core Teams
 
 ### 🏗️ Lead Development Teams
