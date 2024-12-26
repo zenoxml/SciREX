@@ -27,13 +27,20 @@ Professor, Indian Institute of Science, Bangalore
 Convener, AiREX Lab
 
 ### Technical Leads (Present)
-**Thivin Anandh** & **Divij G** (Zenteiq Aitech Innovations), and **Dr. Naren Vohra** & **Lokesh M**  (AiREX Lab), 
+- [**Thivin Anandh**](https://thivinanandh.github.io/) (Zenteiq Aitech Innovations)
+- [**Divij Ghose**](https://divijghose.github.io) (Zenteiq Aitech Innovations)
+- [**Dr. Naren Vohra**](https://nvohra0016.github.io/) (AiREX Lab)
+- **Lokesh M**  (AiREX Lab), 
 
 ### Technical Leads (Past)
 -
 
 ## Core Teams
-**Thivin Anandh**, **Divij G**, **Dr. Naren Vohra**, **Lokesh M**, [Other members need to be added!]
+- **Thivin Anandh**
+- **Divij G**
+- **Dr. Naren Vohra**
+- **Lokesh M**
+- **Dr. Sashikumaar Ganesan**
 
 ### 🏗️ Lead Development Teams
 - Scientific Computing Architecture
@@ -139,7 +146,7 @@ SciREX is licensed under the Apache License, Version 2.0. You may obtain a copy 
 
 ## Citation
 
-If you use SciREX in your research, please cite:
+If you use SciREX in your research, please cite: (To be Updated soon)
 
 ```bibtex
 @software{scirex2024,
