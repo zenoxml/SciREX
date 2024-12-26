@@ -1,0 +1,106 @@
+# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and AiREX Lab,
+# Indian Institute of Science, Bangalore.
+# All rights reserved.
+#
+# This file is part of SciREX
+# (Scientific Research and Engineering eXcellence Platform),
+# developed jointly by Zenteiq Aitech Innovations and AiREX Lab
+# under the guidance of Prof. Sashikumaar Ganesan.
+#
+# SciREX is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# SciREX is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with SciREX. If not, see <https://www.gnu.org/licenses/>.
+#
+# For any clarifications or special considerations,
+# please contact <scirex@zenteiq.ai>
+# Author: Thivin Anandh D
+
+import tensorflow as tf
+
+
+# PDE loss function for the CD2D inverse problem (Domain)
+@tf.function
+def pde_loss_cd2d_inverse_domain(
+    test_shape_val_mat,
+    test_grad_x_mat,
+    test_grad_y_mat,
+    pred_nn,
+    pred_grad_x_nn,
+    pred_grad_y_nn,
+    forcing_function,
+    bilinear_params,
+    inverse_params_list,
+):  # pragma: no cover
+    """
+    Calculates and returns the loss for the CD2D inverse problem (Domain)
+
+    :param test_shape_val_mat: The test shape value matrix.
+    :type test_shape_val_mat: tf.Tensor
+    :param test_grad_x_mat: The x-gradient of the test matrix.
+    :type test_grad_x_mat: tf.Tensor
+    :param test_grad_y_mat: The y-gradient of the test matrix.
+    :type test_grad_y_mat: tf.Tensor
+    :param pred_nn: The predicted neural network output.
+    :type pred_nn: tf.Tensor
+    :param pred_grad_x_nn: The x-gradient of the predicted neural network output.
+    :type pred_grad_x_nn: tf.Tensor
+    :param pred_grad_y_nn: The y-gradient of the predicted neural network output.
+    :type pred_grad_y_nn: tf.Tensor
+    :param forcing_function: The forcing function used in the PDE.
+    :type forcing_function: function
+    :param bilinear_params: The parameters for the bilinear form.
+    :type bilinear_params: list
+    :param inverse_params_list: The parameters for the inverse problem.
+    :type inverse_params_list: list
+
+    :return: The calculated loss.
+    :rtype: tf.Tensor
+    """
+
+    # The first values in the inverse_params_list is the number of inverse problems
+    diffusion_coeff_NN = inverse_params_list[0]
+
+    # ∫ε.du/dx. dv/dx dΩ
+    pde_diffusion_x = tf.transpose(
+        tf.linalg.matvec(test_grad_x_mat, pred_grad_x_nn * diffusion_coeff_NN)
+    )
+
+    # ∫ε.du/dy. dv/dy dΩ
+    pde_diffusion_y = tf.transpose(
+        tf.linalg.matvec(test_grad_y_mat, pred_grad_y_nn * diffusion_coeff_NN)
+    )
+
+    # eps * ∫ (du/dx. dv/dx + du/dy. dv/dy) dΩ
+    # Here our eps is a variable which is to be learned, Which is already premultiplied with the predicted gradient of the neural network
+    pde_diffusion = pde_diffusion_x + pde_diffusion_y
+
+    # ∫du/dx. v dΩ
+    conv_x = tf.transpose(tf.linalg.matvec(test_shape_val_mat, pred_grad_x_nn))
+
+    # # ∫du/dy. v dΩ
+    conv_y = tf.transpose(tf.linalg.matvec(test_shape_val_mat, pred_grad_y_nn))
+
+    # # b(x) * ∫du/dx. v dΩ + b(y) * ∫du/dy. v dΩ
+    conv = bilinear_params["b_x"] * conv_x + bilinear_params["b_y"] * conv_y
+
+    # reaction term
+    # ∫c.u.v dΩ
+    reaction = bilinear_params["c"] * tf.transpose(
+        tf.linalg.matvec(test_shape_val_mat, pred_nn)
+    )
+
+    residual_matrix = (pde_diffusion + conv + reaction) - forcing_function
+
+    # Perform Reduce mean along the axis 0
+    residual_cells = tf.reduce_mean(tf.square(residual_matrix), axis=0)
+
+    return residual_cells
