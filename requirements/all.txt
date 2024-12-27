@@ -20,7 +20,7 @@ optax
 tensorflow==2.13.0
 meshio==5.3.4
 pyDOE==0.3.8
-tqdm==4.66.2
+tqdm==4.66.3
 scipy
 gmsh
 pyyaml
