@@ -12,21 +12,7 @@ Author : Thivin Anandh [Linkedin](https://linkedin.com/in/thivinanandh)
 Paper: [FastVPINNs: Tensor-driven acceleration of VPINNs for complex
 geometries](https://arxiv.org/abs/2404.12063)
 
-## Installing FastVPINNs {#-installing-fastvpinns}
 
-To install FastVPINNs, you can use the following command.
-
-``` bash
-pip install fastvpinns
-```
-
-For more information, please visit the Documentation [here](https://cmgcds.github.io/fastvpinns/)
-
-``` python
-!pip install fastvpinns
-!apt-get update
-!apt-get install -y libglu1-mesa
-```
 
 ## hp-Variational Physics-Informed Neural Networks (hp-VPINNs) {#-hp-variational-physics-informed-neural-networks-hp-vpinns}
 

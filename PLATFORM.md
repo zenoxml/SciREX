@@ -77,7 +77,7 @@
     │       └── sciml
     │           └── fastvpinns
     │               └── unit
-    │                   └── FE_2D
+    │                   └── fe_2d
     │                       ├── test_fe2d_cell.py
     │                       ├── test_fespace2d.py
     │                       ├── test_quadrature.py
