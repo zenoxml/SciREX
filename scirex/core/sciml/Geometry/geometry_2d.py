@@ -19,14 +19,49 @@
 #
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
+
 """
-This module, `geometry_2d.py`, contains the `Geometry_2D` class which defines functions to read mesh from Gmsh and 
-generate internal mesh for 2D problems. It supports different types of meshes and mesh generation methods. 
-The class also allows for specifying the number of test points in the x and y directions, and the output folder for storing results.
+Two-Dimensional Geometry and Mesh Management Implementation.
 
-Author: Thivin Anandh D
+This module provides functionality for handling 2D geometries and meshes,
+including both internal mesh generation and external mesh reading capabilities.
+It supports quadrilateral elements and various mesh manipulation operations.
 
-Date: 21/Sep/2023
+Key functionalities:
+    - Internal mesh generation for rectangular domains
+    - External mesh reading from Gmsh format
+    - Boundary point generation and refinement
+    - VTK file generation and manipulation
+    - Mesh visualization and plotting
+    - Adaptive mesh refinement support
+
+The module provides:
+    - Flexible mesh generation options
+    - Boundary point sampling methods (uniform/LHS)
+    - Test point generation
+    - Solution visualization tools
+    - Mesh quality assessment
+
+Key classes:
+    - Geometry_2D: Main class for 2D geometry and mesh operations
+
+Dependencies:
+    - numpy: For numerical computations
+    - meshio: For mesh I/O operations
+    - gmsh: For mesh generation
+    - matplotlib: For visualization
+    - pyDOE: For Latin Hypercube Sampling
+
+Note:
+    Currently supports quadrilateral elements only. The implementation
+    focuses on both structured and unstructured mesh handling with
+    emphasis on finite element applications.
+
+Authors:
+    Thivin Anandh D (https://thivinanandh.github.io)
+
+Version:
+    27/Dec/2024: Initial version - Thivin Anandh D
 """
 
 from pathlib import Path
@@ -42,19 +77,50 @@ from .geometry import Geometry
 
 
 class Geometry_2D(Geometry):
-    """
-    Defines functions to read mesh from Gmsh and internal mesh for 2D problems.
+    """Implements 2D geometry and mesh handling capabilities.
 
-    :param mesh_type: The type of mesh to be used.
-    :type mesh_type: str
-    :param mesh_generation_method: The method used to generate the mesh.
-    :type mesh_generation_method: str
-    :param n_test_points_x: The number of test points in the x-direction.
-    :type n_test_points_x: int
-    :param n_test_points_y: The number of test points in the y-direction.
-    :type n_test_points_y: int
-    :param output_folder: The path to the output folder.
-    :type output_folder: str
+    This class provides comprehensive functionality for managing 2D meshes,
+    including both internal generation and external mesh reading. It supports
+    various mesh operations, boundary handling, and visualization capabilities.
+
+    Attributes:
+        mesh_type: Type of mesh elements ('quadrilateral')
+        mesh_generation_method: Method of mesh generation ('internal'/'external')
+        n_test_points_x: Number of test points in x-direction
+        n_test_points_y: Number of test points in y-direction
+        output_folder: Path for output files
+        is_optimized: Flag for mesh optimization
+        n_cells_x: Number of cells in x-direction (internal mesh)
+        n_cells_y: Number of cells in y-direction (internal mesh)
+        x_limits: Domain limits in x-direction
+        y_limits: Domain limits in y-direction
+        mesh_file_name: Name of external mesh file
+        mesh: MeshIO mesh object
+        bd_dict: Dictionary of boundary points
+        cell_points: Array of cell vertices
+        test_points: Array of test points
+
+    Example:
+        >>> geometry = Geometry_2D(
+        ...     mesh_type='quadrilateral',
+        ...     mesh_generation_method='internal',
+        ...     n_test_points_x=10,
+        ...     n_test_points_y=10,
+        ...     output_folder='./output'
+        ... )
+        >>> cells, bounds = geometry.generate_quad_mesh_internal(
+        ...     x_limits=(0,1),
+        ...     y_limits=(0,1),
+        ...     n_cells_x=5,
+        ...     n_cells_y=5,
+        ...     num_boundary_points=40
+        ... )
+
+    Note:
+        - Only supports quadrilateral elements
+        - Internal mesh generation is limited to rectangular domains
+        - External mesh reading requires Gmsh format
+        - Boundary points can be sampled uniformly or using LHS
     """
 
     def __init__(
@@ -68,16 +134,20 @@ class Geometry_2D(Geometry):
     ):
         """
         Constructor for Geometry_2D class.
-        :param mesh_type: The type of mesh to be used.
-        :type mesh_type: str
-        :param mesh_generation_method: The method used to generate the mesh.
-        :type mesh_generation_method: str
-        :param n_test_points_x: The number of test points in the x-direction.
-        :type n_test_points_x: int
-        :param n_test_points_y: The number of test points in the y-direction.
-        :type n_test_points_y: int
-        :param output_folder: The path to the output folder.
-        :type output_folder: str
+
+        Args:
+            mesh_type: Type of mesh elements ('quadrilateral')
+            mesh_generation_method: Method of mesh generation ('internal'/'external')
+            n_test_points_x: Number of test points in x-direction
+            n_test_points_y: Number of test points in y-direction
+            output_folder: Path for output files
+            is_optimized: Flag for mesh optimization
+
+        Raises:
+            ValueError: If mesh type or generation method is invalid
+
+        Returns:
+            None
         """
         # Call the super class constructor
         super().__init__(mesh_type, mesh_generation_method)
@@ -125,16 +195,18 @@ class Geometry_2D(Geometry):
         """
         Reads mesh from a Gmsh .msh file and extracts cell information.
 
-        :param mesh_file: The path to the mesh file.
-        :type mesh_file: str
-        :param boundary_point_refinement_level: The number of boundary points to be generated.
-        :type boundary_point_refinement_level: int
-        :param bd_sampling_method: The method used to generate the boundary points.
-        :type bd_sampling_method: str
-        :param refinement_level: The number of times the mesh should be refined.
-        :type refinement_level: int
-        :return: The cell points and the dictionary of boundary points.
-        :rtype: tuple
+        Args:
+            mesh_file: Path to the mesh file
+            boundary_point_refinement_level: Level of boundary point refinement
+            bd_sampling_method: Method for boundary point sampling ('uniform'/'lhs')
+            refinement_level: Level of mesh refinement
+
+        Returns:
+            cell_points: Array of cell vertices
+            bd_dict: Dictionary of boundary points
+
+        Raises:
+            ValueError: If mesh file format is invalid
         """
 
         self.mesh_file_name = mesh_file
@@ -259,18 +331,16 @@ class Geometry_2D(Geometry):
         """
         Generate and save a quadrilateral mesh with physical curves.
 
-        :param x_limits: The lower and upper limits in the x-direction (x_min, x_max).
-        :type x_limits: tuple
-        :param y_limits: The lower and upper limits in the y-direction (y_min, y_max).
-        :type y_limits: tuple
-        :param n_cells_x: The number of cells in the x-direction.
-        :type n_cells_x: int
-        :param n_cells_y: The number of cells in the y-direction.
-        :type n_cells_y: int
-        :param num_boundary_points: The number of boundary points.
-        :type num_boundary_points: int
-        :return: The cell points and the dictionary of boundary points.
-        :rtype: tuple[numpy.ndarray, dict]
+        Args:
+            x_limits: Domain limits in x-direction
+            y_limits: Domain limits in y-direction
+            n_cells_x: Number of cells in x-direction
+            n_cells_y: Number of cells in y-direction
+            num_boundary_points: Number of boundary points
+
+        Returns:
+            cell_points: Array of cell vertices
+            bd_dict: Dictionary of boundary points
         """
 
         self.n_cells_x = n_cells_x
@@ -327,14 +397,13 @@ class Geometry_2D(Geometry):
             This function returns the boundary points between the start and end points
             using lhs sampling.
 
-            :param start: The starting point of the boundary.
-            :type start: float
-            :param end: The ending point of the boundary.
-            :type end: float
-            :param num_pts: The number of points to generate.
-            :type num_pts: int
-            :return: The boundary points as a 1D numpy array.
-            :rtype: numpy.ndarray
+            Args:
+                start: Start point of the boundary
+                end: End point of the boundary
+                num_pts: Number of boundary points to be generated
+
+            Returns:
+                bd_pts: Array of boundary points
             """
             # generate the boundary points using lhs as a np.float64 array
             bd_pts = lhs(1, num_pts).astype(np.float64)
@@ -384,7 +453,11 @@ class Geometry_2D(Geometry):
         """
         Generates a VTK from Mesh file (External) or using gmsh (for Internal).
 
-        :return: None
+        Args:
+            None
+
+        Returns:
+            None
         """
 
         if self.mesh_generation_method == "internal":
@@ -460,11 +533,11 @@ class Geometry_2D(Geometry):
         """
         This function is used to extract the test points from the given mesh
 
-        Parameters:
-        None
+        Args:
+            None
 
         Returns:
-        test_points (numpy.ndarray): The test points for the given domain
+            test_points (np.ndarray): Array of test points
         """
 
         if self.mesh_generation_method == "internal":
@@ -487,19 +560,20 @@ class Geometry_2D(Geometry):
         points = mesh.points
         return points[:, 0:2]  # return only first two columns
 
-    def write_vtk(self, solution, output_path, filename, data_names):
+    def write_vtk(
+        self, solution: np.ndarray, output_path: str, filename: str, data_names: list
+    ):
         """
         Writes the data to a VTK file.
 
-        :param solution: The solution vector.
-        :type solution: numpy.ndarray
-        :param output_path: The path to the output folder.
-        :type output_path: str
-        :param filename: The name of the output file.
-        :type filename: str
-        :param data_names: The list of data names in the VTK file to be written as scalars.
-        :type data_names: list
-        :return: None
+        Args:
+            solution: The solution data to be written
+            output_path: The output path for the VTK file
+            filename: The name of the output file
+            data_names: List of data names
+
+        Returns:
+            None
         """
         # read the existing vtk into file
         if self.mesh_generation_method == "internal":
@@ -547,15 +621,14 @@ class Geometry_2D(Geometry):
         """
         Plots the residuals in each cell of the mesh.
 
-        :param cells_list: The list of cells.
-        :type cells_list: list
-        :param area_averaged_cell_loss_list: The list of area averaged cell residual (or the normal residual).
-        :type area_averaged_cell_loss_list: list
-        :param epoch: The epoch number (for file name).
-        :type epoch: int
-        :param filename: The name of the output file, defaults to "cell_residual".
-        :type filename: str, optional
-        :return: None
+        Args:
+            cells_list: List of cell vertices
+            area_averaged_cell_loss_list: List of area averaged cell loss
+            epoch: The epoch number
+            filename: The output filename
+
+        Returns:
+            None
         """
 
         plt.figure(figsize=(6.4, 4.8), dpi=300)
