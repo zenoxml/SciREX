@@ -22,7 +22,31 @@
 #
 # For any clarifications or special considerations,
 # please contact <scirex@zenteiq.ai>
-# Author: Thivin Anandh D, Divij Ghose, Sashikumaar Ganesan
+
+"""Neural Network Model Implementation for FastVPINNs with Hard Constraints.
+
+This module implements a custom neural network model designed specifically for
+FastVPINNs methodology, incorporating hard constraint enforcement. It extends
+TensorFlow's Keras Model class to provide efficient PDE residual computation
+and gradient-based training.
+
+The implementation supports:
+    - Flexible neural network architecture definition
+    - Hard constraint enforcement through constraint functions
+    - Adaptive learning rate scheduling
+    - Attention mechanisms (optional)
+    - Efficient tensor operations for PDE residuals
+    - Custom gradient computation and training loops
+
+Key classes:
+    - DenseModel_Hard: Main neural network model with hard constraints
+
+Authors:
+    - Thivin Anandh (https://thivinanandh.github.io/)
+
+Versions:
+    - 27-Dec-2024 (Version 0.1): Initial Implementation
+"""
 
 
 import copy
@@ -34,43 +58,40 @@ from tensorflow.keras import initializers
 
 # Custom Model
 class DenseModel_Hard(tf.keras.Model):
-    """The DenseModel_Hard class is a custom model class that hosts the neural network model.
+    """Neural network model with hard constraint enforcement for FastVPINNs.
 
-    The class inherits from the tf.keras.Model class and is used
-    to define the neural network model architecture and the training loop for FastVPINNs.
+    This class implements a custom neural network architecture specifically
+    designed for solving PDEs using the FastVPINNs methodology. It supports
+    hard constraint enforcement through custom constraint functions and
+    efficient tensor operations for PDE residual computation.
 
-    :param layer_dims: List of integers representing the number of neurons in each layer
-    :type layer_dims: list
-    :param learning_rate_dict: Dictionary containing the learning rate parameters
-    :type learning_rate_dict: dict
-    :param params_dict: Dictionary containing the parameters for the model
-    :type params_dict: dict
-    :param loss_function: Loss function for the model
-    :type loss_function: function
-    :param input_tensors_list: List of input tensors for the model
-    :type input_tensors_list: list
-    :param orig_factor_matrices: List of original factor matrices
-    :type orig_factor_matrices: list
-    :param force_function_list: List of force functions
-    :type force_function_list: list
-    :param tensor_dtype: Tensor data type
-    :type tensor_dtype: tf.DType
-    :param use_attention: Flag to use attention layer
-    :type use_attention: bool
-    :param activation: Activation function for the model
-    :type activation: str
-    :param hessian: Flag to compute hessian
-    :type hessian: bool
+    Attributes:
+        layer_dims: List of neurons per layer including input/output
+        learning_rate_dict: Learning rate configuration containing:
+            - initial_learning_rate: Starting learning rate
+            - use_lr_scheduler: Whether to use learning rate decay
+            - decay_steps: Steps between learning rate updates
+            - decay_rate: Factor for learning rate decay
+            - staircase: Whether to use staircase decay
+        params_dict: Model parameters including:
+            - n_cells: Number of cells in the domain
+        loss_function: Custom loss function for PDE residuals
+        tensor_dtype: TensorFlow data type for computations
+        use_attention: Whether to use attention mechanism
+        activation: Activation function for hidden layers
+        hessian: Whether to compute second derivatives
+        optimizer: Adam optimizer with optional learning rate schedule
+        layer_list: List of neural network layers
 
-    Methods
-    -------
-    call(inputs)
-        This method is used to define the forward pass of the model.
-    get_config()
-        This method is used to get the configuration of the model.
-    train_step(beta=10, bilinear_params_dict=None)
-        This method is used to define the training step of the model.
-
+    Example:
+        >>> model = DenseModel_Hard(
+        ...     layer_dims=[2, 64, 64, 1],
+        ...     learning_rate_dict={'initial_learning_rate': 0.001},
+        ...     params_dict={'n_cells': 100},
+        ...     loss_function=custom_loss,
+        ...     tensor_dtype=tf.float32
+        ... )
+        >>> history = model.fit(x_train, epochs=1000)
     """
 
     def __init__(
@@ -222,13 +243,14 @@ class DenseModel_Hard(tf.keras.Model):
     # def build(self, input_shape):
     #     super(DenseModel, self).build(input_shape)
 
-    def call(self, inputs):
+    def call(self, inputs) -> tf.Tensor:
         """This method is used to define the forward pass of the model.
 
-        :param inputs: Input tensor
-        :type inputs: tf.Tensor
-        :return: Output tensor from the model
-        :rtype: tf.Tensor
+        Args:
+            inputs: Input tensor to the model
+
+        Returns:
+            Output tensor from the model
         """
         x = inputs
 
@@ -244,11 +266,14 @@ class DenseModel_Hard(tf.keras.Model):
 
         return x
 
-    def get_config(self):
+    def get_config(self) -> dict:
         """This method is used to get the configuration of the model.
 
-        :return: Configuration of the model
-        :rtype: dict
+        Args:
+            None
+
+        Returns:
+            Configuration dictionary of the model
         """
         # Get the base configuration
         base_config = super().get_config()
@@ -273,13 +298,17 @@ class DenseModel_Hard(tf.keras.Model):
         return base_config
 
     @tf.function
-    def train_step(self, beta=10, bilinear_params_dict=None):  # pragma: no cover
+    def train_step(
+        self, beta=10, bilinear_params_dict=None
+    ) -> dict:  # pragma: no cover
         """This method is used to define the training step of the mode.
 
-        :param bilinear_params_dict: Dictionary containing the bilinear parameters
-        :type bilinear_params_dict: dict
-        :return: Dictionary containing the loss values
-        :rtype: dict
+        Args:
+            beta: The penalty parameter for the hard constraints
+            bilinear_params_dict: The bilinear parameters dictionary
+
+        Returns:
+            Dictionary containing the loss values
         """
 
         with tf.GradientTape(persistent=True) as tape:
