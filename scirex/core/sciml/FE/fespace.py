@@ -23,7 +23,7 @@
     Module: fespace.py
 
     This module provides abstract base functionality for finite element space 
-    implementations, defining core interfaces for FE computations and analysis.
+    implementations, defining core interfaces for fe computations and analysis.
 
     Classes:
         Fespace: Abstract base class for finite element space implementations
@@ -53,7 +53,7 @@
     Notes:
         This module serves as the foundation for specific finite element
         space implementations. It defines the minimum interface required
-        for FE computations while allowing flexibility in concrete
+        for fe computations while allowing flexibility in concrete
         implementations.
 """
 

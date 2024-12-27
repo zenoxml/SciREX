@@ -52,8 +52,8 @@ References:
         DOI: https://arxiv.org/abs/2404.12063
 """
 
-from ...FE.fespace2d import *
-from ...Geometry.geometry_2d import *
+from ...fe.fespace2d import *
+from ...geometry.geometry_2d import *
 import tensorflow as tf
 
 from .datahandler import DataHandler

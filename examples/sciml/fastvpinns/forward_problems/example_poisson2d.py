@@ -8,8 +8,8 @@ import time
 from tqdm import tqdm
 
 # Fastvpinns Modules
-from scirex.core.sciml.Geometry.geometry_2d import Geometry_2D
-from scirex.core.sciml.FE.fespace2d import Fespace2D
+from scirex.core.sciml.geometry.geometry_2d import Geometry_2D
+from scirex.core.sciml.fe.fespace2d import Fespace2D
 from scirex.core.sciml.fastvpinns.data.datahandler2d import DataHandler2D
 
 i_mesh_type = "quadrilateral" # "quadrilateral"
@@ -26,7 +26,7 @@ i_output_path = "output/poisson_2d" # Output path
 i_n_test_points_x = 100 # Number of test points in the x direction
 i_n_test_points_y = 100 # Number of test points in the y direction
 
-# FE Variables
+# fe Variables
 i_fe_order = 6 # Order of the finite element space
 i_fe_type = "legendre"
 i_quad_order = 10 # 10 points in 1D, so 100 points in 2D for one cell
@@ -154,7 +154,7 @@ cells, boundary_points = domain.generate_quad_mesh_internal(
     num_boundary_points=i_n_boundary_points,
 )
 
-# FE Space
+# fe Space
 fespace = Fespace2D(
         mesh=domain.mesh,
         cells=cells,

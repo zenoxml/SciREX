@@ -207,11 +207,11 @@ class BasisFunction2D:
 
 
 # ---------------- Legendre -------------------------- #
-from .basis_2d_QN_Legendre import *  # Normal Legendre from Jacobi -> J(n) = J(n-1) - J(n+1)
-from .basis_2d_QN_Legendre_Special import *  # L(n) = L(n-1) - L(n+1)
+from .basis_2d_qn_legendre import *  # Normal Legendre from Jacobi -> J(n) = J(n-1) - J(n+1)
+from .basis_2d_qn_legendre_special import *  # L(n) = L(n-1) - L(n+1)
 
 # ---------------- Jacobi -------------------------- #
-from .basis_2d_QN_Jacobi import *  # Normal Jacobi
+from .basis_2d_qn_jacobi import *  # Normal Jacobi
 
 # ---------------- Chebyshev -------------------------- #
-from .basis_2d_QN_Chebyshev_2 import *  # Normal Chebyshev
+from .basis_2d_qn_chebyshev_2 import *  # Normal Chebyshev

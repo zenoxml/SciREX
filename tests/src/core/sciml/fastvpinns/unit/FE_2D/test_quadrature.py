@@ -25,8 +25,8 @@ import numpy as np
 import tensorflow as tf
 import shutil
 from pathlib import Path
-from scirex.core.sciml.Geometry.geometry_2d import Geometry_2D
-from scirex.core.sciml.FE.fespace2d import Fespace2D
+from scirex.core.sciml.geometry.geometry_2d import Geometry_2D
+from scirex.core.sciml.fe.fespace2d import Fespace2D
 from scirex.core.sciml.fastvpinns.data.datahandler2d import DataHandler2D
 import pytest
 

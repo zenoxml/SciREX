@@ -20,7 +20,7 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 """
-    Module: basis_2d_QN_Chebyshev_2.py
+    Module: basis_2d_qn_chebyshev_2.py
 
     This module implements a specialized basis function class for 2D finite elements using Chebyshev polynomials. 
     It provides functionality for computing basis functions and their derivatives in two dimensions, primarily used 

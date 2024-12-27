@@ -65,7 +65,7 @@ from .basis_function_2d import *
 from .quadratureformulas_quad2d import *
 
 
-# import base class for FE transformation
+# import base class for fe transformation
 from .fe_transformation_2d import *
 
 import numpy as np
@@ -151,14 +151,14 @@ class FE2DSetupMain:
             BasisFunction2D: The basis function object for the given configuration.
 
         Raises:
-            ValueError: If the FE order is invalid or the cell type is invalid.
+            ValueError: If the fe order is invalid or the cell type is invalid.
         """
-        # check for FE order lower bound and higher bound
+        # check for fe order lower bound and higher bound
         if self.fe_order <= 1 or self.fe_order >= 1e3:
             print(
-                f"Invalid FE order {self.fe_order} in {self.__class__.__name__} from {__name__}."
+                f"Invalid fe order {self.fe_order} in {self.__class__.__name__} from {__name__}."
             )
-            raise ValueError("FE order should be greater than 1 and less than 1e4.")
+            raise ValueError("fe order should be greater than 1 and less than 1e4.")
 
         if self.cell_type == "quadrilateral":
             self.n_nodes = 4
@@ -182,10 +182,10 @@ class FE2DSetupMain:
 
             else:
                 print(
-                    f"Invalid FE order {self.fe_order} in {self.__class__.__name__} from {__name__}."
+                    f"Invalid fe order {self.fe_order} in {self.__class__.__name__} from {__name__}."
                 )
                 raise ValueError(
-                    'FE order should be one of the : "legendre" , "jacobi", "legendre_special", "chebyshev_2", "jacobi_plain"'
+                    'fe order should be one of the : "legendre" , "jacobi", "legendre_special", "chebyshev_2", "jacobi_plain"'
                 )
 
         print(
@@ -229,18 +229,18 @@ class FE2DSetupMain:
         self, fe_transformation_type: str, cell_coordinates: np.ndarray
     ) -> FETransforamtion2D:
         """
-        Assigns the FE transformation based on the cell type.
+        Assigns the fe transformation based on the cell type.
 
         Args:
-            fe_transformation_type (str): Type of FE transformation ('affine', 'bilinear')
+            fe_transformation_type (str): Type of fe transformation ('affine', 'bilinear')
             cell_coordinates (np.ndarray): The cell coordinates
 
         Returns:
-            FETransforamtion2D: The FE transformation object for the given configuration.
+            FETransforamtion2D: The fe transformation object for the given configuration.
 
         Raises:
             ValueError: If the cell type is invalid
-            ValueError: If the FE transformation type is invalid
+            ValueError: If the fe transformation type is invalid
         """
         if self.cell_type == "quadrilateral":
             if fe_transformation_type == "affine":
@@ -249,7 +249,7 @@ class FE2DSetupMain:
                 return QuadBilinear(cell_coordinates)
             else:
                 raise ValueError(
-                    f"Invalid FE transformation type {fe_transformation_type} in {self.__class__.__name__} from {__name__}."
+                    f"Invalid fe transformation type {fe_transformation_type} in {self.__class__.__name__} from {__name__}."
                 )
 
         else:
