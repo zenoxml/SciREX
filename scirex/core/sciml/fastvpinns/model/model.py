@@ -52,6 +52,9 @@ from tensorflow.keras import layers
 from tensorflow.keras import initializers
 import copy
 
+# import tensorflow wrapper
+from ....dl.tensorflow_wrapper import TensorflowDense
+
 
 # Custom Model
 class DenseModel(tf.keras.Model):
@@ -239,22 +242,22 @@ class DenseModel(tf.keras.Model):
         # Build dense layers based on the input list
         for dim in range(len(self.layer_dims) - 2):
             self.layer_list.append(
-                layers.Dense(
-                    self.layer_dims[dim + 1],
+                TensorflowDense.create_layer(
+                    units=self.layer_dims[dim],
                     activation=self.activation,
-                    kernel_initializer="glorot_uniform",
                     dtype=self.tensor_dtype,
+                    kernel_initializer="glorot_uniform",
                     bias_initializer="zeros",
                 )
             )
 
         # Add a output layer with no activation
         self.layer_list.append(
-            layers.Dense(
-                self.layer_dims[-1],
+            TensorflowDense.create_layer(
+                units=self.layer_dims[-1],
                 activation=None,
-                kernel_initializer="glorot_uniform",
                 dtype=self.tensor_dtype,
+                kernel_initializer="glorot_uniform",
                 bias_initializer="zeros",
             )
         )
