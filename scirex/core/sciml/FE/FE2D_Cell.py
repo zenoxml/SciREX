@@ -57,6 +57,9 @@
 """
 
 # Importing the required libraries
+import numpy as np
+
+# Importing the required libraries
 from .basis_function_2d import *
 
 # import Quadrature rules

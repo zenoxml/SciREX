@@ -683,7 +683,7 @@ class Fespace2D(Fespace):
 
         return self.fe_cell[cell_index].forcing_at_quad.copy()
 
-    def get_sensor_data(self, exact_solution: function, num_points: int):
+    def get_sensor_data(self, exact_solution, num_points: int):
         """
         Obtain sensor data (actual solution) at random points.
 

@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and 
+# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and
 # AiREX Lab, Indian Institute of Science, Bangalore.
 # All rights reserved.
 #
@@ -31,7 +31,9 @@ from scirex.core.sciml.fastvpinns.data.datahandler2d import DataHandler2D
 import pytest
 
 
-@pytest.mark.parametrize("coord", [[0, 1, 0, 1], [-1, 1, -1, 1], [-3, 4, -2, 5], [2, 5, -2, 3]])
+@pytest.mark.parametrize(
+    "coord", [[0, 1, 0, 1], [-1, 1, -1, 1], [-3, 4, -2, 5], [2, 5, -2, 3]]
+)
 @pytest.mark.parametrize("quad_type", ["gauss-legendre", "gauss-jacobi"])
 @pytest.mark.parametrize("transformation", ["affine", "bilinear"])
 def test_quadrature_uniform(coord, quad_type, transformation):
@@ -97,7 +99,15 @@ def test_quadrature_uniform(coord, quad_type, transformation):
     print(f"Test passed for quad_type: {quad_type}, transformation: {transformation}")
 
     # Clean up objects
-    del domain, cells, boundary_points, bound_function_dict, bound_condition_dict, rhs, fespace
+    del (
+        domain,
+        cells,
+        boundary_points,
+        bound_function_dict,
+        bound_condition_dict,
+        rhs,
+        fespace,
+    )
 
     # remove the temp directory
     shutil.rmtree("tests/dump")
@@ -156,7 +166,15 @@ def test_quadrature_complex(quad_type, transformation):
     print(f"Test passed for quad_type: {quad_type}, transformation: {transformation}")
 
     # Clean up objects
-    del domain, cells, boundary_points, bound_function_dict, bound_condition_dict, rhs, fespace
+    del (
+        domain,
+        cells,
+        boundary_points,
+        bound_function_dict,
+        bound_condition_dict,
+        rhs,
+        fespace,
+    )
 
     # remove the temp directory
     shutil.rmtree("tests/dump")

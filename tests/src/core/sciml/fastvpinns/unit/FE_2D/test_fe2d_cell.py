@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and 
+# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and
 # AiREX Lab, Indian Institute of Science, Bangalore.
 # All rights reserved.
 #
@@ -41,7 +41,9 @@ def test_invalid_fe_type():
     It should raise a ValueError.
     """
     with pytest.raises(ValueError):
-        fe2d_setup_main = FE2DSetupMain("quadrilateral", 2, "invalid_fe_type", 1, "quad_type")
+        fe2d_setup_main = FE2DSetupMain(
+            "quadrilateral", 2, "invalid_fe_type", 1, "quad_type"
+        )
         fe2d_setup_main.assign_basis_function()
 
 
@@ -63,7 +65,9 @@ def test_invalid_cell_type():
     It should raise a ValueError.
     """
     with pytest.raises(ValueError):
-        fe2d_setup_main = FE2DSetupMain("invalid_cell_type", 2, "legendre", 4, "gauss_jacobi")
+        fe2d_setup_main = FE2DSetupMain(
+            "invalid_cell_type", 2, "legendre", 4, "gauss_jacobi"
+        )
         fe2d_setup_main.assign_quadrature_rules()
 
 
@@ -92,7 +96,9 @@ def test_invalid_quad_type():
     It should raise a ValueError.
     """
     with pytest.raises(ValueError):
-        fe2d_setup_main = FE2DSetupMain("quadrilateral", 3, "legendre", 4, "invalid_quad_type")
+        fe2d_setup_main = FE2DSetupMain(
+            "quadrilateral", 3, "legendre", 4, "invalid_quad_type"
+        )
         fe2d_setup_main.assign_quadrature_rules()
 
 
@@ -103,7 +109,9 @@ def test_invalid_quad_order(quad_order):
     It should raise a ValueError.
     """
     with pytest.raises(ValueError):
-        fe2d_setup_main = FE2DSetupMain("quadrilateral", 4, "legendre", quad_order, "gauss-jacobi")
+        fe2d_setup_main = FE2DSetupMain(
+            "quadrilateral", 4, "legendre", quad_order, "gauss-jacobi"
+        )
         fe2d_setup_main.assign_quadrature_rules()
 
 
@@ -113,7 +121,9 @@ def test_valid_quad_order(quad_order):
     Test case to validate the behavior when a valid quadrature order is provided.
     It should return a non-None value.
     """
-    fe2d_setup_main = FE2DSetupMain("quadrilateral", 3, "legendre", quad_order, "gauss-jacobi")
+    fe2d_setup_main = FE2DSetupMain(
+        "quadrilateral", 3, "legendre", quad_order, "gauss-jacobi"
+    )
     assert fe2d_setup_main.assign_quadrature_rules() is not None
 
 
@@ -123,7 +133,9 @@ def test_valid_fe_order(fe_order):
     Test case to validate the behavior when a valid finite element order is provided.
     It should return a non-None value.
     """
-    fe2d_setup_main = FE2DSetupMain("quadrilateral", fe_order, "legendre", 1, "gauss-jacobi")
+    fe2d_setup_main = FE2DSetupMain(
+        "quadrilateral", fe_order, "legendre", 1, "gauss-jacobi"
+    )
     assert fe2d_setup_main.assign_basis_function() is not None
 
 
@@ -134,7 +146,9 @@ def test_invalid_fe_order(fe_order):
     It should raise a ValueError.
     """
     with pytest.raises(ValueError):
-        fe2d_setup_main = FE2DSetupMain("quadrilateral", fe_order, "legendre", 2, "gauss-jacobi")
+        fe2d_setup_main = FE2DSetupMain(
+            "quadrilateral", fe_order, "legendre", 2, "gauss-jacobi"
+        )
         fe2d_setup_main.assign_basis_function()
 
 
@@ -159,7 +173,9 @@ def test_invalid_transformation_type():
     It should raise a ValueError.
     """
     with pytest.raises(ValueError):
-        fe2d_setup_main = FE2DSetupMain("quadrilateral", 3, "legendre", 3, "gauss-jacobi")
+        fe2d_setup_main = FE2DSetupMain(
+            "quadrilateral", 3, "legendre", 3, "gauss-jacobi"
+        )
         fe2d_setup_main.assign_fe_transformation(
             "invalid_transformation", [[0, 0], [1, 0], [1, 1], [0, 1]]
         )

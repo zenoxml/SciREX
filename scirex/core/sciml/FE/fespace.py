@@ -312,7 +312,7 @@ class Fespace:
         """
 
     @abstractmethod
-    def get_sensor_data(self, exact_solution: function, num_points: int) -> np.ndarray:
+    def get_sensor_data(self, exact_solution, num_points: int) -> np.ndarray:
         """
         Obtain sensor data (actual solution) at random points.
 
@@ -331,7 +331,7 @@ class Fespace:
 
     @abstractmethod
     def get_sensor_data_external(
-        self, exact_sol: function, num_points: int, file_name: str
+        self, exact_sol, num_points: int, file_name: str
     ) -> np.ndarray:
         """
         This method is used to obtain the sensor data from an external file when there is no analytical solution available.

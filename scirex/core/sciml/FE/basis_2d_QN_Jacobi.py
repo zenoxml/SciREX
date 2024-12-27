@@ -127,9 +127,7 @@ class Basis2DQNJacobi(BasisFunction2D):
         return jacobi(n, a, b)(x)
 
     # Derivative of the Jacobi polynomials
-    def jacobi_wrapper(
-        self, n: int, a: int, b: int, x: np.ndarray, k: int
-    ) -> np.ndarray:
+    def djacobi(self, n: int, a: int, b: int, x: np.ndarray, k: int) -> np.ndarray:
         """
         Evaluate the k-th derivative of the Jacobi polynomial of degree n with parameters a and b at the given points x.
 

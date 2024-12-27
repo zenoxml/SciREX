@@ -50,6 +50,7 @@
 """
 
 from abc import abstractmethod
+import numpy as np
 
 
 class BasisFunction3D:  # pragma: no cover

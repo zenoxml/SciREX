@@ -68,6 +68,8 @@ from .quadratureformulas_quad2d import *
 # import base class for FE transformation
 from .fe_transformation_2d import *
 
+import numpy as np
+
 
 class FE2DSetupMain:
     """
