@@ -54,7 +54,7 @@ def pde_loss_cd2d_inverse_domain(
     pred_grad_y_nn: tf.Tensor,
     forcing_function: callable,
     bilinear_params: dict,
-    inverse_params_list: list
+    inverse_params_list: list,
 ) -> tf.Tensor:
     """Computes domain-based loss for 2D convection-diffusion inverse problem.
 

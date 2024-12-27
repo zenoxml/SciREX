@@ -46,6 +46,7 @@ References:
 
 import tensorflow as tf
 
+
 def pde_loss_poisson_inverse(
     test_shape_val_mat: tf.Tensor,
     test_grad_x_mat: tf.Tensor,
@@ -55,7 +56,7 @@ def pde_loss_poisson_inverse(
     pred_grad_y_nn: tf.Tensor,
     forcing_function: callable,
     bilinear_params: dict,
-    inverse_params_dict: dict
+    inverse_params_dict: dict,
 ) -> tf.Tensor:
     """Calculates residual for Poisson inverse problem with constant coefficient.
 

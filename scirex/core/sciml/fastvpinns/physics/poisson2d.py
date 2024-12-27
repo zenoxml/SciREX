@@ -45,6 +45,7 @@ References:
 
 import tensorflow as tf
 
+
 def pde_loss_poisson(
     test_shape_val_mat: tf.Tensor,
     test_grad_x_mat: tf.Tensor,
@@ -53,7 +54,7 @@ def pde_loss_poisson(
     pred_grad_x_nn: tf.Tensor,
     pred_grad_y_nn: tf.Tensor,
     forcing_function: callable,
-    bilinear_params: dict
+    bilinear_params: dict,
 ) -> tf.Tensor:
     """Calculates residual for 2D Poisson equation.
 

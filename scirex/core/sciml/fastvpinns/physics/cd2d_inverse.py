@@ -44,6 +44,7 @@ References:
 
 import tensorflow as tf
 
+
 def pde_loss_cd2d(
     test_shape_val_mat: tf.Tensor,
     test_grad_x_mat: tf.Tensor,
@@ -53,11 +54,11 @@ def pde_loss_cd2d(
     pred_grad_y_nn: tf.Tensor,
     forcing_function: callable,
     bilinear_params_dict: dict,
-    inverse_param_dict: dict
+    inverse_param_dict: dict,
 ) -> tf.Tensor:
     """Calculates residual for convection-diffusion inverse problem with constant coefficients.
 
-    Implements the FastVPINNs methodology for computing variational residuals in 2D 
+    Implements the FastVPINNs methodology for computing variational residuals in 2D
     convection-diffusion inverse problems. Handles constant coefficient identification
     through efficient tensor operations.
 

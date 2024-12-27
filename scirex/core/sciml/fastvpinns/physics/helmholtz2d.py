@@ -45,6 +45,7 @@ References:
 
 import tensorflow as tf
 
+
 def pde_loss_helmholtz(
     test_shape_val_mat: tf.Tensor,
     test_grad_x_mat: tf.Tensor,
@@ -53,7 +54,7 @@ def pde_loss_helmholtz(
     pred_grad_x_nn: tf.Tensor,
     pred_grad_y_nn: tf.Tensor,
     forcing_function: callable,
-    bilinear_params: dict
+    bilinear_params: dict,
 ) -> tf.Tensor:
     """Calculates residual for 2D Helmholtz equation.
 
@@ -86,7 +87,7 @@ def pde_loss_helmholtz(
         The weak form includes:
         - Diffusion term: -∫∇u·∇v dΩ
         - Wave term: ∫k²uv dΩ
-        Implementation handles high wave numbers through efficient 
+        Implementation handles high wave numbers through efficient
         tensor operations.
     """
     #  ∫ (du/dx. dv/dx ) dΩ
