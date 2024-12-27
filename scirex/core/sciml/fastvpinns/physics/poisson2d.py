@@ -24,36 +24,69 @@
 # please contact <scirex@zenteiq.ai>
 
 
-"""
-This file `poisson2d.py` is implementation of our efficient tensor-based loss calculation for poisson equation
+"""Implementation of Tensor-Based Loss Calculation for 2D Poisson Equation.
 
-Author: Thivin Anandh D
-URL: https://thivinanandh.github.io
+This module implements an efficient tensor-based approach for calculating
+variational residuals in 2D Poisson problems. The implementation leverages
+TensorFlow's tensor operations for fast computation of weak form terms.
 
-Date: 21/Sep/2023
 
-History: Initial implementation
+Key functions:
+    - pde_loss_poisson: Computes domain-based PDE loss
 
-Refer: https://arxiv.org/abs/2404.12063
+Note:
+    The implementation is based on the FastVPINNs methodology [1] for efficient
+    computation of Variational residuals of PDEs.
+
+References:
+    [1] FastVPINNs: Tensor-Driven Acceleration of VPINNs for Complex Geometries
+        DOI: https://arxiv.org/abs/2404.12063
 """
 
 import tensorflow as tf
 
 
-# PDE loss function for the poisson problem
-@tf.function
 def pde_loss_poisson(
-    test_shape_val_mat,
-    test_grad_x_mat,
-    test_grad_y_mat,
-    pred_nn,
-    pred_grad_x_nn,
-    pred_grad_y_nn,
-    forcing_function,
-    bilinear_params,
-):  # pragma: no cover
-    """
-    This method returns the loss for the Poisson Problem of the PDE
+    test_shape_val_mat: tf.Tensor,
+    test_grad_x_mat: tf.Tensor,
+    test_grad_y_mat: tf.Tensor,
+    pred_nn: tf.Tensor,
+    pred_grad_x_nn: tf.Tensor,
+    pred_grad_y_nn: tf.Tensor,
+    forcing_function: callable,
+    bilinear_params: dict,
+) -> tf.Tensor:
+    """Calculates residual for 2D Poisson equation.
+
+    Implements the FastVPINNs methodology for computing variational residuals
+    in 2D Poisson equation (-∇·(ε∇u) = f) using efficient tensor operations.
+
+    Args:
+        test_shape_val_mat: Test function values at quadrature points
+            Shape: (n_elements, n_test_functions, n_quad_points)
+        test_grad_x_mat: Test function x-derivatives at quadrature points
+            Shape: (n_elements, n_test_functions, n_quad_points)
+        test_grad_y_mat: Test function y-derivatives at quadrature points
+            Shape: (n_elements, n_test_functions, n_quad_points)
+        pred_nn: Neural network solution at quadrature points
+            Shape: (n_elements, n_quad_points)
+        pred_grad_x_nn: x-derivative of NN solution at quadrature points
+            Shape: (n_elements, n_quad_points)
+        pred_grad_y_nn: y-derivative of NN solution at quadrature points
+            Shape: (n_elements, n_quad_points)
+        forcing_function: Right-hand side forcing term
+        bilinear_params: Dictionary containing:
+            eps: Diffusion coefficient
+
+    Returns:
+        Cell-wise residuals averaged over test functions
+            Shape: (n_cells,)
+
+    Note:
+        The weak form includes:
+        - Diffusion term: ∫ε∇u·∇v dΩ
+        The implementation uses efficient tensor operations for
+        computing the variational residual.
     """
     # ∫du/dx. dv/dx dΩ
     pde_diffusion_x = tf.transpose(tf.linalg.matvec(test_grad_x_mat, pred_grad_x_nn))

@@ -20,14 +20,14 @@
 │   └── core
 │       ├── __init__.py
 │       └── sciml
-│           ├── FE
+│           ├── fe
 │           │   ├── FE2D_Cell.py
 │           │   ├── README.md
 │           │   ├── __init__.py
-│           │   ├── basis_2d_QN_Chebyshev_2.py
-│           │   ├── basis_2d_QN_Jacobi.py
-│           │   ├── basis_2d_QN_Legendre.py
-│           │   ├── basis_2d_QN_Legendre_Special.py
+│           │   ├── basis_2d_qn_chebyshev_2.py
+│           │   ├── basis_2d_qn_jacobi.py
+│           │   ├── basis_2d_qn_legendre.py
+│           │   ├── basis_2d_qn_legendre_special.py
 │           │   ├── basis_function_2d.py
 │           │   ├── basis_function_3d.py
 │           │   ├── fe2d_setup_main.py
@@ -77,7 +77,7 @@
     │       └── sciml
     │           └── fastvpinns
     │               └── unit
-    │                   └── FE_2D
+    │                   └── fe_2d
     │                       ├── test_fe2d_cell.py
     │                       ├── test_fespace2d.py
     │                       ├── test_quadrature.py

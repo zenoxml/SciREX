@@ -20,55 +20,93 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 """
-The file `datahandler.py` is an abstract class for Datahandler.
+Abstract Base Interface for Neural Network Data Handling in PDEs.
 
-Author : Thivin Anandh D
-URL: https://thivinanandh.github.io
+This module provides the base interface for handling data transformations
+and tensor conversions required for neural network-based PDE solvers. It
+defines the essential structure for managing various data types involved
+in finite element computations.
 
-Date : 03/May/2024
+The implementation supports:
+    - Finite element data processing
+    - Dirichlet boundary condition handling
+    - Test point generation and management
+    - Bilinear parameter tensor conversion
+    - Sensor data generation and handling
+    - Parameter management for inverse problems
 
-History : 03/May/2024 - Initial implementation with basic data handling
+Key classes:
+    - DataHandler: Abstract base class for PDE data handling
+
+Note:
+    All implementations assume double precision (float64) numpy arrays
+    as inputs, with optional conversion to float32 for computational
+    efficiency.
+
+Dependencies:
+    - abc: For abstract base class functionality
+    - tensorflow: For tensor operations
+    - numpy: For numerical arrays
+
+Authors:
+    - Thivin Anandh (https://thivinanandh.github.io/)
+
+Versions:
+    - 27-Dec-2024 (Version 0.1): Initial Implementation
 """
 
 from abc import abstractmethod
 
 
 class DataHandler:
-    """
-    This class is to handle data for 2D problems, convert them into tensors using custom tf functions.
-    It is responsible for all type conversions and data handling.
+    """Abstract base class for PDE solution data handling and tensor conversion.
 
-    .. note:: All inputs to these functions are generally numpy arrays with dtype np.float64.
-              So we can either maintain the same dtype or convert them to tf.float32 ( for faster computation ).
+    This class defines the interface for managing and converting various data types
+    required in neural network-based PDE solvers. It handles transformation between
+    numpy arrays and tensorflow tensors, and manages different aspects of the finite
+    element computation data.
 
-    :param fespace: The FESpace2D object.
-    :type fespace: FESpace2D
-    :param domain: The Domain2D object.
-    :type domain: Domain2D
-    :param shape_val_mat_list: List of shape function values for each cell.
-    :type shape_val_mat_list: list
-    :param grad_x_mat_list: List of shape function derivatives with respect to x for each cell.
-    :type grad_x_mat_list: list
-    :param grad_y_mat_list: List of shape function derivatives with respect to y for each cell.
-    :type grad_y_mat_list: list
-    :param x_pde_list: List of actual coordinates of the quadrature points for each cell.
-    :type x_pde_list: list
-    :param forcing_function_list: List of forcing function values for each cell.
-    :type forcing_function_list: list
-    :param dtype: The tensorflow dtype to be used for all the tensors.
-    :type dtype: tf.DType
+    Attributes:
+        fespace: Finite element space object containing mesh and element info
+        domain: Domain object containing geometric and boundary information
+        dtype: TensorFlow data type for tensor conversion (float32/float64)
+
+    Example:
+        >>> class MyDataHandler(DataHandler):
+        ...     def __init__(self, fespace, domain):
+        ...         super().__init__(fespace, domain, tf.float32)
+        ...
+        ...     def get_dirichlet_input(self):
+        ...         # Implementation
+        ...         pass
+        ...
+        ...     def get_test_points(self):
+        ...         # Implementation
+        ...         pass
+
+    Note:
+        Concrete implementations must override:
+        - get_dirichlet_input()
+        - get_test_points()
+        - get_bilinear_params_dict_as_tensors()
+        - get_sensor_data()
+        - get_inverse_params()
+
+        All methods should handle type conversion between numpy arrays
+        and tensorflow tensors consistently.
     """
 
     def __init__(self, fespace, domain, dtype):
         """
         Constructor for the DataHandler class
 
-        :param fespace: The FESpace2D object.
-        :type fespace: FESpace2D
-        :param domain: The Domain object.
-        :type domain: Domain2D
-        :param dtype: The tensorflow dtype to be used for all the tensors.
-        :type dtype: tf.DType
+        Args:
+            fespace (FESpace2D): The FESpace2D object.
+            domain (Domain2D): The Domain2D object.
+            dtype (tf.DType): The tensorflow dtype to be used for all the tensors.
+
+        Returns:
+            None
         """
 
         self.fespace = fespace
@@ -76,13 +114,15 @@ class DataHandler:
         self.dtype = dtype
 
     @abstractmethod
-    def get_dirichlet_input(self):
+    def get_dirichlet_input(self) -> tuple:
         """
         This function will return the input for the Dirichlet boundary data
 
-        :return:
-            - input_dirichlet (tf.Tensor): The input for the Dirichlet boundary data
-            - actual_dirichlet (tf.Tensor): The actual Dirichlet boundary data
+        Args:
+            None
+
+        Returns:
+            The Dirichlet boundary data as a tuple of tensors
         """
 
     @abstractmethod
@@ -90,19 +130,23 @@ class DataHandler:
         """
         Get the test points for the given domain.
 
-        :return: The test points for the given domain.
-        :rtype: tf.Tensor
+        Args:
+            None
+
+        Returns:
+            The test points as a tensor
         """
 
     @abstractmethod
-    def get_bilinear_params_dict_as_tensors(self, function):
+    def get_bilinear_params_dict_as_tensors(self, function) -> dict:
         """
         Accepts a function from example file and converts all the values into tensors of the given dtype
 
-        :param function: The function from the example file which returns the bilinear parameters dictionary
-        :type function: function
-        :return: The bilinear parameters dictionary with all the values converted to tensors
-        :rtype: dict
+        Args:
+            function (function): The function from the example file which returns the bilinear parameters dictionary
+
+        Returns:
+            The bilinear parameters dictionary with all the values converted to tensors
         """
 
     @abstractmethod
@@ -110,16 +154,14 @@ class DataHandler:
         """
         Accepts a function from example file and converts all the values into tensors of the given dtype
 
-        :param exact_sol: The function from the example file which returns the exact solution
-        :type exact_sol: function
-        :param num_sensor_points: The number of sensor points to be generated
-        :type num_sensor_points: int
-        :param mesh_type: The type of mesh to be used for sensor data generation
-        :type mesh_type: str
-        :param file_name: The name of the file to be used for external mesh generation, defaults to None
-        :type file_name: str, optional
-        :return: The sensor points and sensor values as tensors
-        :rtype: tuple[tf.Tensor, tf.Tensor]
+        Args:
+            exact_sol (function): The exact solution function
+            num_sensor_points (int): The number of sensor points
+            mesh_type (str): The type of mesh
+            file_name (str): The file name to save the sensor data
+
+        Returns:
+            The sensor data as a tensor
         """
 
     @abstractmethod
@@ -127,8 +169,9 @@ class DataHandler:
         """
         Accepts a function from example file and converts all the values into tensors of the given dtype
 
-        :param inverse_params_dict_function: The function from the example file which returns the inverse parameters dictionary
-        :type inverse_params_dict_function: function
-        :return: The inverse parameters dictionary with all the values converted to tensors
-        :rtype: dict
+        Args:
+            inverse_params_dict_function (function): The function from the example file which returns the inverse parameters dictionary
+
+        Returns:
+            The inverse parameters dictionary with all the values converted to tensors
         """

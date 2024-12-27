@@ -23,12 +23,35 @@
 # For any clarifications or special considerations,
 # please contact <scirex@zenteiq.ai>
 
-# Author: Thivin Anandh D
-# URL: https://thivinanandh.github.io
-# The file `model_inverse_domain.py` hosts the Neural Network (NN) model and the training loop for variational Physics-Informed Neural Networks (PINNs).
-# This focuses on training variational PINNs for inverse problems where the inverse parameter is constant over the entire domain.
-# The focus is on the model architecture and the training loop, and not on the loss functions.
+"""Neural Network Model Implementation for Domain-Based PDE Inverse Problems.
 
+This module implements the neural network architecture and training loop for
+solving inverse problems in PDEs where parameters are constant over the domain.
+The implementation follows the FastVPINNs methodology for efficient training
+of variational physics-informed neural networks.
+
+The implementation supports:
+    - Domain-based parameter identification
+    - Sensor data incorporation
+    - Dirichlet boundary conditions
+    - Custom loss function composition
+    - Adaptive learning rate scheduling
+    - Attention mechanisms (optional)
+    - Efficient tensor operations
+
+Key classes:
+    - DenseModel_Inverse_Domain: Neural network model for inverse problems
+
+Note:
+    The implementation is based on the FastVPINNs methodology [1] for efficient
+    computation of variational residuals in inverse problems.
+
+Authors:
+    - Thivin Anandh (https://thivinanandh.github.io/)
+
+Versions:
+    - 27-Dec-2024 (Version 0.1): Initial Implementation
+"""
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras import initializers
@@ -37,39 +60,83 @@ import copy
 
 # Custom Model
 class DenseModel_Inverse_Domain(tf.keras.Model):
-    """
-    A subclass of tf.keras.Model that defines a dense model for an inverse problem.
+    """Neural network model for domain-based PDE inverse problems.
 
-    :param list layer_dims: The dimensions of the layers in the model.
-    :param dict learning_rate_dict: A dictionary containing the learning rates.
-    :param dict params_dict: A dictionary containing the parameters of the model.
-    :param function loss_function: The loss function to be used in the model.
-    :param list input_tensors_list: A list of input tensors.
-    :param list orig_factor_matrices: The original factor matrices.
-    :param list force_function_list: A list of force functions.
-    :param list sensor_list: A list of sensors for the inverse problem.
-    :param dict inverse_params_dict: A dictionary containing the parameters for the inverse problem.
-    :param tf.DType tensor_dtype: The data type of the tensors.
-    :param bool use_attention: Whether to use attention mechanism in the model. Defaults to False.
-    :param str activation: The activation function to be used in the model. Defaults to 'tanh'.
-    :param bool hessian: Whether to use Hessian in the model. Defaults to False.
+    This class implements a custom neural network architecture specifically
+    designed for solving inverse problems in PDEs where parameters are
+    constant over the domain. It incorporates sensor data and boundary
+    conditions in the training process.
+
+    Attributes:
+        layer_dims: List of neurons per layer including input/output
+        learning_rate_dict: Learning rate configuration containing:
+            - initial_learning_rate: Starting learning rate
+            - use_lr_scheduler: Whether to use learning rate decay
+            - decay_steps: Steps between learning rate updates
+            - decay_rate: Factor for learning rate decay
+        params_dict: Model parameters including:
+            - n_cells: Number of cells in the domain
+        loss_function: Custom loss function for PDE residuals
+        tensor_dtype: TensorFlow data type for computations
+        sensor_list: List containing:
+            - sensor_points: Coordinates of sensor locations
+            - sensor_values: Measured values at sensors
+        use_attention: Whether to use attention mechanism
+        activation: Activation function for hidden layers
+        optimizer: Adam optimizer with optional learning rate schedule
+
+    Example:
+        >>> model = DenseModel_Inverse_Domain(
+        ...     layer_dims=[2, 64, 64, 2],  # Last layer has 2 outputs
+        ...     learning_rate_dict={'initial_learning_rate': 0.001},
+        ...     params_dict={'n_cells': 100},
+        ...     loss_function=custom_loss,
+        ...     tensor_dtype=tf.float32,
+        ...     sensor_list=[sensor_points, sensor_values]
+        ... )
+        >>> history = model.fit(x_train, epochs=1000)
+
+    Note:
+        The model outputs include both the solution and the identified
+        parameter. The training process balances PDE residuals, boundary
+        conditions, and sensor data matching.
     """
 
     def __init__(
         self,
-        layer_dims,
-        learning_rate_dict,
-        params_dict,
+        layer_dims: list,
+        learning_rate_dict: dict,
+        params_dict: dict,
         loss_function,
-        input_tensors_list,
-        orig_factor_matrices,
-        force_function_list,
-        sensor_list,  # for inverse problem
+        input_tensors_list: list,
+        orig_factor_matrices: list,
+        force_function_list: list,
+        sensor_list: list,  # for inverse problem
         tensor_dtype,
-        use_attention=False,
-        activation="tanh",
-        hessian=False,
+        use_attention: bool = False,
+        activation: str = "tanh",
+        hessian: bool = False,
     ):
+        """
+        Constructor for the DenseModel_Inverse_Domain class.
+
+        Args:
+            layer_dims (list): List of neurons per layer including input/output
+            learning_rate_dict (dict): Learning rate configuration
+            params_dict (dict): Model parameters
+            loss_function: Custom loss function for PDE residuals
+            input_tensors_list (list): List of input tensors
+            orig_factor_matrices (list): List of factor matrices
+            force_function_list (list): List of force functions
+            sensor_list (list): List of sensor data
+            tensor_dtype: TensorFlow data type for computations
+            use_attention (bool): Whether to use attention mechanism
+            activation (str): Activation function for hidden layers
+            hessian (bool): Whether to compute Hessian
+
+        Returns:
+            None
+        """
         super(DenseModel_Inverse_Domain, self).__init__()
         self.layer_dims = layer_dims
         self.use_attention = use_attention
@@ -209,14 +276,15 @@ class DenseModel_Inverse_Domain(tf.keras.Model):
         # print the summary of the model
         self.summary()
 
-    def call(self, inputs):
+    def call(self, inputs) -> tf.Tensor:
         """
         The call method for the model.
 
-        :param inputs: The input tensor for the model.
-        :type inputs: tf.Tensor
-        :return: The output tensor of the model.
-        :rtype: tf.Tensor
+        Args:
+            inputs: The input tensor to the model.
+
+        Returns:
+            tf.Tensor: The output tensor from the model.
         """
         x = inputs
 
@@ -230,7 +298,7 @@ class DenseModel_Inverse_Domain(tf.keras.Model):
 
         return x
 
-    def get_config(self):
+    def get_config(self) -> dict:
         """
         Get the configuration of the model.
 
@@ -261,16 +329,18 @@ class DenseModel_Inverse_Domain(tf.keras.Model):
         return base_config
 
     @tf.function
-    def train_step(self, beta=10, bilinear_params_dict=None):  # pragma: no cover
+    def train_step(
+        self, beta=10, bilinear_params_dict=None
+    ) -> dict:  # pragma: no cover
         """
         The train step method for the model.
 
-        :param beta: The beta parameter for the training step, defaults to 10.
-        :type beta: int, optional
-        :param bilinear_params_dict: The dictionary containing the bilinear parameters, defaults to None.
-        :type bilinear_params_dict: dict, optional
-        :return: The output of the training step.
-        :rtype: varies based on implementation
+        Args:
+            beta: The weight for the boundary loss
+            bilinear_params_dict: The bilinear parameters dictionary
+
+        Returns:
+            dict: The loss values for the model.
         """
 
         with tf.GradientTape(persistent=True) as tape:

@@ -30,9 +30,9 @@ import pytest
 import numpy as np
 import tensorflow as tf
 
-from scirex.core.sciml.FE.fespace2d import Fespace2D
-from scirex.core.sciml.FE.fe2d_setup_main import FE2DSetupMain
-from scirex.core.sciml.FE.quadratureformulas_quad2d import Quadratureformulas_Quad2D
+from scirex.core.sciml.fe.fespace2d import Fespace2D
+from scirex.core.sciml.fe.fe2d_setup_main import FE2DSetupMain
+from scirex.core.sciml.fe.quadratureformulas_quad2d import Quadratureformulas_Quad2D
 
 import pytest
 

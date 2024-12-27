@@ -12,21 +12,7 @@ Author : Thivin Anandh [Linkedin](https://linkedin.com/in/thivinanandh)
 Paper: [FastVPINNs: Tensor-driven acceleration of VPINNs for complex
 geometries](https://arxiv.org/abs/2404.12063)
 
-## Installing FastVPINNs {#-installing-fastvpinns}
 
-To install FastVPINNs, you can use the following command.
-
-``` bash
-pip install fastvpinns
-```
-
-For more information, please visit the Documentation [here](https://cmgcds.github.io/fastvpinns/)
-
-``` python
-!pip install fastvpinns
-!apt-get update
-!apt-get install -y libglu1-mesa
-```
 
 ## hp-Variational Physics-Informed Neural Networks (hp-VPINNs) {#-hp-variational-physics-informed-neural-networks-hp-vpinns}
 
@@ -92,8 +78,8 @@ import time
 from tqdm import tqdm
 
 # Fastvpinns Modules
-from fastvpinns.Geometry.geometry_2d import Geometry_2D
-from fastvpinns.FE.fespace2d import Fespace2D
+from fastvpinns.geometry.geometry_2d import Geometry_2D
+from fastvpinns.fe.fespace2d import Fespace2D
 from fastvpinns.data.datahandler2d import DataHandler2D
 ```
 
@@ -151,7 +137,7 @@ i_output_path = "output/poisson_2d" # Output path
 i_n_test_points_x = 100 # Number of test points in the x direction
 i_n_test_points_y = 100 # Number of test points in the y direction
 
-# FE Variables
+# fe Variables
 i_fe_order = 6 # Order of the finite element space
 i_fe_type = "legendre"
 i_quad_order = 10 # 10 points in 1D, so 100 points in 2D for one cell
@@ -323,7 +309,7 @@ cells, boundary_points = domain.generate_quad_mesh_internal(
 )
 ```
 
-### Generate FE Space
+### Generate fe Space
 
 This module is the core module of the library. It generates the finite
 element space and sets up the basis functions and quadrature rules. It

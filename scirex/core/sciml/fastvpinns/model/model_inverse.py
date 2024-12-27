@@ -23,13 +23,31 @@
 # For any clarifications or special considerations,
 # please contact <scirex@zenteiq.ai>
 
-# Author: Thivin Anandh D
-# URL: https://thivinanandh.github.io
-# The file `model_inverse.py` hosts the Neural Network (NN) model and the training loop for variational Physics-Informed Neural Networks (PINNs).
-# This focuses on training variational PINNs for inverse problems where the inverse parameter is constant on the domain.
-# The focus is on the model architecture and the training loop, and not on the loss functions.
+"""Neural Network Model Implementation for PDE Parameter Inverse Problems.
 
+This module implements the neural network architecture and training loop for
+solving inverse problems in PDEs using variational physics-informed neural 
+networks (VPINNs). It focuses on identifying constant parameters while solving
+the underlying PDE simultaneously.
 
+The implementation supports:
+    - Parameter identification
+    - Sensor data incorporation
+    - Dirichlet boundary conditions
+    - Custom loss function composition
+    - Adaptive learning rate scheduling
+    - Attention mechanisms (optional)
+    - Efficient tensor operations
+
+Key classes:
+    - DenseModel_Inverse: Neural network model for inverse problems
+
+Authors:
+    - Thivin Anandh (https://thivinanandh.github.io/)
+
+Versions:
+    - 27-Dec-2024 (Version 0.1): Initial Implementation
+"""
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras import initializers
@@ -38,35 +56,62 @@ import copy
 
 # Custom Model
 class DenseModel_Inverse(tf.keras.Model):
-    """
-    A subclass of tf.keras.Model that defines a dense model for an inverse problem.
+    """Neural network model for PDE parameter identification.
 
-    :param list layer_dims: The dimensions of the layers in the model.
-    :param dict learning_rate_dict: A dictionary containing the learning rates.
-    :param dict params_dict: A dictionary containing the parameters of the model.
-    :param function loss_function: The loss function to be used in the model.
-    :param list input_tensors_list: A list of input tensors.
-    :param list orig_factor_matrices: The original factor matrices.
-    :param list force_function_list: A list of force functions.
-    :param list sensor_list: A list of sensors for the inverse problem.
-    :param dict inverse_params_dict: A dictionary containing the parameters for the inverse problem.
-    :param tf.DType tensor_dtype: The data type of the tensors.
-    :param bool use_attention: Whether to use attention mechanism in the model. Defaults to False.
-    :param str activation: The activation function to be used in the model. Defaults to 'tanh'.
-    :param bool hessian: Whether to use Hessian in the model. Defaults to False.
+    This class implements a custom neural network architecture for solving
+    inverse problems in PDEs. It combines parameter identification with
+    PDE solution while incorporating sensor data and boundary conditions.
+
+    Attributes:
+        layer_dims: List of neurons per layer including input/output
+        learning_rate_dict: Learning rate configuration containing:
+            - initial_learning_rate: Starting learning rate
+            - use_lr_scheduler: Whether to use learning rate decay
+            - decay_steps: Steps between learning rate updates
+            - decay_rate: Factor for learning rate decay
+            - staircase: Whether to use staircase decay
+        params_dict: Model parameters including:
+            - n_cells: Number of cells in the domain
+        loss_function: Custom loss function for PDE residuals
+        tensor_dtype: TensorFlow data type for computations
+        sensor_list: List containing:
+            [0]: sensor_points - Coordinates of sensor locations
+            [1]: sensor_values - Measured values at sensors
+        inverse_params_dict: Dictionary of parameters to be identified,
+            converted to trainable variables
+        use_attention: Whether to use attention mechanism
+        activation: Activation function for hidden layers
+        optimizer: Adam optimizer with optional learning rate schedule
+
+    Example:
+        >>> model = DenseModel_Inverse(
+        ...     layer_dims=[2, 64, 64, 1],
+        ...     learning_rate_dict={'initial_learning_rate': 0.001},
+        ...     params_dict={'n_cells': 100},
+        ...     loss_function=custom_loss,
+        ...     tensor_dtype=tf.float32,
+        ...     sensor_list=[sensor_points, sensor_values],
+        ...     inverse_params_dict={'eps': 0.1}
+        ... )
+        >>> history = model.fit(x_train, epochs=1000)
+
+    Note:
+        The training process balances PDE residuals, boundary conditions,
+        sensor data matching, and parameter identification through a
+        weighted loss function.
     """
 
     def __init__(
         self,
-        layer_dims,
-        learning_rate_dict,
-        params_dict,
+        layer_dims: list,
+        learning_rate_dict: dict,
+        params_dict: dict,
         loss_function,
-        input_tensors_list,
-        orig_factor_matrices,
-        force_function_list,
-        sensor_list,  # for inverse problem
-        inverse_params_dict,  # for inverse problem
+        input_tensors_list: list,
+        orig_factor_matrices: list,
+        force_function_list: list,
+        sensor_list: list,  # for inverse problem
+        inverse_params_dict: dict,  # for inverse problem
         tensor_dtype,
         use_attention=False,
         activation="tanh",
@@ -272,7 +317,19 @@ class DenseModel_Inverse(tf.keras.Model):
         return base_config
 
     @tf.function
-    def train_step(self, beta=10, bilinear_params_dict=None):  # pragma: no cover
+    def train_step(
+        self, beta=10, bilinear_params_dict=None
+    ) -> dict:  # pragma: no cover
+        """
+        Performs a single training step on the model.
+
+        Args:
+            beta: The weight for the boundary condition loss.
+            bilinear_params_dict: The bilinear parameters dictionary.
+
+        Returns:
+            dict: A dictionary containing the loss values.
+        """
 
         with tf.GradientTape(persistent=True) as tape:
             # Predict the values for dirichlet boundary conditions

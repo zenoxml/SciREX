@@ -65,7 +65,7 @@ Version Info:
 
 import numpy as np
 import meshio
-from .FE2D_Cell import FE2D_Cell
+from .fe2d_cell import FE2D_Cell
 
 # from rich.progress import Progress, TextColumn, BarColumn, TimeElapsedColumn
 from tqdm import tqdm
@@ -212,9 +212,9 @@ class Fespace2D(Fespace):
             "Number of Quadrature Points",
             "Number of Dirichlet Boundary Points",
             "Quadrature Order",
-            "FE Order",
-            "FE Type",
-            "FE Transformation Type",
+            "fe Order",
+            "fe Type",
+            "fe Transformation Type",
         ]
         values = [
             self.n_cells,
@@ -226,7 +226,7 @@ class Fespace2D(Fespace):
             self.fe_transformation_type,
         ]
         # print the table
-        print_table("FE Space Information", ["Property", "Value"], title, values)
+        print_table("fe Space Information", ["Property", "Value"], title, values)
 
     def set_finite_elements(self) -> None:
         """
@@ -289,7 +289,7 @@ class Fespace2D(Fespace):
             self.fe_cell[0].quad_actual_coordinates.shape,
             self.fe_cell[0].forcing_at_quad.shape,
         ]
-        print_table("FE Matrix Shapes", ["Matrix", "Shape"], title, values)
+        print_table("fe Matrix Shapes", ["Matrix", "Shape"], title, values)
 
         # update the total number of dofs
         self.total_dofs = dof
