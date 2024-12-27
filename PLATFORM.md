@@ -1,93 +1,90 @@
 ├── CONTRIBUTING.md
 ├── CONTRIBUTORS.md
-├── COPYRIGHT.md
 ├── CopyrightHeader.txt
 ├── LICENSE
 ├── PLATFORM.md
 ├── README.md
-├── docs
-│   ├── conf.py
-│   ├── index.rst
-│   └── tutorials
-│       ├── advanced_usage.md
-│       └── getting_started.md
+├── examples
+│   └── sciml
+│       └── fastvpinns
+│           └── forward_problems
+│               ├── README.md
+│               └── example_poisson2d.py
 ├── pyproject.toml
 ├── pytest.ini
 ├── requirements
-│   ├── base.txt
-│   ├── dev.txt
-│   └── research.txt
-├── setup.py
-├── src
+│   ├── all.txt
+│   └── fastvpinns.txt
+├── scirex
 │   ├── __init__.py
-│   ├── core
-│   │   ├── __init__.py
-│   │   ├── dl
-│   │   │   └── __init__.py
-│   │   ├── rl
-│   │   │   └── __init__.py
-│   │   ├── nlp
-│   │   │   └── __init__.py
-│   │   ├── ml
-│   │   │   ├── __init__.py
-│   │   │   ├── supervised
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── classification
-│   │   │   │   │   └── __init__.py
-│   │   │   │   └── regression
-│   │   │   │       └── __init__.py
-│   │   │   └── unsupervised
-│   │   │       ├── __init__.py
-│   │   │       ├── clustering
-│   │   │       │   └── __init__.py
-│   │   │       ├── dimensionality_reduction
-│   │   │       │   └── __init__.py
-│   │   │       └── feature_selection
-│   │   │           └── __init__.py
-│   │   └── sciml
-│   │       ├── __init__.py
-│   │       ├── super_resolution
-│   │       │   └── __init__.py
-│   │       └── vpinns
-│   │           └── __init__.py
-│   ├── postprocessing
-│   │   └── __init__.py
-│   └── xxxx
-│       └── __init__.py
-├── tests
-│   │   ├── __init__.py
-│   │   ├── dl
-│   │   │   └── __init__.py
-│   │   ├── rl
-│   │   │   └── __init__.py
-│   │   ├── nlp
-│   │   │   └── __init__.py
-│   │   ├── ml
-│   │   │   ├── __init__.py
-│   │   │   ├── supervised
-│   │   │   │   ├── __init__.py
-│   │   │   │   ├── classification
-│   │   │   │   │   └── __init__.py
-│   │   │   │   └── regression
-│   │   │   │       └── __init__.py
-│   │   │   └── unsupervised
-│   │   │       ├── __init__.py
-│   │   │       ├── clustering
-│   │   │       │   └── __init__.py
-│   │   │       ├── dimensionality_reduction
-│   │   │       │   └── __init__.py
-│   │   │       └── feature_selection
-│   │   │           └── __init__.py
-│   │   └── sciml
-│   │       ├── __init__.py
-│   │       ├── super_resolution
-│   │       │   └── __init__.py
-│   │       └── vpinns
-│   │           └── __init__.py
-│   ├── postprocessing
-│       └── __init__.py
-└── examples
-    ├── dl
-    ├── rl
-    ├── dl
-    └── sciml
+│   └── core
+│       ├── __init__.py
+│       └── sciml
+│           ├── FE
+│           │   ├── FE2D_Cell.py
+│           │   ├── README.md
+│           │   ├── __init__.py
+│           │   ├── basis_2d_QN_Chebyshev_2.py
+│           │   ├── basis_2d_QN_Jacobi.py
+│           │   ├── basis_2d_QN_Legendre.py
+│           │   ├── basis_2d_QN_Legendre_Special.py
+│           │   ├── basis_function_2d.py
+│           │   ├── basis_function_3d.py
+│           │   ├── fe2d_setup_main.py
+│           │   ├── fe_transformation_2d.py
+│           │   ├── fe_transformation_3d.py
+│           │   ├── fespace.py
+│           │   ├── fespace2d.py
+│           │   ├── quad_affine.py
+│           │   ├── quad_bilinear.py
+│           │   ├── quadratureformulas.py
+│           │   └── quadratureformulas_quad2d.py
+│           ├── Geometry
+│           │   ├── __init__.py
+│           │   ├── geometry.py
+│           │   └── geometry_2d.py
+│           ├── __init__.py
+│           ├── fastvpinns
+│           │   ├── __init__.py
+│           │   ├── data
+│           │   │   ├── __init__.py
+│           │   │   ├── datahandler.py
+│           │   │   └── datahandler2d.py
+│           │   ├── model
+│           │   │   ├── __init__.py
+│           │   │   ├── model.py
+│           │   │   ├── model_hard.py
+│           │   │   ├── model_inverse.py
+│           │   │   └── model_inverse_domain.py
+│           │   └── physics
+│           │       ├── __init__.py
+│           │       ├── cd2d.py
+│           │       ├── cd2d_inverse.py
+│           │       ├── cd2d_inverse_domain.py
+│           │       ├── helmholtz2d.py
+│           │       ├── poisson2d.py
+│           │       └── poisson2d_inverse.py
+│           └── utils
+│               ├── __init__.py
+│               ├── compute_utils.py
+│               ├── plot_utils.py
+│               └── print_utils.py
+├── setup.py
+└── tests
+    ├── __init__.py
+    ├── src
+    │   └── core
+    │       └── sciml
+    │           └── fastvpinns
+    │               └── unit
+    │                   └── FE_2D
+    │                       ├── test_fe2d_cell.py
+    │                       ├── test_fespace2d.py
+    │                       ├── test_quadrature.py
+    │                       └── test_quadratureformulas_quad2d.py
+    └── support_files
+        ├── circle_quad.mesh
+        ├── circle_quad.txt
+        ├── circle_quad_wrong.mesh
+        ├── const_inverse_poisson_solution.txt
+        └── fem_output_circle2.csv
