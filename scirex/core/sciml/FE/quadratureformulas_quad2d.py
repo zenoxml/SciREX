@@ -19,18 +19,48 @@
 #
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
-"""
-The file `quadratureformulas_quad2d.py` defines the Quadrature Formulas for the 2D Quadrilateral elements.
-It supports both Gauss-Legendre and Gauss-Jacobi quadrature types.
-The quadrature points and weights are calculated based on the specified quadrature order and type.
+"""Quadrature Formula Implementation for 2D Quadrilateral Elements.
 
-Author: Thivin Anandh D
+This module implements numerical integration formulas for 2D quadrilateral elements,
+providing both Gauss-Legendre and Gauss-Jacobi quadrature schemes. The implementation
+focuses on accurate numerical integration required for finite element computations.
 
-Changelog: Not specified
+Key functionalities:
+    - Gauss-Legendre quadrature for quadrilateral elements
+    - Gauss-Jacobi quadrature with Lobatto points
+    - Tensor product based 2D quadrature point generation
+    - Weight computation for various quadrature orders
 
-Known issues: None
+The implementation provides:
+    - Flexible quadrature order selection
+    - Multiple quadrature schemes
+    - Efficient tensor product based computations
+    - Automated weight and point generation
 
-Dependencies: numpy, scipy
+Key classes:
+    - Quadratureformulas_Quad2D: Main class for 2D quadrature computations
+
+Dependencies:
+    - numpy: For numerical computations
+    - scipy.special: For special function evaluations (roots, weights)
+    - scipy.special.orthogonal: For orthogonal polynomial computations
+
+Note:
+    The implementation assumes tensor-product based quadrature rules for
+    2D elements. Specialized non-tensor product rules are not included.
+
+References:
+    [1] Karniadakis, G., & Sherwin, S. (2013). Spectral/hp Element 
+        Methods for Computational Fluid Dynamics. Oxford University Press.
+
+    [2] Kharazmi - hp-VPINNs github repository
+
+Authors:
+    Thivin Anandh D (https://thivinanandh.github.io)
+
+Version:
+    27/Dec/2024: Initial version - Thivin Anandh D
+
 """
 
 import numpy as np
@@ -42,23 +72,45 @@ from .quadratureformulas import Quadratureformulas
 
 
 class Quadratureformulas_Quad2D(Quadratureformulas):
-    """
-    Defines the Quadrature Formulas for the 2D Quadrilateral elements.
+    """Implements quadrature formulas for 2D quadrilateral elements.
 
-    :param quad_order: The order of the quadrature.
-    :type quad_order: int
-    :param quad_type: The type of the quadrature.
-    :type quad_type: str
+    This class provides methods to compute quadrature points and weights for
+    2D quadrilateral elements using either Gauss-Legendre or Gauss-Jacobi
+    quadrature schemes. The implementation uses tensor products of 1D rules.
+
+    Attributes:
+        quad_order: Order of quadrature rule
+        quad_type: Type of quadrature ('gauss-legendre' or 'gauss-jacobi')
+        num_quad_points: Total number of quadrature points (quad_order^2)
+        xi_quad: x-coordinates of quadrature points in reference element
+        eta_quad: y-coordinates of quadrature points in reference element
+        quad_weights: Weights for each quadrature point
+
+    Example:
+        >>> quad = Quadratureformulas_Quad2D(quad_order=3, quad_type='gauss-legendre')
+        >>> weights, xi, eta = quad.get_quad_values()
+        >>> n_points = quad.get_num_quad_points()
+
+    Note:
+        - Gauss-Legendre points are optimal for polynomial integrands
+        - Gauss-Jacobi points include element vertices (useful for certain FEM applications)
+        - All computations are performed in the reference element [-1,1]×[-1,1]
+
     """
 
     def __init__(self, quad_order: int, quad_type: str):
         """
         Constructor for the Quadratureformulas_Quad2D class.
 
-        :param quad_order: The order of the quadrature.
-        :type quad_order: int
-        :param quad_type: The type of the quadrature.
-        :type quad_type: str
+        Args:
+            quad_order: Order of quadrature rule
+            quad_type: Type of quadrature ('gauss-legendre' or 'gauss-jacobi')
+
+        Returns:
+            None
+
+        Raises:
+            ValueError: If the quadrature type is not supported.
         """
         # initialize the super class
         super().__init__(
@@ -186,8 +238,11 @@ class Quadratureformulas_Quad2D(Quadratureformulas):
         """
         Returns the quadrature weights, xi and eta values.
 
-        :return: A tuple containing the quadrature weights, xi values, and eta values.
-        :rtype: tuple
+        Args:
+            None
+
+        Returns:
+            tuple: The quadrature weights, xi and eta values in a numpy array format
         """
         return self.quad_weights, self.xi_quad, self.eta_quad
 
@@ -195,7 +250,10 @@ class Quadratureformulas_Quad2D(Quadratureformulas):
         """
         Returns the number of quadrature points.
 
-        :return: The number of quadrature points.
-        :rtype: int
+        Args:
+            None
+
+        Returns:
+            int: The number of quadrature points
         """
         return self.num_quad_points

@@ -20,17 +20,40 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 """
-This module `FE2D_Cell.py` will be used to setup the FE2D and quadrature rule for a given cell based on the
-given mesh and the degree of the basis functions
+    Module: FE2D_Cell.py
 
-Author: Thivin Anandh D
+    This module provides functionality for setting up and managing finite element 
+    calculations for individual 2D cells, including basis functions, quadrature 
+    rules, and transformations.
 
-Date: 30/Aug/2023
+    Classes:
+        FE2D_Cell: Main class for managing cell-level FE computations
 
-Implementation History : The grad_x_orig and grad_y_orig will actually store
-the magnitute with which we need to multiply this grad_x_ref and grad_y_ref
-to obtain the actual values of the gradient in the original cell
-this is done to improve efficiency
+    Dependencies:
+        - basis_function_2d: Base classes for 2D basis functions
+        - quadratureformulas_quad2d: Quadrature rules for 2D elements
+        - fe2d_setup_main: Setup utilities for 2D FE calculations
+        - numpy: Numerical computations
+
+    Key Features:
+        - Cell-level finite element value storage
+        - Basis function evaluation at quadrature points
+        - Reference to physical domain transformations
+        - Gradient and derivative computations
+        - Quadrature rule implementation
+        - Forcing function integration
+        - Support for different element types and orders
+
+    Authors:
+        Thivin Anandh D (https://thivinanandh.github.io)
+
+    Version Info:
+        27/Dec/2024: Initial version - Thivin Anandh D
+
+    Notes:
+        The implementation includes optimization for gradient calculations
+        where grad_x_orig and grad_y_orig store multiplication factors
+        for reference gradients to improve computational efficiency.
 """
 
 # Importing the required libraries
@@ -43,7 +66,50 @@ from .fe2d_setup_main import *
 
 class FE2D_Cell:
     """
-    This class is used to Store the FE Values, such as Coordinates, Basis Functions, Quadrature Rules, etc. for a given cell.
+    A class for managing finite element computations at the cell level.
+
+    This class handles the storage and computation of finite element values,
+    including basis functions, quadrature rules, and transformations for a
+    single cell in a 2D mesh.
+
+    Attributes:
+        cell_coordinates (np.ndarray): Physical coordinates of the cell vertices
+        cell_type (str): Type of the cell (e.g., 'quad', 'triangle')
+        fe_order (int): Order of the finite element approximation
+        fe_type (str): Type of finite element basis
+        quad_order (int): Order of quadrature rule
+        quad_type (str): Type of quadrature formula
+        fe_transformation (str): Type of geometric transformation
+        forcing_function (callable): Source term function
+        basis_function (BasisFunction2D): Basis function implementation
+        quad_xi (np.ndarray): Xi coordinates of quadrature points
+        quad_eta (np.ndarray): Eta coordinates of quadrature points
+        quad_weight (np.ndarray): Quadrature weights
+        jacobian (np.ndarray): Transformation Jacobian
+        basis_at_quad (np.ndarray): Basis values at quadrature points
+        basis_gradx_at_quad (np.ndarray): X-derivatives at quadrature points
+        basis_grady_at_quad (np.ndarray): Y-derivatives at quadrature points
+        quad_actual_coordinates (np.ndarray): Physical quadrature point coordinates
+
+    Example:
+        >>> coords = np.array([[0,0], [1,0], [1,1], [0,1]])
+        >>> cell = FE2D_Cell(
+        ...     cell_coordinates=coords,
+        ...     cell_type='quad',
+        ...     fe_order=2,
+        ...     fe_type='lagrange',
+        ...     quad_order=3,
+        ...     quad_type='gauss',
+        ...     fe_transformation_type='bilinear',
+        ...     forcing_function=lambda x, y: x*y
+        ... )
+        >>> cell.basis_at_quad  # Get basis values at quadrature points
+
+    Notes:
+        - All gradient and derivative values are stored in the reference domain
+        - Jacobian and quadrature weights are combined for efficiency
+        - Forcing function values are typically computed in the fespace class
+        - Supports multiple types of transformations and element types
     """
 
     def __init__(
@@ -57,6 +123,22 @@ class FE2D_Cell:
         fe_transformation_type: str,
         forcing_function,
     ):
+        """
+        Constructor for the FE2D_Cell class.
+
+        Args:
+            cell_coordinates (np.ndarray): Physical coordinates of the cell vertices
+            cell_type (str): Type of the cell (e.g., 'quad', 'triangle')
+            fe_order (int): Order of the finite element approximation
+            fe_type (str): Type of finite element basis
+            quad_order (int): Order of quadrature rule
+            quad_type (str): Type of quadrature formula
+            fe_transformation_type (str): Type of geometric transformation
+            forcing_function (callable): Source term function
+
+        Returns:
+            None
+        """
         self.cell_coordinates = cell_coordinates
         self.cell_type = cell_type
         self.fe_order = fe_order
@@ -143,7 +225,11 @@ class FE2D_Cell:
         """
         Assigns the basis function class based on the cell type and the FE order.
 
-        :return: An instance of the BasisFunction2D class.
+        Args:
+            None
+
+        Returns:
+            BasisFunction2D: The basis function class for the given cell type and FE order.
         """
         self.basis_function = self.fe_setup.assign_basis_function()
 
@@ -151,7 +237,11 @@ class FE2D_Cell:
         """
         Assigns the quadrature points and weights based on the cell type and the quadrature order.
 
-        :return: None
+        Args:
+            None
+
+        Returns:
+            None
         """
         self.quad_weight, self.quad_xi, self.quad_eta = (
             self.fe_setup.assign_quadrature_rules()
@@ -164,7 +254,11 @@ class FE2D_Cell:
         This method assigns the appropriate FE Transformation class based on the cell type and the FE order.
         It sets the cell coordinates for the FE Transformation and obtains the Jacobian of the transformation.
 
-        :return: None
+        Args:
+            None
+
+        Returns:
+            None
         """
         self.fetransformation = self.fe_setup.assign_fe_transformation(
             self.fe_transformation, self.cell_coordinates
@@ -186,7 +280,8 @@ class FE2D_Cell:
         `self.basis_gradx_at_quad`, `self.basis_grady_at_quad`, `self.basis_gradxy_at_quad`,
         `self.basis_gradxx_at_quad`, and `self.basis_gradyy_at_quad`.
 
-        The basis function values are of size N_basis_functions x N_quad_points.
+        Args:
+            None
 
         Returns:
             None
@@ -248,7 +343,11 @@ class FE2D_Cell:
         for the current cell. The quadrature weights are multiplied by the flattened Jacobian array
         and stored in the `mult` attribute of the class.
 
-        :return: None
+        Args:
+            None
+
+        Returns:
+            None
         """
         self.mult = self.quad_weight * self.jacobian.flatten()
 
@@ -260,7 +359,11 @@ class FE2D_Cell:
         The Xi and Eta values are obtained from the `quad_xi` and `quad_eta` attributes of the class.
         The calculated coordinates are stored in the `quad_actual_coordinates` attribute as a NumPy array.
 
-        :return: None
+        Args:
+            None
+
+        Returns:
+            None
         """
         actual_co_ord = []
         for xi, eta in zip(self.quad_xi, self.quad_eta):
@@ -275,9 +378,8 @@ class FE2D_Cell:
         This function computes the values of the forcing function at the quadrature points
         and assigns them to the `forcing_at_quad` attribute of the FE2D_Cell object.
 
-        Parameters:
-            forcing_function (callable): The forcing function that takes the coordinates (x, y)
-                as input and returns the value of the forcing function at those coordinates.
+        Args:
+            forcing_function (callable): The forcing function to be integrated
 
         Returns:
             None

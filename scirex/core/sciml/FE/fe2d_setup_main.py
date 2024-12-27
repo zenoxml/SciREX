@@ -20,13 +20,42 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 """
-This module `fe2d_setup_main.py` will be used to setup the FE2D and quadrature rule for a given cell based on the
-given mesh and the degree of the basis functions.
+    Module: fe2d_setup_main.py
 
-Author: Thivin Anandh D
+    This module provides the main setup and configuration functionality for 2D 
+    finite element analysis, handling basis function assignment, quadrature rules, 
+    and transformations.
 
-Date: 30/Aug/2023
+    Classes:
+        FE2DSetupMain: Core class for configuring FE2D computations
 
+    Dependencies:
+        - basis_function_2d: Base classes for 2D basis functions
+        - quadratureformulas_quad2d: Quadrature rule implementations
+        - fe_transformation_2d: Geometric transformation handlers
+
+    Key Features:
+        - Flexible basis function selection
+        - Multiple polynomial basis options
+            * Legendre polynomials
+            * Special Legendre polynomials
+            * Chebyshev polynomials
+            * Jacobi polynomials
+        - Configurable quadrature rules
+        - Support for different element transformations
+        - Automatic validation of parameters
+        - Element type specific handling
+
+    Authors:
+        Thivin Anandh D (https://thivinanandh.github.io)
+
+    Version Info:
+        27/Dec/2024: Initial version - Thivin Anandh D
+
+    Notes:
+        Currently supports quadrilateral elements with various polynomial 
+        basis options and transformation types. The implementation focuses 
+        on flexibility and extensibility for different element types.
 """
 
 # Importing the required libraries
@@ -42,7 +71,38 @@ from .fe_transformation_2d import *
 
 class FE2DSetupMain:
     """
-    This class is used to setup the FE2D and quadrature rule for a given cell based on the given mesh and the degree of the basis functions.
+    Main configuration class for 2D finite element analysis setup.
+
+    This class handles the configuration and initialization of finite element
+    analysis components, including basis functions, quadrature rules, and
+    geometric transformations.
+
+    Attributes:
+        cell_type (str): Type of finite element ('quadrilateral')
+        fe_order (int): Order of finite element approximation (1 < order < 1e3)
+        fe_type (str): Type of basis functions
+            ('legendre', 'legendre_special', 'chebyshev_2', 'jacobi_plain')
+        quad_order (int): Order of quadrature rule (>= 2)
+        quad_type (str): Type of quadrature formula
+        n_nodes (int): Number of nodes in the element
+
+    Example:
+        >>> setup = FE2DSetupMain(
+        ...     cell_type='quadrilateral',
+        ...     fe_order=2,
+        ...     fe_type='legendre',
+        ...     quad_order=3,
+        ...     quad_type='gauss'
+        ... )
+        >>> basis = setup.assign_basis_function()
+        >>> weights, xi, eta = setup.assign_quadrature_rules()
+
+    Notes:
+        - Supports only quadrilateral elements currently
+        - Validates all input parameters for correctness
+        - Provides different polynomial basis options
+        - Handles both affine and bilinear transformations
+        - Quadrature order must be >= 3 for accuracy
     """
 
     def __init__(
@@ -53,6 +113,23 @@ class FE2DSetupMain:
         quad_order: int,
         quad_type: str,
     ):
+        """
+        Constructor for the FE2DSetupMain class.
+
+        Args:
+            cell_type (str): Type of finite element ('quadrilateral')
+            fe_order (int): Order of finite element approximation (1 < order < 1e3)
+            fe_type (str): Type of basis functions
+                ('legendre', 'legendre_special', 'chebyshev_2', 'jacobi_plain')
+            quad_order (int): Order of quadrature rule (>= 2)
+            quad_type (str): Type of quadrature formula
+
+        Raises:
+            None
+
+        Returns:
+            None
+        """
         self.cell_type = cell_type
         self.fe_order = fe_order
         self.fe_type = fe_type
@@ -65,9 +142,14 @@ class FE2DSetupMain:
         """
         Assigns the basis function based on the cell type and the fe_order.
 
-        :return: An instance of the BasisFunction2D class representing the assigned basis function.
-        :rtype: BasisFunction2D
-        :raises ValueError: If the fe_order is invalid.
+        Args:
+            None
+
+        Returns:
+            BasisFunction2D: The basis function object for the given configuration.
+
+        Raises:
+            ValueError: If the FE order is invalid or the cell type is invalid.
         """
         # check for FE order lower bound and higher bound
         if self.fe_order <= 1 or self.fe_order >= 1e3:
@@ -112,9 +194,16 @@ class FE2DSetupMain:
         """
         Assigns the quadrature rule based on the quad_order.
 
-        :return: A tuple containing the weights, xi, and eta values of the quadrature rule.
-        :rtype: tuple
-        :raises ValueError: If the quad_order is invalid or the cell_type is invalid.
+        Args:
+            None
+
+        Returns:
+            tuple: The quadrature weights, xi and eta values in a numpy array format.
+
+        Raises:
+            ValueError: If the quad_order is invalid
+            ValueError: If the cell type is invalid
+            ValueError: If the quad_order is not between 1 and 9999
         """
         if self.cell_type == "quadrilateral":
             if self.quad_order < 3:
@@ -135,18 +224,21 @@ class FE2DSetupMain:
         )
 
     def assign_fe_transformation(
-        self, fe_transformation_type, cell_coordinates
+        self, fe_transformation_type: str, cell_coordinates: np.ndarray
     ) -> FETransforamtion2D:
         """
         Assigns the FE transformation based on the cell type.
 
-        :param fe_transformation_type: The type of FE transformation.
-        :type fe_transformation_type: str
-        :param cell_coordinates: The coordinates of the cell.
-        :type cell_coordinates: list
-        :return: The FE transformation object.
-        :rtype: FETransforamtion2D
-        :raises ValueError: If the cell type or FE transformation type is invalid.
+        Args:
+            fe_transformation_type (str): Type of FE transformation ('affine', 'bilinear')
+            cell_coordinates (np.ndarray): The cell coordinates
+
+        Returns:
+            FETransforamtion2D: The FE transformation object for the given configuration.
+
+        Raises:
+            ValueError: If the cell type is invalid
+            ValueError: If the FE transformation type is invalid
         """
         if self.cell_type == "quadrilateral":
             if fe_transformation_type == "affine":
