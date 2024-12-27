@@ -22,7 +22,27 @@
 #
 # For any clarifications or special considerations,
 # please contact <scirex@zenteiq.ai>
-# Author: Thivin Anandh D
+
+"""
+File: plot_utils.py
+Purpose: This file contains utility functions to plot the loss function and other parameters.
+
+Functions:
+    - plot_loss_function: Plot the loss function
+    - plot_array: Plot the array
+    - plot_multiple_loss_function: Plot multiple loss functions
+    - plot_inverse_test_loss_function: Plot the test loss function of the inverse parameter
+    - plot_test_loss_function: Plot the test loss function
+    - plot_test_time_loss_function: Plot the test loss as a function of time in seconds
+    - plot_contour: Plot the contour plot
+    - plot_inverse_param_function: Plot the predicted inverse parameter
+
+Authors:
+    Thivin Anandh D (https://thivinanandh.github.io)
+
+Version Info:
+    27/Dec/2024: Initial version - Thivin Anandh D
+"""
 
 import matplotlib.pyplot as plt
 from cycler import cycler
@@ -52,17 +72,16 @@ plt.rcParams["axes.prop_cycle"] = cycler(
 
 
 # plot the loss function
-def plot_loss_function(loss_function, output_path):
+def plot_loss_function(loss_function: np.ndarray, output_path: str) -> None:
     """
     This function will plot the loss function.
 
-    :param loss_function: list of loss values
-    :type loss_function: list
-    :param output_path: path to save the plot
-    :type output_path: str
+    Args:
+        loss_function: list of loss values
+        output_path: path to save the plot
 
-    :return: None
-    :rtype: None
+    Returns:
+        None
     """
     # plot the loss function
     plt.figure(figsize=(6.4, 4.8))
@@ -79,25 +98,27 @@ def plot_loss_function(loss_function, output_path):
     plt.close()
 
 
-def plot_array(array, output_path, filename, title, x_label="Epochs", y_label="Loss"):
+def plot_array(
+    array: list,
+    output_path: str,
+    filename: str,
+    title: str,
+    x_label="Epochs",
+    y_label="Loss",
+) -> None:
     """
     This function will plot the loss function.
 
-    :param array: list of loss values
-    :type array: list
-    :param output_path: path to save the plot
-    :type output_path: str
-    :param filename: filename to save the plot
-    :type filename: str
-    :param title: title of the plot
-    :type title: str
-    :param x_label: x-axis label, defaults to "Epochs"
-    :type x_label: str, optional
-    :param y_label: y-axis label, defaults to "Loss"
-    :type y_label: str, optional
+    Args:
+        array: list of loss values
+        output_path: path to save the plot
+        filename: filename to save the plot
+        title: title of the plot
+        x_label: x-axis label, defaults to "Epochs"
+        y_label: y-axis label, defaults to "Loss"
 
-    :return: None
-    :rtype: None
+    Returns:
+        None
     """
     # plot the loss function
     plt.figure(figsize=(6.4, 4.8))
@@ -115,34 +136,28 @@ def plot_array(array, output_path, filename, title, x_label="Epochs", y_label="L
 
 # general utility to plot multiple parameters
 def plot_multiple_loss_function(
-    loss_function_list,
-    output_path,
-    filename,
-    legend_labels,
-    y_label,
-    title,
+    loss_function_list: list,
+    output_path: str,
+    filename: str,
+    legend_labels: str,
+    y_label: str,
+    title: str,
     x_label="Epochs",
 ):
     """
     This function will plot the loss function in log scale for multiple parameters.
 
-    :param loss_function_list: list of loss values for multiple parameters
-    :type loss_function_list: list
-    :param output_path: path to save the plot
-    :type output_path: str
-    :param filename: filename to save the plot
-    :type filename: str
-    :param legend_labels: list of legend labels
-    :type legend_labels: list
-    :param y_label: y-axis label
-    :type y_label: str
-    :param title: title of the plot
-    :type title: str
-    :param x_label: x-axis label, defaults to "Epochs"
-    :type x_label: str, optional
+    Args:
+        loss_function_list: list of loss values
+        output_path: path to save the plot
+        filename: filename to save the plot
+        legend_labels: legend labels
+        y_label: y-axis label
+        title: title of the plot
+        x_label: x-axis label, defaults to "Epochs"
 
-    :return: None
-    :rtype: None
+    Returns:
+        None
     """
 
     # plot the loss function
@@ -163,17 +178,16 @@ def plot_multiple_loss_function(
 
 
 # plot the loss function
-def plot_inverse_test_loss_function(loss_function, output_path):
+def plot_inverse_test_loss_function(loss_function: list, output_path: str) -> None:
     """
     This function will plot the test loss function of the inverse parameter.
 
-    :param loss_function: list of loss values
-    :type loss_function: list
-    :param output_path: path to save the plot
-    :type output_path: str
+    Args:
+        loss_function: list of loss values
+        output_path: path to save the plot
 
-    :return: None
-    :rtype: None
+    Returns:
+        None
     """
     # plot the loss function
     plt.figure(figsize=(6.4, 4.8))
@@ -188,19 +202,19 @@ def plot_inverse_test_loss_function(loss_function, output_path):
     plt.close()
 
 
-def plot_test_loss_function(loss_function, output_path, fileprefix=""):
+def plot_test_loss_function(
+    loss_function: np.ndarray, output_path: str, fileprefix=""
+) -> None:
     """
     This function will plot the test loss function.
 
-    :param loss_function: list of loss values
-    :type loss_function: list
-    :param output_path: path to save the plot
-    :type output_path: str
-    :param fileprefix: prefix for the filename, defaults to ""
-    :type fileprefix: str, optional
+    Args:
+        loss_function: list of loss values
+        output_path: path to save the plot
+        fileprefix: prefix for the filename
 
-    :return: None
-    :rtype: None
+    Returns:
+        None
     """
     # plot the loss function
     plt.figure(figsize=(6.4, 4.8))
@@ -218,19 +232,19 @@ def plot_test_loss_function(loss_function, output_path, fileprefix=""):
     plt.close()
 
 
-def plot_test_time_loss_function(time_array, loss_function, output_path):
+def plot_test_time_loss_function(
+    time_array: np.ndarray, loss_function: np.ndarray, output_path: str
+) -> None:
     """
     This function will plot the test loss as a function of time in seconds.
 
-    :param time_array: array of time values
-    :type time_array: numpy.ndarray
-    :param loss_function: list of loss values
-    :type loss_function: list
-    :param output_path: path to save the plot
-    :type output_path: str
+    Args:
+        time_array: time array
+        loss_function: list of loss values
+        output_path: path to save the plot
 
-    :return: None
-    :rtype: None
+    Returns:
+        None
     """
     # plot the loss function
     plt.figure(figsize=(6.4, 4.8))
@@ -246,25 +260,27 @@ def plot_test_time_loss_function(time_array, loss_function, output_path):
     plt.close()
 
 
-def plot_contour(x, y, z, output_path, filename, title):
+def plot_contour(
+    x: np.ndarray,
+    y: np.ndarray,
+    z: np.ndarray,
+    output_path: str,
+    filename: str,
+    title: str,
+) -> None:
     """
     This function will plot the contour plot.
 
-    :param x: x values
-    :type x: numpy.ndarray
-    :param y: y values
-    :type y: numpy.ndarray
-    :param z: z values
-    :type z: numpy.ndarray
-    :param output_path: path to save the plot
-    :type output_path: str
-    :param filename: filename to save the plot
-    :type filename: str
-    :param title: title of the plot
-    :type title: str
+    Args:
+        x(np.ndarray): x values
+        y(np.ndarray): y values
+        z(np.ndarray): z values
+        output_path: path to save the plot
+        filename: filename to save the plot
+        title: title of the plot
 
-    :return: None
-    :rtype: None
+    Returns:
+        None
     """
 
     plt.figure(figsize=(6.4, 4.8))
@@ -278,24 +294,24 @@ def plot_contour(x, y, z, output_path, filename, title):
 
 # plot the Inverse parameter prediction
 def plot_inverse_param_function(
-    inverse_predicted, inverse_param_name, actual_value, output_path, file_prefix
-):
+    inverse_predicted: list,
+    inverse_param_name: str,
+    actual_value: float,
+    output_path: str,
+    file_prefix: str,
+) -> None:
     """
     This function will plot the predicted inverse parameter.
 
-    :param inverse_predicted: list of predicted inverse parameter values
-    :type inverse_predicted: list
-    :param inverse_param_name: name of the inverse parameter
-    :type inverse_param_name: str
-    :param actual_value: actual value of the inverse parameter
-    :type actual_value: float
-    :param output_path: path to save the plot
-    :type output_path: str
-    :param file_prefix: prefix for the filename
-    :type file_prefix: str
+    Args:
+        inverse_predicted(list): list of predicted inverse parameter values
+        inverse_param_name(str): name of the inverse parameter
+        actual_value(float): actual value of the inverse parameter
+        output_path(str): path to save the plot
+        file_prefix(str): prefix for the filename
 
-    :return: None
-    :rtype: None
+    Returns:
+        None
     """
     # plot the loss function
     plt.figure(figsize=(6.4, 4.8), dpi=300)

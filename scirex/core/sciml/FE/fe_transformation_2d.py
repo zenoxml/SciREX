@@ -20,27 +20,82 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 """
-This module provides an interface for the transformation methods used in the
-2D finite element analysis. The transformation is essential for mapping
-element geometry in the reference domain to the actual physical domain.
-The primary functionalities encapsulated within this class include:
-    1. set_cell() - To set the physical coordinates of the cell. These coordinates are essential for subsequent computations involving Jacobians and transformations.
-    2. get_original_from_ref(xi, eta) - Given reference coordinates (xi, eta), this method returns the corresponding coordinates in the physical domain.
-    3. get_jacobian(xi, eta) - For a given point in the reference domain, represented by (xi, eta), this method calculates and returns the Jacobian of the transformation, which provides information about the local stretching, rotation, and skewing of the element. Further implementations of this class for specific element types (like quad and triangular elements) can incorporate more detailed and element-specific transformation techniques.
+    Module: fe_transformation_2d.py
 
-Author: Thivin Anandh D
+    This module provides the abstract base class for all 2D finite element transformations. 
+    It defines the interface for mapping between reference and physical coordinates in 
+    two-dimensional finite element analysis.
 
-Date:   20/Sep/2023
+    Classes:
+        FETransformation2D: Abstract base class for 2D finite element transformations
 
-History: First version -  20/Sep/2023 - Thivin Anandh
+    Dependencies:
+        - abc: For abstract base class functionality
+        - quad_affine: For affine transformation implementations
+        - quad_bilinear: For bilinear transformation implementations
+
+    Key Features:
+        - Abstract interface for coordinate transformations
+        - Reference to physical domain mapping
+        - Jacobian matrix computation
+        - Support for different element geometries
+        - Cell geometry specification interface
+        - Systematic transformation validation
+
+    Authors:
+        Thivin Anandh D (https://thivinanandh.github.io)
+
+    Version Info:
+       27/Dec/2024: Initial version - Thivin Anandh D
+
+    References:
+        None
 """
 
 from abc import abstractmethod
+import numpy as np
 
 
 class FETransforamtion2D:
     """
-    This class represents a 2D finite element transformation.
+    A base class for 2D finite element transformations.
+
+    This abstract class defines the interface for mapping between reference and physical
+    coordinates in 2D finite element analysis. Implementations must provide specific
+    transformation rules for different element types.
+
+    Attributes:
+        None
+
+    Methods:
+        set_cell():
+            Sets the physical coordinates of the element vertices.
+            Must be implemented by derived classes.
+
+        get_original_from_ref(xi, eta):
+            Maps coordinates from reference to physical domain.
+            Must be implemented by derived classes.
+
+        get_jacobian(xi, eta):
+            Computes the Jacobian matrix of the transformation.
+            Must be implemented by derived classes.
+
+    Example:
+        >>> class QuadTransform(FETransformation2D):
+        ...     def set_cell(self, vertices):
+        ...         self.vertices = vertices
+        ...     def get_original_from_ref(self, xi:np.ndarray, eta:np.ndarray) -> np.ndarray:
+        ...         # Implementation for quad element
+        ...         pass
+        ...     def get_jacobian(self, xi: np.ndarray, eta:np.ndarray) -> np.ndarray:
+        ...         # Implementation for quad element
+        ...         pass
+
+    Notes:
+        - Reference domain is typically [-1,1] × [-1,1]
+        - Transformations must be invertible
+        - Implementations should handle element distortion
+        - Jacobian is used for both mapping and integration
     """
 
     def __init__(self):
@@ -57,42 +112,29 @@ class FETransforamtion2D:
         """
 
     @abstractmethod
-    def get_original_from_ref(self, xi, eta):
+    def get_original_from_ref(self, xi: np.ndarray, eta: np.ndarray) -> np.ndarray:
         """
         This method returns the original coordinates from the reference coordinates.
 
-        :param xi: The xi coordinate in the reference space.
-        :type xi: float
-        :param eta: The eta coordinate in the reference space.
-        :type eta: float
-        :return: The original coordinates (x, y) corresponding to the given reference coordinates.
-        :rtype: tuple
+        Args:
+            xi (np.ndarray): The xi coordinate.
+            eta (np.ndarray): The eta coordinate.
+
+        Returns:
+            np.ndarray: Returns the transformed original coordinates from the reference coordinates.
         """
 
     @abstractmethod
-    def get_original_from_ref(self, xi, eta):
-        """
-        This method returns the original coordinates from the reference coordinates.
-
-        :param xi: The xi value of the reference coordinates.
-        :type xi: float
-        :param eta: The eta value of the reference coordinates.
-        :type eta: float
-        :return: The original coordinates corresponding to the given reference coordinates.
-        :rtype: tuple
-        """
-
-    @abstractmethod
-    def get_jacobian(self, xi, eta):
+    def get_jacobian(self, xi: np.ndarray, eta: np.ndarray) -> np.ndarray:
         """
         This method returns the Jacobian of the transformation.
 
-        :param xi: The xi coordinate.
-        :type xi: float
-        :param eta: The eta coordinate.
-        :type eta: float
-        :return: The Jacobian matrix.
-        :rtype: numpy.ndarray
+        Args:
+            xi (np.ndarray): The xi coordinate.
+            eta (np.ndarray): The eta coordinate.
+
+        Returns:
+            np.ndarray: Returns the Jacobian of the transformation.
         """
 
 

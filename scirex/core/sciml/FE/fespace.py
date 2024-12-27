@@ -20,13 +20,41 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 """
-file: fespace.py
-description: Abstract class for the FEspace Routines
-authors: Thivin Anandh D
-URL: https://thivinanandh.github.io
-changelog: 03-May-2024
-known_issues: None
-dependencies: None specified.
+    Module: fespace.py
+
+    This module provides abstract base functionality for finite element space 
+    implementations, defining core interfaces for FE computations and analysis.
+
+    Classes:
+        Fespace: Abstract base class for finite element space implementations
+
+    Dependencies:
+        - numpy: For numerical computations
+        - abc: For abstract base class functionality
+
+    Key Features:
+        - Mesh handling and cell management
+        - Shape function evaluation and manipulation
+        - Boundary condition implementation
+            * Dirichlet boundary handling
+            * Boundary function management
+        - Quadrature point management
+        - Forcing function integration
+        - Sensor data handling for inverse problems
+        - Reference and physical space transformations
+        - Gradient computation in both spaces
+
+    Authors:
+        Thivin Anandh D (https://thivinanandh.github.io)
+
+    Version Info:
+        27/Dec/2024: Initial version - Thivin Anandh D
+
+    Notes:
+        This module serves as the foundation for specific finite element
+        space implementations. It defines the minimum interface required
+        for FE computations while allowing flexibility in concrete
+        implementations.
 """
 
 import numpy as np
@@ -35,36 +63,44 @@ from abc import abstractmethod
 
 class Fespace:
     """
-    Represents a finite element space.
+    Abstract base class defining the interface for finite element spaces.
 
-    :param mesh: The mesh object.
-    :type mesh: Mesh
-    :param cells: The array of cell indices.
-    :type cells: ndarray
-    :param boundary_points: The dictionary of boundary points.
-    :type boundary_points: dict
-    :param cell_type: The type of cell.
-    :type cell_type: str
-    :param fe_order: The order of the finite element.
-    :type fe_order: int
-    :param fe_type: The type of finite element.
-    :type fe_type: str
-    :param quad_order: The order of the quadrature.
-    :type quad_order: int
-    :param quad_type: The type of quadrature.
-    :type quad_type: str
-    :param fe_transformation_type: The type of finite element transformation.
-    :type fe_transformation_type: str
-    :param bound_function_dict: The dictionary of boundary functions.
-    :type bound_function_dict: dict
-    :param bound_condition_dict: The dictionary of boundary conditions.
-    :type bound_condition_dict: dict
-    :param forcing_function: The forcing function.
-    :type forcing_function: function
-    :param output_path: The output path.
-    :type output_path: str
-    :param generate_mesh_plot: Whether to generate a plot of the mesh. Defaults to False.
-    :type generate_mesh_plot: bool, optional
+    This class provides the foundation for implementing finite element spaces,
+    including mesh handling, element operations, and solution computations.
+
+    Attributes:
+        mesh: Mesh object containing geometric information
+        cells (ndarray): Array of cell indices
+        boundary_points (dict): Dictionary of boundary point information
+        cell_type (str): Type of finite element cell
+        fe_order (int): Order of finite element approximation
+        fe_type (str): Type of finite element basis
+        quad_order (int): Order of quadrature rule
+        quad_type (str): Type of quadrature formula
+        fe_transformation_type (str): Type of geometric transformation
+        bound_function_dict (dict): Dictionary of boundary condition functions
+        bound_condition_dict (dict): Dictionary of boundary condition types
+        forcing_function (callable): Source term function
+        output_path (str): Path for output files
+
+    Example:
+        >>> class MyFespace(Fespace):
+        ...     def set_finite_elements(self):
+        ...         # Implementation
+        ...         pass
+        ...     def generate_dirichlet_boundary_data(self):
+        ...         # Implementation
+        ...         pass
+        ...     # Implement other abstract methods
+
+    Notes:
+        - All coordinate transformations must be implemented
+        - Shape function values and gradients are available in both
+        reference and physical spaces
+        - Supports both internal and external sensor data for
+        inverse problems
+        - Boundary conditions must be properly specified through
+        the boundary dictionaries
     """
 
     def __init__(
@@ -85,6 +121,24 @@ class Fespace:
     ) -> None:
         """
         The constructor of the Fespace2D class.
+
+        Args:
+            mesh: The mesh object.
+            cells: The cells of the mesh.
+            boundary_points: The boundary points of the mesh.
+            cell_type: The type of the cell.
+            fe_order: The order of the finite element.
+            fe_type: The type of the finite element.
+            quad_order: The order of the quadrature.
+            quad_type: The type of the quadrature.
+            fe_transformation_type: The type of the finite element transformation.
+            bound_function_dict: The dictionary of the boundary functions.
+            bound_condition_dict: The dictionary of the boundary conditions.
+            forcing_function: The forcing function.
+            output_path: The path to the output directory.
+
+        Returns:
+            None
         """
         self.mesh = mesh
         self.boundary_points = boundary_points
@@ -114,7 +168,11 @@ class Fespace:
         After initializing the finite element objects, this method prints the shape details of various matrices
         and updates the total number of degrees of freedom (dofs) for the entire mesh.
 
-        :return: None
+        Args:
+            None
+
+        Returns:
+            None
         """
 
     @abstractmethod
@@ -124,159 +182,166 @@ class Fespace:
 
         This function returns the boundary points and their corresponding values.
 
-        :return: A tuple containing two arrays:
-            - The first array contains the boundary points as numpy arrays.
-            - The second array contains the values of the boundary points as numpy arrays.
-        :rtype: Tuple[np.ndarray, np.ndarray]
+        Args:
+            None
+
+        Returns:
+            np.ndarray: The boundary points and their values.
+
+        Notes:
+            The boundary points and values are stored in the `boundary_points` attribute of the `Fespace` object.
         """
 
     @abstractmethod
-    def get_shape_function_val(self, cell_index) -> np.ndarray:
+    def get_shape_function_val(self, cell_index: int) -> np.ndarray:
         """
         Get the actual values of the shape functions on a given cell.
 
-        :param cell_index: The index of the cell.
-        :type cell_index: int
+        Args:
+            cell_index (int): The index of the cell.
 
-        :return: An array containing the actual values of the shape functions.
-        :rtype: np.ndarray
+        Returns:
+            np.ndarray: An array containing the actual values of the shape functions.
 
-        :raises ValueError: If the cell_index is greater than the number of cells.
+        Raises:
+            ValueError: If the cell_index is greater than the number of cells.
         """
 
     @abstractmethod
-    def get_shape_function_grad_x(self, cell_index) -> np.ndarray:
+    def get_shape_function_grad_x(self, cell_index: int) -> np.ndarray:
         """
         Get the gradient of the shape function with respect to the x-coordinate.
 
-        :param cell_index: The index of the cell.
-        :type cell_index: int
+        Args:
+            cell_index (int): The index of the cell.
 
-        :return: An array containing the gradient of the shape function with respect to the x-coordinate.
-        :rtype: np.ndarray
+        Returns:
+            np.ndarray: An array containing the gradient of the shape function with respect to the x-coordinate.
 
-        :raises ValueError: If the cell_index is greater than the number of cells.
-
-        This function returns the actual values of the gradient of the shape function on a given cell.
+        Raises:
+            ValueError: If the cell_index is greater than the number of cells.
         """
 
     @abstractmethod
-    def get_shape_function_grad_x_ref(self, cell_index) -> np.ndarray:
+    def get_shape_function_grad_x_ref(self, cell_index: int) -> np.ndarray:
         """
         Get the gradient of the shape function with respect to the x-coordinate on the reference element.
 
-        :param cell_index: The index of the cell.
-        :type cell_index: int
+        Args:
+            cell_index (int): The index of the cell.
 
-        :return: An array containing the gradient of the shape function with respect to the x-coordinate.
-        :rtype: np.ndarray
+        Returns:
+            np.ndarray: An array containing the gradient of the shape function with respect to the x-coordinate on the reference element.
 
-        :raises ValueError: If the cell_index is greater than the number of cells.
+        Raises:
+            ValueError: If the cell_index is greater than the number of cells.
         """
 
     @abstractmethod
-    def get_shape_function_grad_y(self, cell_index) -> np.ndarray:
+    def get_shape_function_grad_y(self, cell_index: int) -> np.ndarray:
         """
         Get the gradient of the shape function with respect to y at the given cell index.
 
-        :param cell_index: The index of the cell.
-        :type cell_index: int
+        Args:
+            cell_index (int): The index of the cell.
 
-        :return: The gradient of the shape function with respect to y.
-        :rtype: np.ndarray
+        Returns:
+            np.ndarray: An array containing the gradient of the shape function with respect to y.
 
-        :raises ValueError: If the cell_index is greater than the total number of cells.
+        Raises:
+            ValueError: If the cell_index is greater than the number of cells.
         """
 
     @abstractmethod
-    def get_shape_function_grad_y_ref(self, cell_index):
+    def get_shape_function_grad_y_ref(self, cell_index: int):
         """
         Get the gradient of the shape function with respect to y at the reference element.
 
-        :param cell_index: The index of the cell.
-        :type cell_index: int
-        :return: The gradient of the shape function with respect to y at the reference element.
-        :rtype: np.ndarray
-        :raises ValueError: If cell_index is greater than the number of cells.
+        Args:
+            cell_index (int): The index of the cell.
 
-        This function returns the gradient of the shape function with respect to y at the reference element
-        for a given cell. The shape function gradient values are stored in the `basis_grady_at_quad_ref` array
-        of the corresponding finite element cell. The `cell_index` parameter specifies the index of the cell
-        for which the shape function gradient is required. If the `cell_index` is greater than the total number
-        of cells, a `ValueError` is raised.
+        Returns:
+            np.ndarray: An array containing the gradient of the shape function with respect to y at the reference element.
 
-        .. note::
-            The returned gradient values are copied from the `basis_grady_at_quad_ref` array to ensure immutability.
+        Raises:
+            ValueError: If the cell_index is greater than the number of cells.
+
+        Notes:
+            This function returns the gradient of the shape function with respect to y at the reference element
+            for a given cell. The shape function gradient values are stored in the `basis_grady_at_quad_ref` array
+            of the corresponding finite element cell. The `cell_index` parameter specifies the index of the cell
+            for which the shape function gradient is required. If the `cell_index` is greater than the total number
+            of cells, a `ValueError` is raised. The returned gradient values are copied from the `basis_grady_at_quad_ref` array to ensure immutability.
         """
 
     @abstractmethod
-    def get_quadrature_actual_coordinates(self, cell_index) -> np.ndarray:
+    def get_quadrature_actual_coordinates(self, cell_index: int) -> np.ndarray:
         """
         Get the actual coordinates of the quadrature points for a given cell.
 
-        :param cell_index: The index of the cell.
-        :type cell_index: int
+        Args:
+            cell_index (int): The index of the cell.
 
-        :return: An array containing the actual coordinates of the quadrature points.
-        :rtype: np.ndarray
+        Returns:
+            np.ndarray: An array containing the actual coordinates of the quadrature points.
 
-        :raises ValueError: If the cell_index is greater than the number of cells.
+        Raises:
+            ValueError: If the cell_index is greater than the number of cells.
         """
 
     @abstractmethod
-    def get_forcing_function_values(self, cell_index) -> np.ndarray:
+    def get_forcing_function_values(self, cell_index: int) -> np.ndarray:
         """
         Get the forcing function values at the quadrature points.
 
-        :param cell_index: The index of the cell.
-        :type cell_index: int
+        Args:
+            cell_index (int): The index of the cell.
 
-        :return: The forcing function values at the quadrature points.
-        :rtype: np.ndarray
+        Returns:
+            np.ndarray: An array containing the forcing function values at the quadrature points.
 
-        :raises ValueError: If cell_index is greater than the number of cells.
+        Raises:
+            ValueError: If the cell_index is greater than the number of cells.
 
-        This function computes the forcing function values at the quadrature points for a given cell.
-        It loops over all the basis functions and computes the integral using the actual coordinates
-        and the basis functions at the quadrature points. The resulting values are stored in the
-        `forcing_at_quad` attribute of the corresponding `fe_cell` object.
-
-        Note: The forcing function is evaluated using the `forcing_function` method of the `fe_cell`
-        object.
+        Notes:
+            This function computes the forcing function values at the quadrature points for a given cell.
+            It loops over all the basis functions and computes the integral using the actual coordinates
+            and the basis functions at the quadrature points. The resulting values are stored in the
+            `forcing_at_quad` attribute of the corresponding `fe_cell` object. The forcing function is evaluated using the `forcing_function` method of the `fe_cell`
+            object.
         """
 
     @abstractmethod
-    def get_sensor_data(self, exact_solution, num_points):
+    def get_sensor_data(self, exact_solution, num_points: int) -> np.ndarray:
         """
         Obtain sensor data (actual solution) at random points.
 
-        This method is used in the inverse problem to obtain the sensor data at random points within the domain.
-        Currently, it only works for problems with an analytical solution.
-        Methodologies to obtain sensor data for problems from a file are not implemented yet.
-        It is also not implemented for external or complex meshes.
+        Args:
+            exact_solution (ndarray): The exact solution values.
+            num_points (int): The number of points to sample from the domain.
 
-        :param exact_solution: A function that computes the exact solution at a given point.
-        :type exact_solution: function
-        :param num_points: The number of random points to generate.
-        :type num_points: int
-        :return: A tuple containing the generated points and the exact solution at those points.
-        :rtype: tuple(numpy.ndarray, numpy.ndarray)
+        Returns:
+            np.ndarray: The sensor data at the given points.
+
+        Notes:
+            This method is used in the inverse problem to obtain the sensor data at random points within the domain. Currently, it only works for problems with an analytical solution.
+            Methodologies to obtain sensor data for problems from a file are not implemented yet.
+            It is also not implemented for external or complex meshes.
         """
 
     @abstractmethod
-    def get_sensor_data_external(self, exact_sol, num_points, file_name):
+    def get_sensor_data_external(
+        self, exact_sol, num_points: int, file_name: str
+    ) -> np.ndarray:
         """
-        This method is used to obtain the sensor data from an external file.
+        This method is used to obtain the sensor data from an external file when there is no analytical solution available.
 
-        :param exact_sol: The exact solution values.
-        :type exact_sol: array-like
-        :param num_points: The number of points to sample from the data.
-        :type num_points: int
-        :param file_name: The path to the file containing the sensor data.
-        :type file_name: str
+        Args:
+            exact_sol: The exact solution values.
+            num_points: The number of points to sample from the domain.
+            file_name: The name of the file containing the sensor data.
 
-        :return: A tuple containing two arrays:
-            - points (ndarray): The sampled points from the data.
-            - exact_sol (ndarray): The corresponding exact solution values.
-        :rtype: tuple
+        Returns:
+            np.ndarray: The sensor data at the given points based on the external file.
+
         """

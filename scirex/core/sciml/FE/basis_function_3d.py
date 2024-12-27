@@ -20,32 +20,104 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 """
-file: basis_function_3d.py
-description: Abstract class for all basis functions 3D
-authors: Thivin Anandh D
-URL: https://thivinanandh.github.io
-changelog: 03/May/2024 - First version
-known_issues: None
-dependencies: None specified.
+    Module: basis_function_3d.py
+
+    This module provides the abstract base class for all 3D finite element basis functions. 
+    It defines the interface for computing basis functions and their derivatives in three-dimensional 
+    reference coordinates.
+
+    Classes:
+        BasisFunction3D: Abstract base class for 3D finite element basis functions
+
+    Dependencies:
+        - abc: For abstract base class functionality
+
+    Key Features:
+        - Abstract interface for 3D basis function evaluation
+        - Support for first and second order derivatives
+        - Reference coordinate system (xi, eta, zeta) implementation
+        - Unified interface for different polynomial bases
+        - Systematic derivative computation in three dimensions
+
+    Authors:
+        Thivin Anandh D (https://thivinanandh.github.io)
+
+    Version Info:
+        27/Dec/2024: Initial version: Thivin Anandh D
+
+    References:
+        None
 """
 
 from abc import abstractmethod
+import numpy as np
 
 
 class BasisFunction3D:  # pragma: no cover
     """
-    Represents a basis function in 3D.
+    An abstract base class defining the interface for three-dimensional finite element basis functions.
 
-    Args:
-        num_shape_functions (int): The number of shape functions.
+    This class serves as a template for implementing various types of 3D basis functions
+    used in finite element computations. It defines the required methods for function
+    evaluation and derivatives in three dimensions.
+
+    Attributes:
+        num_shape_functions (int): The number of shape functions in the 3D element.
+            Must be specified during initialization.
 
     Methods:
-        value(xi, eta, zeta): Evaluates the basis function at the given xi and eta coordinates.
-        gradx(xi, eta, zeta): Computes the partial derivative of the basis function with respect to xi.
-        grady(xi, eta, zeta): Computes the partial derivative of the basis function with respect to eta.
-        gradxx(xi, eta, zeta): Computes the second partial derivative of the basis function with respect to xi.
-        gradxy(xi, eta, zeta): Computes the mixed partial derivative of the basis function with respect to xi and eta.
-        gradyy(xi, eta, zeta): Computes the second partial derivative of the basis function with respect to eta.
+        value(xi, eta, zeta): Evaluates the basis function at given coordinates
+            Args:
+                xi (np.ndarray): First reference coordinate
+                eta (np.ndarray): Second reference coordinate
+                zeta (np.ndarray): Third reference coordinate
+            Returns:
+                float: Value of basis function at (xi, eta, zeta)
+
+        gradx(xi, eta, zeta): Computes derivative w.r.t. xi
+            Args:
+                xi (np.ndarray): First reference coordinate
+                eta (np.ndarray): Second reference coordinate
+                zeta (np.ndarray): Third reference coordinate
+            Returns:
+                float: Partial derivative w.r.t. xi
+
+        grady(xi, eta, zeta): Computes derivative w.r.t. eta
+            Args:
+                xi (np.ndarray): First reference coordinate
+                eta (np.ndarray): Second reference coordinate
+                zeta (np.ndarray): Third reference coordinate
+            Returns:
+                float: Partial derivative w.r.t. eta
+
+        gradxx(xi, eta, zeta): Computes second derivative w.r.t. xi
+            Args:
+                xi (np.ndarray): First reference coordinate
+                eta (np.ndarray): Second reference coordinate
+                zeta (np.ndarray): Third reference coordinate
+            Returns:
+                float: Second partial derivative w.r.t. xi
+
+        gradxy(xi, eta, zeta): Computes mixed derivative w.r.t. xi and eta
+            Args:
+                xi (np.ndarray): First reference coordinate
+                eta (np.ndarray): Second reference coordinate
+                zeta (np.ndarray): Third reference coordinate
+            Returns:
+                float: Mixed partial derivative w.r.t. xi and eta
+
+        gradyy(xi, eta, zeta): Computes second derivative w.r.t. eta
+            Args:
+                xi (np.ndarray): First reference coordinate
+                eta (np.ndarray): Second reference coordinate
+                zeta (np.ndarray): Third reference coordinate
+            Returns:
+                float: Second partial derivative w.r.t. eta
+
+    Notes:
+        - All coordinate inputs (xi, eta, zeta) should be in the reference element range
+        - All methods are abstract and must be implemented by derived classes
+        - Implementation should ensure proper handling of 3D tensor-product bases
     """
 
     def __init__(self, num_shape_functions):
@@ -56,10 +128,13 @@ class BasisFunction3D:  # pragma: no cover
         """
         Evaluates the basis function at the given xi and eta coordinates.
 
-        :param float xi: The xi coordinate.
-        :param float eta: The eta coordinate.
-        :return: The value of the basis function at the given coordinates.
-        :rtype: float
+        Args:
+            xi (np.ndarray): The xi coordinate.
+            eta (np.ndarray): The eta coordinate.
+            zeta (np.ndarray): The zeta coordinate.
+
+        Returns:
+            np.ndarray: The value of the basis function at (xi, eta, zeta).
         """
 
     @abstractmethod
@@ -67,10 +142,13 @@ class BasisFunction3D:  # pragma: no cover
         """
         Computes the partial derivative of the basis function with respect to xi.
 
-        :param float xi: The xi coordinate.
-        :param float eta: The eta coordinate.
-        :return: The partial derivative of the basis function with respect to xi.
-        :rtype: float
+        Args:
+            xi (np.ndarray): The xi coordinate.
+            eta (np.ndarray): The eta coordinate.
+            zeta (np.ndarray): The zeta coordinate.
+
+        Returns:
+            np.ndarray: The partial derivative of the basis function with respect to xi.
         """
 
     @abstractmethod
@@ -78,10 +156,13 @@ class BasisFunction3D:  # pragma: no cover
         """
         Computes the partial derivative of the basis function with respect to eta.
 
-        :param float xi: The xi coordinate.
-        :param float eta: The eta coordinate.
-        :return: The partial derivative of the basis function with respect to eta.
-        :rtype: float
+        Args:
+            xi (np.ndarray): The xi coordinate.
+            eta (np.ndarray): The eta coordinate.
+            zeta (np.ndarray): The zeta coordinate.
+
+        Returns:
+            np.ndarray: The partial derivative of the basis function with respect to eta.
         """
 
     @abstractmethod
@@ -89,10 +170,13 @@ class BasisFunction3D:  # pragma: no cover
         """
         Computes the second partial derivative of the basis function with respect to xi.
 
-        :param float xi: The xi coordinate.
-        :param float eta: The eta coordinate.
-        :return: The second partial derivative of the basis function with respect to xi.
-        :rtype: float
+        Args:
+            xi (np.ndarray): The xi coordinate.
+            eta (np.ndarray): The eta coordinate.
+            zeta (np.ndarray): The zeta coordinate.
+
+        Returns:
+            np.ndarray: The second partial derivative of the basis function with respect to xi.
         """
 
     @abstractmethod
@@ -100,10 +184,13 @@ class BasisFunction3D:  # pragma: no cover
         """
         Computes the mixed partial derivative of the basis function with respect to xi and eta.
 
-        :param float xi: The xi coordinate.
-        :param float eta: The eta coordinate.
-        :return: The mixed partial derivative of the basis function with respect to xi and eta.
-        :rtype: float
+        Args:
+            xi (np.ndarray): The xi coordinate.
+            eta (np.ndarray): The eta coordinate.
+            zeta (np.ndarray): The zeta coordinate.
+
+        Returns:
+            np.ndarray: The mixed partial derivative of the basis function with respect to xi and eta.
         """
 
     @abstractmethod
@@ -111,8 +198,11 @@ class BasisFunction3D:  # pragma: no cover
         """
         Computes the second partial derivative of the basis function with respect to eta.
 
-        :param float xi: The xi coordinate.
-        :param float eta: The eta coordinate.
-        :return: The second partial derivative of the basis function with respect to eta.
-        :rtype: float
+        Args:
+            xi (np.ndarray): The xi coordinate.
+            eta (np.ndarray): The eta coordinate.
+            zeta (np.ndarray): The zeta coordinate.
+
+        Returns:
+            np.ndarray: The second partial derivative of the basis function with respect to eta.
         """

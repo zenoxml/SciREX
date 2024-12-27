@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and 
+# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and
 # AiREX Lab, Indian Institute of Science, Bangalore.
 # All rights reserved.
 #
@@ -46,7 +46,11 @@ def test_quadrature_uniform(request):
     # Define the geometry
     domain = Geometry_2D("quadrilateral", "internal", 10, 10, "tests/dump")
     cells, boundary_points = domain.generate_quad_mesh_internal(
-        x_limits=[0, 1], y_limits=[0, 1], n_cells_x=4, n_cells_y=4, num_boundary_points=100
+        x_limits=[0, 1],
+        y_limits=[0, 1],
+        n_cells_x=4,
+        n_cells_y=4,
+        num_boundary_points=100,
     )
 
     bound_function_dict = {
@@ -88,7 +92,11 @@ def test_shape_functions(fe_type, transformation):
     # Define the geometry
     domain = Geometry_2D("quadrilateral", "internal", 10, 10, "tests/dump")
     cells, boundary_points = domain.generate_quad_mesh_internal(
-        x_limits=[0, 1], y_limits=[0, 1], n_cells_x=2, n_cells_y=2, num_boundary_points=10
+        x_limits=[0, 1],
+        y_limits=[0, 1],
+        n_cells_x=2,
+        n_cells_y=2,
+        num_boundary_points=10,
     )
 
     bound_function_dict = {
@@ -145,7 +153,15 @@ def test_shape_functions(fe_type, transformation):
     assert basis_gradyy_at_quad.shape == (fespace.fe_order**2, fespace.quad_order**2)
 
     # Clean up objects
-    del domain, cells, boundary_points, bound_function_dict, bound_condition_dict, rhs, fespace
+    del (
+        domain,
+        cells,
+        boundary_points,
+        bound_function_dict,
+        bound_condition_dict,
+        rhs,
+        fespace,
+    )
 
     # remove the temporary directory even if it has files in it
     shutil.rmtree("tests/dump")
@@ -161,7 +177,11 @@ def test_generate_plot():
     # Define the geometry
     domain = Geometry_2D("quadrilateral", "internal", 10, 10, "tests/dump")
     cells, boundary_points = domain.generate_quad_mesh_internal(
-        x_limits=[0, 1], y_limits=[0, 1], n_cells_x=2, n_cells_y=2, num_boundary_points=10
+        x_limits=[0, 1],
+        y_limits=[0, 1],
+        n_cells_x=2,
+        n_cells_y=2,
+        num_boundary_points=10,
     )
 
     bound_function_dict = {
@@ -202,7 +222,15 @@ def test_generate_plot():
     assert Path("tests/dump/mesh.png").exists()
 
     # Clean up objects
-    del domain, cells, boundary_points, bound_function_dict, bound_condition_dict, rhs, fespace
+    del (
+        domain,
+        cells,
+        boundary_points,
+        bound_function_dict,
+        bound_condition_dict,
+        rhs,
+        fespace,
+    )
 
     # remove the plot
     shutil.rmtree("tests/dump")
@@ -218,7 +246,11 @@ def test_dirichlet_boundary_data_vector():
     # Define the geometry
     domain = Geometry_2D("quadrilateral", "internal", 10, 10, "tests/dump")
     cells, boundary_points = domain.generate_quad_mesh_internal(
-        x_limits=[0, 1], y_limits=[0, 1], n_cells_x=2, n_cells_y=2, num_boundary_points=10
+        x_limits=[0, 1],
+        y_limits=[0, 1],
+        n_cells_x=2,
+        n_cells_y=2,
+        num_boundary_points=10,
     )
 
     bval_1 = np.random.rand()
@@ -268,7 +300,15 @@ def test_dirichlet_boundary_data_vector():
     assert np.isclose(np.mean(dirichlet_boundary_data[1]), bval_1, atol=1e-6)
 
     # Clean up objects
-    del domain, cells, boundary_points, bound_function_dict, bound_condition_dict, rhs, fespace
+    del (
+        domain,
+        cells,
+        boundary_points,
+        bound_function_dict,
+        bound_condition_dict,
+        rhs,
+        fespace,
+    )
 
     # remove the temporary directory
     shutil.rmtree("tests/dump")
@@ -358,7 +398,15 @@ def test_valid_cell_number():
         fespace.get_shape_function_grad_y_ref(n_cell_x * n_cell_y)
 
     # Clean up objects
-    del domain, cells, boundary_points, bound_function_dict, bound_condition_dict, rhs, fespace
+    del (
+        domain,
+        cells,
+        boundary_points,
+        bound_function_dict,
+        bound_condition_dict,
+        rhs,
+        fespace,
+    )
 
     # remove the temporary directory
     shutil.rmtree("tests/dump")
@@ -373,7 +421,11 @@ def test_rhs_vector():
     # Define the geometry
     domain = Geometry_2D("quadrilateral", "internal", 10, 10, "tests/dump")
     cells, boundary_points = domain.generate_quad_mesh_internal(
-        x_limits=[0, 1], y_limits=[0, 1], n_cells_x=2, n_cells_y=2, num_boundary_points=10
+        x_limits=[0, 1],
+        y_limits=[0, 1],
+        n_cells_x=2,
+        n_cells_y=2,
+        num_boundary_points=10,
     )
 
     bval_1 = np.random.rand()

@@ -20,18 +20,36 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 """
-file: basis_2d_QN_Chebyshev_2.py
-description: This file contains the class Basis2DQNChebyshev2 which defines the basis functions for a 
-              2D Q1 element using Chebyshev polynomials.
-              Test functions and derivatives are inferred from the work by Ehsan Kharazmi et.al
-             (hp-VPINNs: Variational Physics-Informed Neural Networks With Domain Decomposition)
-             available at https://github.com/ehsankharazmi/hp-VPINNs/
-authors: Thivin Anandh D
-URL: https://thivinanandh.github.io
-changelog: 30/Aug/2023
-26/Dec/2024 - Modified for Scirex
-known_issues: None
-"""
+    Module: basis_2d_QN_Chebyshev_2.py
+
+    This module implements a specialized basis function class for 2D finite elements using Chebyshev polynomials. 
+    It provides functionality for computing basis functions and their derivatives in two dimensions, primarily used 
+    in variational physics-informed neural networks (VPINNs) with domain decomposition.
+
+    Classes:
+        Basis2DQNChebyshev2: Main class implementing 2D basis functions using Chebyshev polynomials
+
+    Dependencies:
+        - numpy: For numerical computations and array operations
+        - scipy.special: For Jacobi polynomial calculations and evaluations
+        - .basis_function_2d: For base class BasisFunction2D implementation
+
+    Key Features:
+        - Implementation of 2D element basis functions using Chebyshev polynomials
+        - Computation of function values and derivatives up to second order
+        - Tensor product construction of 2D basis functions from 1D components
+        - Specialized handling of Jacobi polynomials for test functions
+        - Support for variable number of shape functions through initialization
+
+    Authors:
+        Thivin Anandh (http://thivinanandh.github.io/) 
+
+    Version Info:
+        27/Dec/2024: Initial version: Thivin Anandh D
+
+    References:
+        - hp-VPINNs: Variational Physics-Informed Neural Networks With Domain Decomposition: https://github.com/ehsankharazmi/hp-VPINNs/
+    """
 
 # import the legendre polynomials
 from scipy.special import jacobi
@@ -41,14 +59,60 @@ from .basis_function_2d import BasisFunction2D
 
 
 class Basis2DQNChebyshev2(BasisFunction2D):
-    """
-    This class defines the basis functions for a 2D Q1 element.
+    """A specialized implementation of two-dimensional basis functions using Chebyshev polynomials for Q1 elements.
+
+    This class provides a complete implementation for computing basis functions and their derivatives
+    in two dimensions, specifically designed for use in variational physics-informed neural networks
+    (VPINNs) with domain decomposition. The basis functions are constructed using Chebyshev polynomials
+    through Jacobi polynomial representations.
+
+    The class inherits from BasisFunction2D and implements all required methods for computing
+    function values and derivatives. The implementation follows the methodology described in
+    hp-VPINNs research by Ehsan Kharazmi et al.
+
+    Attributes:
+        num_shape_functions (int): Total number of shape functions in the 2D element.
+            Must be a perfect square as it represents tensor product of 1D functions.
+
+    Methods:
+        value(xi, eta): Computes values of all basis functions at given points
+        gradx(xi, eta): Computes x-derivatives of all basis functions
+        grady(xi, eta): Computes y-derivatives of all basis functions
+        gradxx(xi, eta): Computes second x-derivatives of all basis functions
+        gradyy(xi, eta): Computes second y-derivatives of all basis functions
+        gradxy(xi, eta): Computes mixed xy-derivatives of all basis functions
+
+    Implementation Details:
+        - Basis functions are constructed as tensor products of 1D test functions
+        - Test functions are derived from normalized Jacobi polynomials
+        - Special cases are handled for first few polynomial degrees in derivatives
+        - All computations maintain double precision (float64)
+        - Efficient vectorized operations using numpy arrays
+
+    Example:
+        ```python
+        basis = Basis2DQNChebyshev2(num_shape_functions=16)  # Creates 4x4 basis functions
+        xi = np.linspace(-1, 1, 100)
+        eta = np.linspace(-1, 1, 100)
+        values = basis.value(xi, eta)
+        x_derivatives = basis.gradx(xi, eta)
+        ```
+
+    Notes:
+        - num_shape_functions must be a perfect square
+        - All coordinate inputs (xi, eta) should be in the range [-1, 1]
+        - Implementation optimized for vectorized operations on multiple points
+        - Based on hp-VPINNs methodology: https://github.com/ehsankharazmi/hp-VPINNs/
+
+    References:
+        Kharazmi, E., et al. "hp-VPINNs: Variational Physics-Informed Neural Networks
+        With Domain Decomposition"
     """
 
     def __init__(self, num_shape_functions: int):
         super().__init__(num_shape_functions)
 
-    def jacobi_wrapper(self, n, a, b, x):
+    def jacobi_wrapper(self, n: int, a: int, b: int, x: np.ndarray) -> np.ndarray:
         """Evaluates Jacobi polynomial at specified points.
 
         Computes values of nth degree Jacobi polynomial with parameters (a,b)
@@ -73,7 +137,7 @@ class Basis2DQNChebyshev2(BasisFunction2D):
         return jacobi(n, a, b)(x)
 
     ## Helper Function
-    def test_fcnx(self, n_test, x):
+    def test_fcnx(self, n_test: int, x: np.ndarray) -> np.ndarray:
         """Computes x-component test functions.
 
         Evaluates the x-direction test functions constructed as differences
@@ -102,7 +166,7 @@ class Basis2DQNChebyshev2(BasisFunction2D):
             test_total.append(test)
         return np.asarray(test_total, np.float64)
 
-    def test_fcny(self, n_test, y):
+    def test_fcny(self, n_test: int, y: np.ndarray) -> np.ndarray:
         """Computes y-component test functions.
 
         Evaluates the y-direction test functions constructed as differences
@@ -131,7 +195,7 @@ class Basis2DQNChebyshev2(BasisFunction2D):
             test_total.append(test)
         return np.asarray(test_total, np.float64)
 
-    def dtest_fcn(self, n_test, x):
+    def dtest_fcn(self, n_test: int, x: np.ndarray) -> np.ndarray:
         """Computes first and second derivatives of test functions.
 
         Calculates derivatives of test functions constructed from Jacobi
@@ -207,7 +271,7 @@ class Basis2DQNChebyshev2(BasisFunction2D):
                 d2test_total.append(d2test)
         return np.asarray(d1test_total), np.asarray(d2test_total)
 
-    def value(self, xi, eta):
+    def value(self, xi: np.ndarray, eta: np.ndarray) -> np.ndarray:
         """Evaluates basis functions at given coordinates.
 
         Computes values of all basis functions at specified (xi,eta) points
@@ -239,7 +303,7 @@ class Basis2DQNChebyshev2(BasisFunction2D):
 
         return values
 
-    def gradx(self, xi, eta):
+    def gradx(self, xi: np.ndarray, eta: np.ndarray) -> np.ndarray:
         """Computes x-derivatives of basis functions.
 
         Evaluates partial derivatives with respect to x of all basis
@@ -271,7 +335,7 @@ class Basis2DQNChebyshev2(BasisFunction2D):
 
         return values
 
-    def grady(self, xi, eta):
+    def grady(self, xi: np.ndarray, eta: np.ndarray) -> np.ndarray:
         """Computes y-derivatives of basis functions.
 
         Evaluates partial derivatives with respect to y of all basis
@@ -303,7 +367,7 @@ class Basis2DQNChebyshev2(BasisFunction2D):
 
         return values
 
-    def gradxx(self, xi, eta):
+    def gradxx(self, xi: np.ndarray, eta: np.ndarray) -> np.ndarray:
         """Computes second x-derivatives of basis functions.
 
         Evaluates second partial derivatives with respect to x of all basis
@@ -335,7 +399,7 @@ class Basis2DQNChebyshev2(BasisFunction2D):
 
         return values
 
-    def gradxy(self, xi, eta):
+    def gradxy(self, xi: np.ndarray, eta: np.ndarray) -> np.ndarray:
         """Computes second x-derivatives of basis functions.
 
         Evaluates second partial derivatives with respect to x of all basis
@@ -367,7 +431,7 @@ class Basis2DQNChebyshev2(BasisFunction2D):
 
         return values
 
-    def gradyy(self, xi, eta):
+    def gradyy(self, xi: np.ndarray, eta: np.ndarray) -> np.ndarray:
         """Computes second x-derivatives of basis functions.
 
         Evaluates second partial derivatives with respect to x of all basis

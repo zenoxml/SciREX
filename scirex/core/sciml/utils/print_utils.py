@@ -22,27 +22,38 @@
 #
 # For any clarifications or special considerations,
 # please contact <scirex@zenteiq.ai>
-# Author: Thivin Anandh D
+
+
+"""
+File : print_utils.py
+Purpose: This file contains utility functions to print tables to the console.
+
+Functions:
+    - print_table: Print a table with two columns to the console
+
+Authors:
+    Thivin Anandh D (https://thivinanandh.github.io)
+
+Version Info:
+    27/Dec/2024: Initial version - Thivin Anandh D
+"""
 
 from rich.console import Console
 from rich.table import Table
 
 
-def print_table(title, columns, col_1_values, col_2_values):
+def print_table(title: str, columns: list, col_1_values: list, col_2_values: list):
     """
     This function prints a table with two columns to the console.
 
-    :param title: Title of the table
-    :type title: str
-    :param columns: List of column names
-    :type columns: list
-    :param col_1_values: List of values for column 1
-    :type col_1_values: list
-    :param col_2_values: List of values for column 2
-    :type col_2_values: list
+    Args:
+        title: str: Title of the table
+        columns: list: List of column names
+        col_1_values: list: List of values for column 1
+        col_2_values: list: List of values for column
 
-    :return: None
-    :rtype: None
+    Returns:
+        None
     """
 
     # Create a console object

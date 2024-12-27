@@ -22,23 +22,42 @@
 #
 # For any clarifications or special considerations,
 # please contact <scirex@zenteiq.ai>
-# Author: Thivin Anandh D
+
+"""
+File: compute_utils.py
+
+Purpose: This file contains utility functions to compute errors between the exact and approximate solutions.
+
+Functions:
+    - compute_l2_error: Compute the L2 error between the exact and approximate solutions
+    - compute_l1_error: Compute the L1 error between the exact and approximate solutions
+    - compute_linf_error: Compute the L_inf error between the exact and approximate solutions
+    - compute_l2_error_relative: Compute the relative L2 error between the exact and approximate solutions
+    - compute_linf_error_relative: Compute the relative L_inf error between the exact and approximate solutions
+    - compute_l1_error_relative: Compute the relative L1 error between the exact and approximate solutions
+    - compute_errors_combined: Compute the L1, L2 and L_inf absolute and relative errors
+
+Authors:
+    Thivin Anandh D (https://thivinanandh.github.io)
+
+Version Info:
+    27/Dec/2024: Initial version - Thivin Anandh D
+"""
 
 # Importing the required libraries
 import numpy as np
 
 
-def compute_l2_error(u_exact, u_approx):
+def compute_l2_error(u_exact: np.ndarray, u_approx: np.ndarray) -> np.ndarray:
     """
     This function will compute the L2 error between the exact solution and the approximate solution.
 
-    :param u_exact: numpy array containing the exact solution
-    :type u_exact: numpy.ndarray
-    :param u_approx: numpy array containing the approximate solution
-    :type u_approx: numpy.ndarray
+    Args:
+        u_exact: numpy array containing the exact solution
+        u_approx: numpy array containing the approximate solution
 
-    :return: L2 error between the exact and approximate solutions
-    :rtype: float
+    Returns:
+        L2 error between the exact and approximate solutions
     """
 
     # The L2 error is defined as:
@@ -55,17 +74,16 @@ def compute_l2_error(u_exact, u_approx):
     return l2_error
 
 
-def compute_l1_error(u_exact, u_approx):
+def compute_l1_error(u_exact: np.ndarray, u_approx: np.ndarray) -> np.ndarray:
     """
     This function will compute the L1 error between the exact solution and the approximate solution.
 
-    :param u_exact: numpy array containing the exact solution
-    :type u_exact: numpy.ndarray
-    :param u_approx: numpy array containing the approximate solution
-    :type u_approx: numpy.ndarray
+    Args:
+        u_exact: numpy array containing the exact solution
+        u_approx: numpy array containing the approximate solution
 
-    :return: L1 error between the exact and approximate solutions
-    :rtype: float
+    Returns:
+        L1 error between the exact and approximate solutions
     """
 
     # The L1 error is defined as:
@@ -81,17 +99,17 @@ def compute_l1_error(u_exact, u_approx):
     return l1_error
 
 
-def compute_linf_error(u_exact, u_approx):
+def compute_linf_error(u_exact: np.ndarray, u_approx: np.ndarray) -> np.ndarray:
     """
     This function will compute the L_inf error between the exact solution and the approximate solution.
 
-    :param u_exact: numpy array containing the exact solution
-    :type u_exact: numpy.ndarray
-    :param u_approx: numpy array containing the approximate solution
-    :type u_approx: numpy.ndarray
+    Args:
+        u_exact: numpy array containing the exact solution
+        u_approx: numpy array containing the approximate solution
 
-    :return: L_inf error between the exact and approximate solutions
-    :rtype: float
+    Returns:
+        L_inf error between the exact and approximate solutions
+
     """
 
     # The L_inf error is defined as
@@ -108,17 +126,16 @@ def compute_linf_error(u_exact, u_approx):
     return linf_error
 
 
-def compute_l2_error_relative(u_exact, u_approx):
+def compute_l2_error_relative(u_exact: np.ndarray, u_approx: np.ndarray) -> np.ndarray:
     """
     This function will compute the relative L2 error between the exact solution and the approximate solution.
 
-    :param u_exact: numpy array containing the exact solution
-    :type u_exact: numpy.ndarray
-    :param u_approx: numpy array containing the approximate solution
-    :type u_approx: numpy.ndarray
+    Args:
+        u_exact: numpy array containing the exact solution
+        u_approx: numpy array containing the approximate solution
 
-    :return: relative L2 error between the exact and approximate solutions
-    :rtype: float
+    Returns:
+        relative L2 error between the exact and approximate solutions
     """
 
     # The relative L2 error is defined as:
@@ -137,17 +154,18 @@ def compute_l2_error_relative(u_exact, u_approx):
     return l2_error_relative
 
 
-def compute_linf_error_relative(u_exact, u_approx):
+def compute_linf_error_relative(
+    u_exact: np.ndarray, u_approx: np.ndarray
+) -> np.ndarray:
     """
     This function will compute the relative L_inf error between the exact solution and the approximate solution.
 
-    :param u_exact: numpy array containing the exact solution
-    :type u_exact: numpy.ndarray
-    :param u_approx: numpy array containing the approximate solution
-    :type u_approx: numpy.ndarray
+    Args:
+        u_exact: numpy array containing the exact solution
+        u_approx: numpy array containing the approximate solution
 
-    :return: relative L_inf error between the exact and approximate solutions
-    :rtype: float
+    Returns:
+        relative L_inf error between the exact and approximate solutions
     """
 
     # The relative L_inf error is defined as:
@@ -166,17 +184,16 @@ def compute_linf_error_relative(u_exact, u_approx):
     return linf_error_relative
 
 
-def compute_l1_error_relative(u_exact, u_approx):
+def compute_l1_error_relative(u_exact: np.ndarray, u_approx: np.ndarray) -> np.ndarray:
     """
     This function will compute the relative L1 error between the exact solution and the approximate solution.
 
-    :param u_exact: numpy array containing the exact solution
-    :type u_exact: numpy.ndarray
-    :param u_approx: numpy array containing the approximate solution
-    :type u_approx: numpy.ndarray
+    Args:
+        u_exact: numpy array containing the exact solution
+        u_approx: numpy array containing the approximate solution
 
-    :return: relative L1 error between the exact and approximate solutions
-    :rtype: float
+    Returns:
+        relative L1 error between the exact and approximate solutions
     """
 
     # The relative L1 error is defined as:
@@ -195,18 +212,16 @@ def compute_l1_error_relative(u_exact, u_approx):
     return l1_error_relative
 
 
-def compute_errors_combined(u_exact, u_approx):
+def compute_errors_combined(u_exact: np.ndarray, u_approx: np.ndarray) -> np.ndarray:
     """
     This function will compute the L1, L2 and L_inf absolute and relative errors.
 
-    :param u_exact: numpy array containing the exact solution
-    :type u_exact: numpy.ndarray
-    :param u_approx: numpy array containing the approximate solution
-    :type u_approx: numpy.ndarray
+    Args:
+        u_exact: numpy array containing the exact solution
+        u_approx: numpy array containing the approximate solution
 
-    :return: L1, L2 and L_inf absolute and relative errors
-    :rtype: tuple
-
+    Returns:
+        tuple: The L1, L2 and L_inf absolute and relative errors
     """
     # flatten the arrays
     u_exact = u_exact.flatten()

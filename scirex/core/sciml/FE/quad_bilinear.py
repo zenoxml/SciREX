@@ -19,18 +19,39 @@
 #
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
-"""
-The file `quad_bilinear.py` defines the Quad Bilinear transformation of the reference element.
-The implementation is referenced from the ParMooN project (File: QuadBilineare.C).
+"""Implementation of Bilinear Transformation for Quadrilateral Elements.
 
-Author: Thivin Anandh D
+This module provides functionality for bilinear transformations of quadrilateral 
+elements in finite element analysis. It implements mapping between reference and 
+physical elements based on the ParMooN project's methodology.
 
-changelog: 30/Aug/2023
-26/Dec/2024 - Modified for Scirex
+Key functionalities:
+    - Reference to physical coordinate mapping using bilinear transformation
+    - Jacobian computation for bilinear elements
+    - First-order derivatives transformation
+    - Limited second-order derivatives transformation
 
-Known issues: Second derivative Calculations are not implemented as of now. 
+The implementation allows for more general quadrilateral elements compared to
+affine transformations, by using bilinear mapping functions. This enables
+handling of non-parallelogram quadrilateral elements while maintaining 
+geometric consistency.
 
-Dependencies: None specified
+Key classes:
+    - QuadBilinear: Main class implementing bilinear transformation for quads
+
+Note:
+    Second derivative calculations are currently not fully implemented.
+    This implementation is specifically referenced from ParMooN project's
+    QuadBilineare.C file with adaptations for Python and SciREX framework.
+
+References:
+    [1] ParMooN Project: ParMooN/FiniteElement/QuadBilinear.C
+
+Authors:
+    Thivin Anandh D (https://thivinanandh.github.io)
+
+Version:
+    27/Dec/2024: Initial version - Thivin Anandh D
 """
 
 import numpy as np
@@ -39,18 +60,48 @@ from .fe_transformation_2d import FETransforamtion2D
 
 class QuadBilinear(FETransforamtion2D):
     """
-    Defines the Quad Bilinear transformation of the reference element.
+    Implements bilinear transformation for quadrilateral elements.
 
-    :param co_ordinates: The coordinates of the reference element.
-    :type co_ordinates: numpy.ndarray
+    This class provides methods to transform between reference and physical
+    quadrilateral elements using bilinear mapping. It handles coordinate
+    transformations, Jacobian computations, and derivative mappings for more
+    general quadrilateral elements than affine transformations.
+
+    Attributes:
+        co_ordinates: Array of physical element vertex coordinates
+            Shape: (4, 2) for 2D quadrilateral
+        x0, x1, x2, x3: x-coordinates of vertices
+        y0, y1, y2, y3: y-coordinates of vertices
+        xc0, xc1, xc2, xc3: x-coordinate transformation coefficients
+        yc0, yc1, yc2, yc3: y-coordinate transformation coefficients
+        detjk: Determinant of the Jacobian matrix
+
+    Example:
+        >>> coords = np.array([[0,0], [1,0], [1.2,1], [0.2,1.1]])
+        >>> quad = QuadBilinear(coords)
+        >>> ref_point = np.array([0.5, 0.5])
+        >>> physical_point = quad.get_original_from_ref(*ref_point)
+
+    Note:
+        - Implementation assumes counterclockwise vertex ordering
+        - Second derivatives computation is not fully implemented
+        - Jacobian is computed point-wise due to non-constant nature
+        of bilinear transformation
+
+    References:
+        [1] ParMooN Project: QuadBilineare.C implementation
     """
 
-    def __init__(self, co_ordinates) -> None:
+    def __init__(self, co_ordinates: np.ndarray) -> None:
         """
         Constructor for the QuadBilinear class.
 
-        :param co_ordinates: The coordinates of the reference element.
-        :type co_ordinates: numpy.ndarray
+        Args:
+            co_ordinates: Array of physical element vertex coordinates
+                Shape: (4, 2) for 2D quadrilateral
+
+        Returns:
+            None
         """
         self.co_ordinates = co_ordinates
         self.set_cell()
@@ -60,11 +111,11 @@ class QuadBilinear(FETransforamtion2D):
         """
         Set the cell coordinates, which will be used as intermediate values to calculate the Jacobian and actual values.
 
-        :param None:
-        :type None:
+        Args:
+            None
 
-        :returns: None
-        :rtype: None
+        Returns:
+            None
         """
         self.x0 = self.co_ordinates[0][0]
         self.x1 = self.co_ordinates[1][0]
@@ -87,34 +138,32 @@ class QuadBilinear(FETransforamtion2D):
         self.yc2 = (-self.y0 - self.y1 + self.y2 + self.y3) * 0.25
         self.yc3 = (self.y0 - self.y1 + self.y2 - self.y3) * 0.25
 
-    def get_original_from_ref(self, xi, eta):
+    def get_original_from_ref(self, xi: np.ndarray, eta: np.ndarray) -> np.ndarray:
         """
         This method returns the original coordinates from the reference coordinates.
 
-        :param xi: The xi coordinate in the reference element.
-        :type xi: float
-        :param eta: The eta coordinate in the reference element.
-        :type eta: float
+        Args:
+            xi (np.ndarray): The xi coordinate.
+            eta (np.ndarray): The eta coordinate.
 
-        :returns: The original coordinates [x, y] corresponding to the given reference coordinates.
-        :rtype: numpy.ndarray
+        Returns:
+            np.ndarray: Returns the transformed original coordinates from the reference coordinates.
         """
         x = self.xc0 + self.xc1 * xi + self.xc2 * eta + self.xc3 * xi * eta
         y = self.yc0 + self.yc1 * xi + self.yc2 * eta + self.yc3 * xi * eta
 
         return np.array([x, y], dtype=np.float64)
 
-    def get_jacobian(self, xi, eta):
+    def get_jacobian(self, xi: np.ndarray, eta: np.ndarray) -> np.ndarray:
         """
         This method returns the Jacobian of the transformation.
 
-        :param xi: The xi coordinate in the reference element.
-        :type xi: float
-        :param eta: The eta coordinate in the reference element.
-        :type eta: float
+        Args:
+            xi (np.ndarray): The xi coordinate.
+            eta (np.ndarray): The eta coordinate.
 
-        :returns: The Jacobian of the transformation at the given reference coordinates.
-        :rtype: float
+        Returns:
+            np.ndarray: Returns the Jacobian of the transformation.
         """
         self.detjk = abs(
             (self.xc1 + self.xc3 * eta) * (self.yc2 + self.yc3 * xi)
@@ -122,21 +171,25 @@ class QuadBilinear(FETransforamtion2D):
         )
         return self.detjk
 
-    def get_orig_from_ref_derivative(self, ref_gradx, ref_grady, xi, eta):
+    def get_orig_from_ref_derivative(
+        self,
+        ref_gradx: np.ndarray,
+        ref_grady: np.ndarray,
+        xi: np.ndarray,
+        eta: np.ndarray,
+    ) -> np.ndarray:
         """
         This method returns the derivatives of the original coordinates with respect to the reference coordinates.
 
-        :param ref_gradx: The gradient of the xi coordinate in the reference element.
-        :type ref_gradx: numpy.ndarray
-        :param ref_grady: The gradient of the eta coordinate in the reference element.
-        :type ref_grady: numpy.ndarray
-        :param xi: The xi coordinate in the reference element.
-        :type xi: float
-        :param eta: The eta coordinate in the reference element.
-        :type eta: float
+        Args:
+            ref_gradx (np.ndarray): The derivative of the xi coordinate in the reference element.
+            ref_grady (np.ndarray): The derivative of the eta coordinate in the reference element.
+            xi (np.ndarray): The xi coordinate.
+            eta (np.ndarray): The eta coordinate.
 
-        :returns: The derivatives of the original coordinates [x, y] with respect to the reference coordinates.
-        :rtype: numpy.ndarray
+        Returns:
+            np.ndarray: The derivatives of the original coordinates [x, y] with respect to the reference coordinates.
+
         """
         n_test = ref_gradx.shape[0]
         gradx_orig = np.zeros(ref_gradx.shape, dtype=np.float64)
@@ -161,24 +214,25 @@ class QuadBilinear(FETransforamtion2D):
         return gradx_orig, grady_orig
 
     def get_orig_from_ref_second_derivative(
-        self, grad_xx_ref, grad_xy_ref, grad_yy_ref, xi, eta
+        self,
+        grad_xx_ref: np.ndarray,
+        grad_xy_ref: np.ndarray,
+        grad_yy_ref: np.ndarray,
+        xi: np.ndarray,
+        eta: np.ndarray,
     ):
         """
         This method returns the second derivatives of the original coordinates with respect to the reference coordinates.
 
-        :param grad_xx_ref: The second derivative of the xi coordinate in the reference element.
-        :type grad_xx_ref: numpy.ndarray
-        :param grad_xy_ref: The mixed second derivative of the xi and eta coordinates in the reference element.
-        :type grad_xy_ref: numpy.ndarray
-        :param grad_yy_ref: The second derivative of the eta coordinate in the reference element.
-        :type grad_yy_ref: numpy.ndarray
-        :param xi: The xi coordinate in the reference element.
-        :type xi: float
-        :param eta: The eta coordinate in the reference element.
-        :type eta: float
+        Args:
+            grad_xx_ref (np.ndarray): The second derivative of the xi coordinate in the reference element.
+            grad_xy_ref (np.ndarray): The second derivative of the xi and eta coordinates in the reference element.
+            grad_yy_ref (np.ndarray): The second derivative of the eta coordinate in the reference element.
+            xi (np.ndarray): The xi coordinate.
+            eta (np.ndarray): The eta coordinate.
 
-        :returns: The second derivatives of the original coordinates [xx, xy, yy] with respect to the reference coordinates.
-        :rtype: numpy.ndarray
+        Note:
+            Second derivative calculations are not fully implemented in this method. Needs further development.
         """
         # print(" Error : Second Derivative not implemented -- Ignore this error, if second derivative is not required ")
         return grad_xx_ref, grad_xy_ref, grad_yy_ref

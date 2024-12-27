@@ -20,102 +20,188 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 """
-The file `basis_function_2d.py` contains a wrapper class for all the finite element basis functions 
-used in the FE2D code. The 2D basis functions have methods to return the value 
-of the basis function and its derivatives at the reference point (xi, eta).
+    Module: basis_function_2d.py
 
-Author: Thivin Anandh D
+    This module provides the abstract base class for all 2D finite element basis functions 
+    used in the FE2D code. It defines the interface for computing basis functions and their 
+    derivatives in reference coordinates.
 
-Changelog: 30/Aug/2023 - First version
+    Classes:
+        BasisFunction2D: Abstract base class for 2D finite element basis functions
 
-Known issues: None
+    Dependencies:
+        - abc: For abstract base class functionality
 
-Dependencies: None specified
+    Key Features:
+        - Abstract interface for 2D basis function evaluation
+        - Support for first and second order derivatives
+        - Reference coordinate system (xi, eta) implementation
+        - Unified interface for different polynomial bases
+        - Common structure for Legendre, Jacobi, and Chebyshev implementations
+
+    Authors:
+        Thivin Anandh (http://thivinanandh.github.io/) 
+
+    Version Info:
+        27/Dec/2024: Initial version: Thivin Anandh D
+       
+
+    References:
+        None
 """
 
 from abc import abstractmethod
+import numpy as np
 
 
 class BasisFunction2D:
     """
-    This class defines the basis functions for a 2D element.
+    An abstract base class defining the interface for two-dimensional finite element basis functions.
 
-    :num_shape_functions (int): The number of shape functions.
-    :value(xi, eta): Evaluates the basis function at the given xi and eta coordinates.
+    This class serves as a template for implementing various types of 2D basis functions
+    (Legendre, Jacobi, Chebyshev, etc.) used in finite element computations. It defines
+    the required methods for function evaluation and derivatives.
+
+    Attributes:
+        num_shape_functions (int): Number of shape functions in the element.
+            Typically a perfect square for tensor-product bases.
+
+    Methods:
+        value(xi, eta): Evaluates basis functions at given reference coordinates
+            Args:
+                xi (float): First reference coordinate
+                eta (float): Second reference coordinate
+            Returns:
+                float: Values of basis functions at (xi, eta)
+
+        gradx(xi, eta): Computes x-derivatives at reference coordinates
+            Args:
+                xi (float): First reference coordinate
+                eta (float): Second reference coordinate
+            Returns:
+                float: Values of x-derivatives at (xi, eta)
+
+        grady(xi, eta): Computes y-derivatives at reference coordinates
+            Args:
+                xi (float): First reference coordinate
+                eta (float): Second reference coordinate
+            Returns:
+                float: Values of y-derivatives at (xi, eta)
+
+        gradxx(xi, eta): Computes second x-derivatives at reference coordinates
+            Args:
+                xi (float): First reference coordinate
+                eta (float): Second reference coordinate
+            Returns:
+                float: Values of second x-derivatives at (xi, eta)
+
+        gradxy(xi, eta): Computes mixed derivatives at reference coordinates
+            Args:
+                xi (float): First reference coordinate
+                eta (float): Second reference coordinate
+            Returns:
+                float: Values of mixed derivatives at (xi, eta)
+
+        gradyy(xi, eta): Computes second y-derivatives at reference coordinates
+            Args:
+                xi (float): First reference coordinate
+                eta (float): Second reference coordinate
+            Returns:
+                float: Values of second y-derivatives at (xi, eta)
+
+    Notes:
+        - All coordinate inputs (xi, eta) should be in the reference element range
+        - Subclasses must implement all abstract methods
+        - Used as base class for specific polynomial implementations:
+            - Legendre polynomials (normal and special variants)
+            - Jacobi polynomials
+            - Chebyshev polynomials
     """
 
     def __init__(self, num_shape_functions):
         self.num_shape_functions = num_shape_functions
 
     @abstractmethod
-    def value(self, xi, eta):
+    def value(self, xi: np.ndarray, eta: np.ndarray) -> np.ndarray:
         """
         Evaluates the basis function at the given xi and eta coordinates.
 
-        :param float xi: The xi coordinate.
-        :param float eta: The eta coordinate.
-        :return: The value of the basis function at the given coordinates.
-        :rtype: float
+        Args:
+            xi (float): The xi coordinate.
+            eta (float): The eta coordinate.
+
+        Returns:
+            float: The value of the basis function at ( xi, eta).
         """
         pass
 
     @abstractmethod
-    def gradx(self, xi, eta):
+    def gradx(self, xi: np.ndarray, eta: np.ndarray) -> np.ndarray:
         """
         Computes the partial derivative of the basis function with respect to xi.
 
-        :param float xi: The xi coordinate.
-        :param float eta: The eta coordinate.
-        :return: The partial derivative of the basis function with respect to xi.
-        :rtype: float
+        Args:
+            xi (np.ndarray): The xi coordinate.
+            eta (np.ndarray): The eta coordinate.
+
+        Returns:
+            np.ndarray: The partial derivative of the basis function with respect to xi.
         """
         pass
 
     @abstractmethod
-    def grady(self, xi, eta):
+    def grady(self, xi: np.ndarray, eta: np.ndarray) -> np.ndarray:
         """
         Computes the partial derivative of the basis function with respect to eta.
 
-        :param float xi: The xi coordinate.
-        :param float eta: The eta coordinate.
-        :return: The partial derivative of the basis function with respect to eta.
-        :rtype: float
+        Args:
+            xi (np.ndarray): The xi coordinate.
+            eta (np.ndarray): The eta coordinate.
+
+        Returns:
+            np.ndarray: The partial derivative of the basis function with respect to eta.
         """
         pass
 
     @abstractmethod
-    def gradxx(self, xi, eta):
+    def gradxx(self, xi: np.ndarray, eta: np.ndarray) -> np.ndarray:
         """
         Computes the second partial derivative of the basis function with respect to xi.
 
-        :param float xi: The xi coordinate.
-        :param float eta: The eta coordinate.
-        :return: The second partial derivative of the basis function with respect to xi.
-        :rtype: float
+        Args:
+            xi (np.ndarray): The xi coordinate.
+            eta (np.ndarray): The eta coordinate.
+
+        Returns:
+            np.ndarray: The second partial derivative of the basis function with respect to xi.
         """
         pass
 
     @abstractmethod
-    def gradxy(self, xi, eta):
+    def gradxy(self, xi: np.ndarray, eta: np.ndarray) -> np.ndarray:
         """
         Computes the mixed partial derivative of the basis function with respect to xi and eta.
 
-        :param float xi: The xi coordinate.
-        :param float eta: The eta coordinate.
-        :return: The mixed partial derivative of the basis function with respect to xi and eta.
-        :rtype: float
+        Args:
+            xi (np.ndarray): The xi coordinate.
+            eta (np.ndarray): The eta coordinate.
+
+        Returns:
+            np.ndarray: The mixed partial derivative of the basis function with respect to xi and eta.
         """
         pass
 
     @abstractmethod
-    def gradyy(self, xi, eta):
+    def gradyy(self, xi: np.ndarray, eta: np.ndarray) -> np.ndarray:
         """
         Computes the second partial derivative of the basis function with respect to eta.
 
-        :param float xi: The xi coordinate.
-        :param float eta: The eta coordinate.
-        :return: The second partial derivative of the basis function with respect to eta.
-        :rtype: float
+        Args:
+            xi (np.ndarray): The xi coordinate.
+            eta (np.ndarray): The eta coordinate.
+
+        Returns:
+            np.ndarray: The second partial derivative of the basis function with respect to eta.
         """
         pass
 

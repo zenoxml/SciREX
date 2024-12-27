@@ -19,18 +19,37 @@
 #
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
-"""
-The file `quad_affine.py` defines the Quad Affine transformation of the reference element.
-The implementation is referenced from the ParMooN project  (File: QuadAffine.C).
+"""Implementation of Affine Transformation for Quadrilateral Elements.
 
-Author: Thivin Anandh D
+This module provides functionality for affine transformations of quadrilateral elements
+in finite element analysis. It implements mapping between reference and physical elements
+based on the ParMooN project's methodology.
 
-changelog: 30/Aug/2023
-26/Dec/2024 - Modified for Scirex
+Key functionalities:
+    - Reference to physical coordinate mapping
+    - Jacobian computation
+    - First-order derivatives transformation
+    - Second-order derivatives transformation
 
-Known issues: None
+The implementation follows standard finite element mapping techniques with
+focus on quadrilateral elements. The transformations maintain geometric
+consistency and numerical accuracy required for FEM computations.
 
-Dependencies: None specified
+Key classes:
+    - QuadAffin: Main class implementing affine transformation for quads
+
+Note:
+    This implementation is specifically referenced from ParMooN project's
+    QuadAffine.C file with adaptations for Python and SciREX framework.
+
+References:
+    [1] ParMooN Project: ParMooN/FiniteElement/QuadAffine.C
+
+Authors:
+    Thivin Anandh D (https://thivinanandh.github.io)
+
+Version:
+    27/Dec/2024: Initial version - Thivin Anandh D
 """
 
 import numpy as np
@@ -39,18 +58,46 @@ from .fe_transformation_2d import FETransforamtion2D
 
 class QuadAffin(FETransforamtion2D):
     """
-    Defines the Quad Affine transformation of the reference element.
+    Implements affine transformation for quadrilateral elements.
 
-    :param co_ordinates: The coordinates of the reference element.
-    :type co_ordinates: numpy.ndarray
+    This class provides methods to transform between reference and physical
+    quadrilateral elements using affine mapping. It handles coordinate
+    transformations, Jacobian computations, and derivative mappings.
+
+    Attributes:
+        co_ordinates: Array of physical element vertex coordinates
+            Shape: (4, 2) for 2D quadrilateral
+        x0, x1, x2, x3: x-coordinates of vertices
+        y0, y1, y2, y3: y-coordinates of vertices
+        xc0, xc1, xc2: x-coordinate transformation coefficients
+        yc0, yc1, yc2: y-coordinate transformation coefficients
+        detjk: Determinant of the Jacobian
+        rec_detjk: Reciprocal of Jacobian determinant
+
+    Example:
+        >>> coords = np.array([[0,0], [1,0], [1,1], [0,1]])
+        >>> quad = QuadAffin(coords)
+        >>> ref_point = np.array([0.5, 0.5])
+        >>> physical_point = quad.get_original_from_ref(*ref_point)
+
+    Note:
+        The implementation assumes counterclockwise vertex ordering and
+        non-degenerate quadrilateral elements.
+
+    References:
+        [1] ParMooN Project: QuadAffine.C implementation
     """
 
-    def __init__(self, co_ordinates) -> None:
+    def __init__(self, co_ordinates: np.ndarray) -> None:
         """
         Constructor for the QuadAffin class.
 
-        :param co_ordinates: The coordinates of the reference element.
-        :type co_ordinates: numpy.ndarray
+        Args:
+            co_ordinates: Array of physical element vertex coordinates
+                Shape: (4, 2) for 2D quadrilateral
+
+        Returns:
+            None
         """
         self.co_ordinates = co_ordinates
         self.set_cell()
@@ -62,11 +109,11 @@ class QuadAffin(FETransforamtion2D):
         """
         Set the cell coordinates, which will be used to calculate the Jacobian and actual values.
 
-        :param None:
-            There are no parameters for this method.
+        Args:
+            None
 
-        :returns None:
-            This method does not return anything.
+        Returns:
+            None
         """
 
         self.x0 = self.co_ordinates[0][0]
@@ -88,31 +135,32 @@ class QuadAffin(FETransforamtion2D):
         self.yc1 = (self.y1 - self.y0) * 0.5
         self.yc2 = (self.y3 - self.y0) * 0.5
 
-    def get_original_from_ref(self, xi, eta):
+    def get_original_from_ref(self, xi: np.ndarray, eta: np.ndarray) -> np.ndarray:
         """
         Returns the original coordinates from the reference coordinates.
 
-        :param float xi: The xi coordinate.
-        :param float eta: The eta coordinate.
-        :return: numpy.ndarray
-            The original coordinates.
+        Args:
+            xi (np.ndarray): The xi coordinate.
+            eta (np.ndarray): The eta coordinate.
+
+        Returns:
+            np.ndarray: The transformed original coordinates from the reference coordinates.
         """
         x = self.xc0 + self.xc1 * xi + self.xc2 * eta
         y = self.yc0 + self.yc1 * xi + self.yc2 * eta
 
         return np.array([x, y])
 
-    def get_jacobian(self, xi, eta):
+    def get_jacobian(self, xi: np.ndarray, eta: np.ndarray) -> np.ndarray:
         """
         Returns the Jacobian of the transformation.
 
-        :param xi: The xi coordinate.
-        :type xi: float
-        :param eta: The eta coordinate.
-        :type eta: float
+        Args:
+            xi (np.ndarray): The xi coordinate.
+            eta (np.ndarray): The eta coordinate.
 
-        :return: The Jacobian of the transformation.
-        :rtype: float
+        Returns:
+            np.ndarray: The Jacobian of the transformation.
         """
         self.detjk = self.xc1 * self.yc2 - self.xc2 * self.yc1
         self.rec_detjk = 1 / self.detjk
@@ -123,17 +171,14 @@ class QuadAffin(FETransforamtion2D):
         """
         Returns the derivatives of the original coordinates with respect to the reference coordinates.
 
-        :param ref_gradx: The reference gradient in the x-direction.
-        :type ref_gradx: numpy.ndarray
-        :param ref_grady: The reference gradient in the y-direction.
-        :type ref_grady: numpy.ndarray
-        :param xi: The xi coordinate.
-        :type xi: float
-        :param eta: The eta coordinate.
-        :type eta: float
+        Args:
+            ref_gradx (np.ndarray): The reference gradient in the x-direction.
+            ref_grady (np.ndarray): The reference gradient in the y-direction.
+            xi (np.ndarray): The xi coordinate.
+            eta (np.ndarray): The eta coordinate.
 
-        :return: The derivatives of the original coordinates with respect to the reference coordinates.
-        :rtype: tuple
+        Returns:
+            tuple: The derivatives of the original coordinates with respect to the reference coordinates.
         """
         gradx_orig = np.zeros(ref_gradx.shape)
         grady_orig = np.zeros(ref_grady.shape)
@@ -154,19 +199,15 @@ class QuadAffin(FETransforamtion2D):
         """
         Returns the second derivatives (xx, xy, yy) of the original coordinates with respect to the reference coordinates.
 
-        :param grad_xx_ref: The reference second derivative in the xx-direction.
-        :type grad_xx_ref: numpy.ndarray
-        :param grad_xy_ref: The reference second derivative in the xy-direction.
-        :type grad_xy_ref: numpy.ndarray
-        :param grad_yy_ref: The reference second derivative in the yy-direction.
-        :type grad_yy_ref: numpy.ndarray
-        :param xi: The xi coordinate.
-        :type xi: float
-        :param eta: The eta coordinate.
-        :type eta: float
+        Args:
+            grad_xx_ref (np.ndarray): The reference second derivative in the x-direction.
+            grad_xy_ref (np.ndarray): The reference second derivative in the xy-direction.
+            grad_yy_ref (np.ndarray): The reference second derivative in the y-direction.
+            xi (np.ndarray): The xi coordinate.
+            eta (np.ndarray): The eta coordinate.
 
-        :return: The second derivatives (xx, xy, yy) of the original coordinates with respect to the reference coordinates.
-        :rtype: tuple
+        Returns:
+            tuple: The second derivatives (xx, xy, yy) of the original coordinates with respect to the reference coordinates.
         """
         GeoData = np.zeros((3, 3))
         Eye = np.identity(3)

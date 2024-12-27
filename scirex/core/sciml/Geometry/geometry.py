@@ -19,13 +19,40 @@
 #
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
-"""
-This module, `geometry.py`, contains the `Geometry` Abstract class which defines functions to read mesh from Gmsh and 
-generate internal mesh for 2D and 3D geometries. 
+"""Abstract Base Interface for Geometry and Mesh Operations.
 
-Author: Thivin Anandh D
+This module provides the base interface for implementing geometry and mesh
+handling capabilities in both 2D and 3D. It defines the essential structure
+for mesh operations including reading, generation, and manipulation.
 
-Date: 03/May/2024
+Key functionalities:
+    - Abstract interface for mesh reading operations
+    - Common mesh generation method definitions
+    - VTK file generation specifications
+    - Test point extraction framework
+    - Mesh type and generation method standardization
+
+The module serves as a foundation for:
+    - Both 2D and 3D mesh implementations
+    - Various element type support
+    - Multiple mesh generation approaches
+    - Consistent mesh handling interface
+
+Key classes:
+    - Geometry: Abstract base class for all geometry implementations
+
+Dependencies:
+    - numpy: For numerical operations
+    - meshio: For mesh input/output operations
+    - gmsh: For mesh generation capabilities
+    - matplotlib: For visualization
+    - pyDOE: For sampling methods
+    - abc: For abstract base class functionality
+
+Note:
+    This module provides only the interface definitions. Concrete
+    implementations must be provided by derived classes for specific
+    dimensional and element type requirements.
 """
 
 from pathlib import Path
@@ -41,16 +68,56 @@ from abc import abstractmethod
 
 
 class Geometry:
-    """
-    Abstract class which defines functions to read mesh from Gmsh and internal mesh for 2D problems.
+    """Abstract base class for geometry and mesh operations.
 
-    :param mesh_type: The type of mesh to be used.
-    :type mesh_type: str
-    :param mesh_generation_method: The method used to generate the mesh.
-    :type mesh_generation_method: str
+    This class defines the interface that all geometry implementations must
+    follow, providing the basic structure for mesh handling operations in
+    both 2D and 3D contexts.
+
+    Attributes:
+        mesh_type: Type of mesh elements (e.g., 'quadrilateral', 'triangle')
+        mesh_generation_method: Method for mesh generation ('internal'/'external')
+
+    Example:
+        >>> class Geometry2D(Geometry):
+        ...     def __init__(self, mesh_type='quadrilateral',
+        ...                  method='internal'):
+        ...         super().__init__(mesh_type, method)
+        ...
+        ...     def read_mesh(self, mesh_file, boundary_level,
+        ...                   sampling_method, refine_level):
+        ...         # Implementation
+        ...         pass
+        ...
+        ...     def generate_vtk_for_test(self):
+        ...         # Implementation
+        ...         pass
+        ...
+        ...     def get_test_points(self):
+        ...         # Implementation
+        ...         return points
+
+    Note:
+        This is an abstract base class. Concrete implementations must override:
+        - read_mesh()
+        - generate_vtk_for_test()
+        - get_test_points()
+
+        Each implementation should provide appropriate mesh handling for its
+        specific dimensional and element type requirements.
     """
 
-    def __init__(self, mesh_type, mesh_generation_method):
+    def __init__(self, mesh_type: str, mesh_generation_method: str):
+        """
+        Constructor for the Geometry class.
+
+        Args:
+            mesh_type: Type of mesh elements (e.g., 'quadrilateral', 'triangle')
+            mesh_generation_method: Method for mesh generation ('internal'/'external')
+
+        Returns:
+            None
+        """
         self.mesh_type = mesh_type
         self.mesh_generation_method = mesh_generation_method
 
@@ -63,16 +130,16 @@ class Geometry:
         refinement_level: int,
     ):
         """
-        Abstract method to read mesh from Gmsh.
+        Abstract method to read mesh from Gmsh. This method should be implemented by the derived classes.
 
-        :param mesh_file: The path to the mesh file.
-        :type mesh_file: str
-        :param boundary_point_refinement_level: The refinement level of the boundary points.
-        :type boundary_point_refinement_level: int
-        :param bd_sampling_method: The method used to sample the boundary points.
-        :type bd_sampling_method: str
-        :param refinement_level: The refinement level of the mesh.
-        :type refinement_level: int
+        Args:
+            mesh_file (str): Path to the mesh file
+            boundary_point_refinement_level (int): Level of refinement for boundary points
+            bd_sampling_method (str): Sampling method for boundary points
+            refinement_level (int): Level of mesh refinement
+
+        Returns:
+            None
         """
 
     @abstractmethod
@@ -80,7 +147,11 @@ class Geometry:
         """
         Generates a VTK from Mesh file (External) or using gmsh (for Internal).
 
-        :return: None
+        Args:
+        None
+
+        Returns:
+        None
         """
 
     @abstractmethod
@@ -88,9 +159,9 @@ class Geometry:
         """
         This function is used to extract the test points from the given mesh
 
-        Parameters:
-        None
+        Args:
+            None
 
         Returns:
-        test_points (numpy.ndarray): The test points for the given domain
+            points (np.ndarray): Test points extracted from the mesh
         """
