@@ -3,7 +3,9 @@
 # All rights reserved.
 #
 # This file is part of SciREX
-# (Scientific Research and Engineering eXcellence Platform).
+# (Scientific Research and Engineering eXcellence Platform),
+# developed jointly by Zenteiq Aitech Innovations and AiREX Lab
+# under the guidance of Prof. Sashikumaar Ganesan.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,3 +21,28 @@
 #
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
+
+"""Neural Network Model Implementation for FastVPINNs with Hard Constraints.
+
+This module implements a custom neural network model designed specifically for
+FastVPINNs methodology, incorporating hard constraint enforcement. It extends
+TensorFlow's Keras Model class to provide efficient PDE residual computation
+and gradient-based training.
+
+The implementation supports:
+    - Flexible neural network architecture definition
+    - Hard constraint enforcement through constraint functions
+    - Adaptive learning rate scheduling
+    - Attention mechanisms (optional)
+    - Efficient tensor operations for PDE residuals
+    - Custom gradient computation and training loops
+
+Key classes:
+    - DenseModel_Hard: Main neural network model with hard constraints
+
+Authors:
+    - Thivin Anandh, Zenteiq Aitech Innovations (https://thivinanandh.github.io/)
+
+Versions:
+    - 27-Dec-2024 (Version 0.1): Initial Implementation
+"""
