@@ -34,7 +34,7 @@ def test_hdbscan():
     eps_val = 0.5
 
     # Load and scale the data
-    data = np.loadtxt("../../../../../support_files/chainlink_data.txt") 
+    data = np.loadtxt("tests/support_files/chainlink_data.txt")
     
     scaler = StandardScaler()
     data = scaler.fit_transform(data)
