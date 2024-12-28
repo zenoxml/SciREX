@@ -48,6 +48,8 @@ nav:
               - Feature Selection: index.md
       - Postprocessing: 
           - Postprocessing: api/core/postprocessing/postprocessing.md
+      - Deep Learning: 
+          - tensorflow_wrapper: api/core/dl/tensorflow_wrapper.md
       - SciML:
           - Geometry:
               - geometry_2d: api/core/sciml/geometry/geometry_2d.md
