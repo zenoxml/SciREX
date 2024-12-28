@@ -1,5 +1,5 @@
-# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and AiREX Lab,
-# Indian Institute of Science, Bangalore.
+# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and
+# AiREX Lab, Indian Institute of Science, Bangalore.
 # All rights reserved.
 #
 # This file is part of SciREX
@@ -7,31 +7,50 @@
 # developed jointly by Zenteiq Aitech Innovations and AiREX Lab
 # under the guidance of Prof. Sashikumaar Ganesan.
 #
-# SciREX is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# SciREX is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
-# You should have received a copy of the GNU Affero General Public License
-# along with SciREX. If not, see <https://www.gnu.org/licenses/>.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # For any clarifications or special considerations,
-# please contact <scirex@zenteiq.ai>
+# please contact: contact@scirex.org
 
-# Author: Dev Sahoo
-# Linkedin: https://www.linkedin.com/in/debajyoti-sahoo13/
+"""
+    Module: gmm.py
 
-"""Gaussian Mixture Model (GMM) clustering implementation.
+    This module provides a Gaussian Mixture Model (GMM) clustering implementation using
+    scikit-learn's GaussianMixture. The Gmm class automatically estimates the optimal
+    number of components (clusters) via silhouette scores. It then allows the user
+    to confirm or override this choice.
 
-This module provides a Gaussian Mixture Model (GMM) clustering implementation.
+    Classes:
+        Gmm: Gaussian Mixture Model clustering with automatic component selection.
 
-The Gmm class automatically estimates the optimal number of components (clusters)
-via silhouette scores. It then allows the user to confirm or override this choice.
+    Dependencies:
+        - numpy
+        - sklearn.mixture.GaussianMixture
+        - sklearn.metrics.silhouette_score
+        - base.py (Clustering)
+
+    Key Features:
+        - Scans [2..max_k] for the best silhouette score
+        - Optional user override of the chosen number of components
+        - Final model is stored, along with predicted cluster labels
+        - Ties into the base `Clustering` for plotting/metrics
+
+    Authors:
+        - Debajyoti Sahoo (debajyotis@iisc.ac.in)
+
+    Version Info:
+        - 28/Dec/2024: Initial version
+
 """
 
 # Standard library imports
@@ -43,7 +62,7 @@ from sklearn.mixture import GaussianMixture
 from sklearn.metrics import silhouette_score
 
 # Local imports
-from base import Clustering
+from .base import Clustering
 
 
 class Gmm(Clustering):
@@ -54,8 +73,8 @@ class Gmm(Clustering):
         max_k (int): Maximum number of components (clusters) to consider when searching
                      for the optimal mixture size.
         optimal_k (Optional[int]): The chosen (user-verified) number of components after fitting.
-        model (GaussianMixture): The underlying scikit-learn GaussianMixture model.
-        labels (np.ndarray): Cluster/component labels for each data point after fitting.
+        model (Optional[GaussianMixture]): The underlying scikit-learn GaussianMixture model.
+        labels (Optional[np.ndarray]): Cluster/component labels for each data point after fitting.
     """
 
     def __init__(self, max_k: int = 10) -> None:
@@ -94,9 +113,9 @@ class Gmm(Clustering):
             gmm.fit(X)
             labels = gmm.predict(X)
 
-            # Ensure we have at least 2 distinct clusters to compute silhouette
+            # Ensure at least 2 distinct clusters
             if len(np.unique(labels)) > 1:
-                # Subsample if the dataset is very large
+                # Subsample if large
                 if n_samples > silhouette_sample_size:
                     sample_indices = rng.choice(
                         n_samples, silhouette_sample_size, replace=False
@@ -113,9 +132,9 @@ class Gmm(Clustering):
                     )
                 )
             else:
-                silhouettes.append(-1)  # Invalid silhouette
+                silhouettes.append(-1)  # Invalid silhouette if only one cluster
 
-        # Pick the k with best silhouette
+        # Pick k with best silhouette
         self.optimal_k = k_values[np.argmax(silhouettes)]
         print(f"Estimated optimal number of clusters (optimal_k): {self.optimal_k}")
 
@@ -138,7 +157,7 @@ class Gmm(Clustering):
                     "Number of clusters must be at least 2. Using the estimated optimal_k."
                 )
 
-        # Final fit with the chosen k
+        # Final fit
         self.model = GaussianMixture(
             n_components=self.optimal_k, random_state=self.random_state
         )
