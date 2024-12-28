@@ -1,5 +1,5 @@
-# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and AiREX Lab,
-# Indian Institute of Science, Bangalore.
+# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and
+# AiREX Lab, Indian Institute of Science, Bangalore.
 # All rights reserved.
 #
 # This file is part of SciREX
@@ -7,33 +7,48 @@
 # developed jointly by Zenteiq Aitech Innovations and AiREX Lab
 # under the guidance of Prof. Sashikumaar Ganesan.
 #
-# SciREX is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# SciREX is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
-# You should have received a copy of the GNU Affero General Public License
-# along with SciREX. If not, see <https://www.gnu.org/licenses/>.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # For any clarifications or special considerations,
-# please contact <scirex@zenteiq.ai>
-
-# Author: Dev Sahoo
-# Linkedin: https://www.linkedin.com/in/debajyoti-sahoo13/
+# please contact: contact@scirex.org
 
 """
-Base clustering implementation.
+    Module: base.py
 
-This module provides the abstract base class for all clustering implementations.
-It defines shared functionality for:
- - Data preparation (loading from CSV and standard scaling)
- - Clustering metric computation (silhouette, calinski-harabasz, davies-bouldin)
- - 2D plotting using PCA for visualization
+    This module provides the abstract base class for all clustering implementations in SciREX.
+    It defines shared functionality for:
+        - Data preparation (loading from CSV and standard scaling)
+        - Clustering metric computation (silhouette, calinski-harabasz, davies-bouldin)
+        - 2D plotting using PCA for visualization
+
+    Classes:
+        Clustering: Abstract base class that outlines common behavior for clustering algorithms.
+
+    Dependencies:
+        - numpy, pandas, matplotlib, sklearn
+        - abc, pathlib, time, typing (for structural and type support)
+
+    Key Features:
+        - Consistent interface for loading and preparing data
+        - Standard approach to computing and returning clustering metrics
+        - PCA-based 2D plotting routine for visualizing clusters in two dimensions
+        - Enforces subclasses to implement `fit` and `get_model_params`
+
+    Authors:
+        - Debajyoti Sahoo (debajyotis@iisc.ac.in)
+
+    Version Info:
+        - 28/Dec/2024: Initial version
 
 """
 
@@ -70,6 +85,12 @@ class Clustering(ABC):
       1. Implement the `fit(X: np.ndarray) -> None` method, which should populate `self.labels`.
       2. Implement the `get_model_params() -> Dict[str, Any]` method, which returns a dict
          of model parameters for logging/debugging.
+
+    Attributes:
+        model_type (str): The name or identifier of the clustering model (e.g., "kmeans", "dbscan").
+        random_state (int): Random seed for reproducibility.
+        labels (Optional[np.ndarray]): Array of cluster labels assigned to each sample after fitting.
+        plots_dir (Path): Directory where cluster plots will be saved.
     """
 
     def __init__(
@@ -85,13 +106,6 @@ class Clustering(ABC):
                               (e.g. "kmeans", "dbscan", etc.).
             random_state (int, optional): Seed for reproducibility where applicable.
                                           Defaults to 42.
-
-        Attributes:
-            model_type (str): The name or identifier of the clustering model.
-            random_state (int): Random seed for reproducibility.
-            plots_dir (Path): Directory where cluster plots will be saved.
-            labels (Optional[np.ndarray]): Array of cluster labels assigned to each sample
-                                           after fitting. Subclasses must populate.
         """
         self.model_type = model_type
         self.random_state = random_state
@@ -160,6 +174,12 @@ class Clustering(ABC):
     def plots(self, X: np.ndarray, labels: np.ndarray) -> Tuple[Figure, Path]:
         """
         Create a 2D scatter plot of clusters using PCA for dimensionality reduction.
+
+        Steps:
+          1. If X has >=2 features, run PCA to reduce it to 2 components.
+          2. If X has only 1 feature, it is zero-padded to form a 2D embedding for plotting.
+          3. Each unique cluster label is plotted with a distinct color.
+          4. The figure is saved in `self.plots_dir` as `cluster_plot_{self.model_type}.png`.
 
         Args:
             X (np.ndarray): Data array of shape (n_samples, n_features).
@@ -236,7 +256,6 @@ class Clustering(ABC):
                 - "silhouette_score" (float)
                 - "calinski_harabasz_score" (float)
                 - "davies_bouldin_score" (float)
-                - "time_taken" (float): Fitting time in seconds
 
         Raises:
             ValueError: If neither `data` nor `path` is provided, or if `self.labels`

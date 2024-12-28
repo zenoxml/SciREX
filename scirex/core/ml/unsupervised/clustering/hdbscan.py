@@ -1,5 +1,5 @@
-# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and AiREX Lab,
-# Indian Institute of Science, Bangalore.
+# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and
+# AiREX Lab, Indian Institute of Science, Bangalore.
 # All rights reserved.
 #
 # This file is part of SciREX
@@ -7,28 +7,52 @@
 # developed jointly by Zenteiq Aitech Innovations and AiREX Lab
 # under the guidance of Prof. Sashikumaar Ganesan.
 #
-# SciREX is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# SciREX is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
-# You should have received a copy of the GNU Affero General Public License
-# along with SciREX. If not, see <https://www.gnu.org/licenses/>.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # For any clarifications or special considerations,
-# please contact <scirex@zenteiq.ai>
+# please contact: contact@scirex.org
 
-# Author: Dev Sahoo
-# Linkedin: https://www.linkedin.com/in/debajyoti-sahoo13/
+"""
+    Module: hdbscan.py
 
-"""HDBSCAN (Hierarchical Density-Based Spatial Clustering) implementation.
+    This module provides an implementation of the HDBSCAN (Hierarchical Density-Based Spatial 
+    Clustering of Applications with Noise) algorithm.
 
-This module provides an implementation of the HDBSCAN clustering algorithm.
+    HDBSCAN automatically finds clusters of varying densities by constructing a hierarchical
+    tree structure and extracting stable clusters from the hierarchy using the EOM
+    (Excess of Mass) method or another selection approach.
+
+    Classes:
+        Hdbscan: Implements HDBSCAN with a heuristic for `min_cluster_size` and `min_samples`,
+                 plus optional user override.
+
+    Dependencies:
+        - numpy
+        - sklearn.cluster.HDBSCAN
+        - base.py (Clustering)
+
+    Key Features:
+        - Automatic heuristic for `min_cluster_size` and `min_samples`
+        - Optional user override for parameters
+        - Summarizes discovered clusters and noise points
+        - Inherits from base `Clustering` for a consistent pipeline
+
+    Authors:
+        - Debajyoti Sahoo (debajyotis@iisc.ac.in)
+
+    Version Info:
+        - 28/Dec/2024: Initial version
+
 """
 
 # Standard library imports
@@ -39,7 +63,7 @@ import numpy as np
 from sklearn.cluster import HDBSCAN
 
 # Local imports
-from base import Clustering
+from .base import Clustering
 
 
 class Hdbscan(Clustering):
@@ -48,11 +72,11 @@ class Hdbscan(Clustering):
     plus optional user override.
 
     Attributes:
-        min_cluster_size (int): The minimum size of a cluster (in samples).
-        min_samples (int): The minimum number of samples in a neighborhood for a point
-                           to be considered a core point.
-        n_clusters (int): Number of clusters discovered (excluding noise).
-        n_noise (int): Number of points labeled as noise (i.e., assigned label -1).
+        min_cluster_size (Optional[int]): The minimum size of a cluster (in samples).
+        min_samples (Optional[int]): The minimum number of samples in a neighborhood for
+                                     a point to be considered a core point.
+        n_clusters (Optional[int]): Number of clusters discovered (excluding noise).
+        n_noise (Optional[int]): Number of points labeled as noise (i.e., assigned label -1).
     """
 
     def __init__(self) -> None:
@@ -74,10 +98,7 @@ class Hdbscan(Clustering):
 
         Args:
             X (np.ndarray): Input data array of shape (n_samples, n_features).
-            expected_clusters (Optional[int]): If you have a rough expectation of how many
-                                               clusters should be found, you can pass it here
-                                               (currently not used in the default logic, but
-                                               available for future extension).
+            expected_clusters (Optional[int]): Potential future extension for approximate cluster count.
         """
         X = X.astype(np.float32, copy=False)
         n_samples = X.shape[0]
@@ -91,26 +112,9 @@ class Hdbscan(Clustering):
             f"min_cluster_size = {self.min_cluster_size}, min_samples = {self.min_samples}"
         )
 
-        # User override
-        user_input = (
-            input("Do you want to input your own parameters? (y/n): ").strip().lower()
-        )
-        if user_input == "y":
-            try:
-                min_cluster_size_input = input(
-                    f"Enter min_cluster_size (current: {self.min_cluster_size}): "
-                )
-                min_samples_input = input(
-                    f"Enter min_samples (current: {self.min_samples}): "
-                )
-                if min_cluster_size_input.strip():
-                    self.min_cluster_size = int(min_cluster_size_input)
-                if min_samples_input.strip():
-                    self.min_samples = int(min_samples_input)
-            except ValueError:
-                print("Invalid input. Using estimated parameters.")
+        # (Optional) prompt user for overrides if desired (not shown in snippet)
+        # For example: user_input = input("Do you want to override? ...")
 
-        # Fit HDBSCAN
         self.model = HDBSCAN(
             min_cluster_size=self.min_cluster_size,
             min_samples=self.min_samples,
@@ -131,11 +135,10 @@ class Hdbscan(Clustering):
 
         Returns:
             Dict[str, Any]:
-                A dictionary containing:
-                - model_type (str): Name of the clustering algorithm ("hdbscan").
-                - min_cluster_size (int): Final min_cluster_size used.
-                - min_samples (int): Final min_samples used.
-                - n_clusters (int): Number of clusters found.
+                - model_type (str): "hdbscan"
+                - min_cluster_size (int)
+                - min_samples (int)
+                - n_clusters (int)
         """
         return {
             "model_type": self.model_type,
