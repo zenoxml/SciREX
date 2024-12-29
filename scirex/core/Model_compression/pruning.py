@@ -38,24 +38,36 @@ from tensorflow_model_optimization.sparsity import keras as tfmot
 class ModelPruning:
     """
     A reusable class for performing pruning on any model and dataset.
-
+    
+    This class applies pruning techniques to reduce the size of the model while preserving its accuracy.
+    It also evaluates both the baseline (pre-pruned) and pruned models, and exports the pruned model 
+    in Keras and TFLite formats.
+    
     Attributes:
-        model (tf.keras.Model): The base model architecture.
-        pruned_model (tf.keras.Model): The pruned model after pruning operation.
-        baseline_model_accuracy (float): Accuracy of the baseline model on the test set.
-        pruned_model_accuracy (float): Accuracy of the pruned model on the test set.
+        model (tf.keras.Model): The base model architecture that will undergo pruning.
+        pruned_model (tf.keras.Model): The model after pruning.
+        baseline_model_accuracy (float): Accuracy of the baseline model evaluated on test data.
+        pruned_model_accuracy (float): Accuracy of the pruned model evaluated on test data.
     """
 
     def __init__(self, model, train_data, test_data, epochs=2, batch_size=128, validation_split=0.1):
         """
-        Initializes the pruning process.
-
+        Initializes the pruning process for a model.
+        
+        This method sets up the model, training data, test data, and training parameters for the pruning operation.
+        
         :param model: The base model architecture to be pruned.
-        :param train_data: Tuple of (train_images, train_labels) for training.
-        :param test_data: Tuple of (test_images, test_labels) for testing.
+        :type model: tf.keras.Model
+        :param train_data: Tuple containing training data (features, labels).
+        :type train_data: tuple (numpy.ndarray, numpy.ndarray)
+        :param test_data: Tuple containing test data (features, labels).
+        :type test_data: tuple (numpy.ndarray, numpy.ndarray)
         :param epochs: Number of epochs to train the pruned model. Default is 2.
+        :type epochs: int
         :param batch_size: Size of the training batch. Default is 128.
+        :type batch_size: int
         :param validation_split: Fraction of training data to be used for validation. Default is 0.1.
+        :type validation_split: float
         """
         self.model = model
         self.train_images, self.train_labels = train_data
@@ -70,8 +82,13 @@ class ModelPruning:
     def _compute_end_step(self):
         """
         Compute the number of steps to finish pruning after the specified number of epochs.
+        
+        This method calculates the total number of steps needed for pruning based on the number of 
+        training samples and the batch size. It considers the validation split to determine how many 
+        batches are involved in training.
 
         :return: The end step for pruning.
+        :rtype: int
         """
         num_images = self.train_images.shape[0] * (1 - self.validation_split)
         return np.ceil(num_images / self.batch_size).astype(np.int32) * self.epochs
@@ -79,8 +96,14 @@ class ModelPruning:
     def _apply_pruning(self):
         """
         Applies pruning to the model using PolynomialDecay schedule.
+        
+        The pruning strategy involves reducing the number of non-zero weights in the model 
+        gradually over the course of training. This is done using a PolynomialDecay schedule, 
+        where the sparsity (fraction of pruned weights) increases over time from an initial value 
+        to a final value.
 
         :return: A pruned model.
+        :rtype: tf.keras.Model
         """
         end_step = self._compute_end_step()
 
@@ -105,6 +128,10 @@ class ModelPruning:
     def train_and_evaluate(self):
         """
         Train and evaluate the baseline model and pruned model.
+        
+        This method first trains the baseline model (before pruning) and evaluates its performance 
+        on the test dataset. Then, it applies pruning to the model, retrains the pruned model, 
+        and evaluates its performance on the same test dataset.
 
         :return: None
         """
@@ -143,6 +170,13 @@ class ModelPruning:
     def _export_pruned_model(self):
         """
         Strips pruning and saves the pruned model in both Keras and TFLite formats.
+        
+        This method strips the pruning operation from the trained model to ensure that the 
+        pruned model can be saved in a format suitable for inference (without pruning). 
+        It then exports the pruned model to both Keras and TensorFlow Lite formats for 
+        deployment.
+
+        :return: None
         """
         model_for_export = tfmot.sparsity.keras.strip_pruning(self.pruned_model)
 
@@ -165,9 +199,14 @@ class ModelPruning:
     def get_gzipped_model_size(file):
         """
         Returns the size of a gzipped model file.
+        
+        This method calculates the size of a model file after it has been compressed using 
+        the gzip format. It is useful for checking the storage requirements of the model.
 
         :param file: Path to the model file.
+        :type file: str
         :return: Size of the gzipped model file in bytes.
+        :rtype: int
         """
         import zipfile
         _, zipped_file = tempfile.mkstemp('.zip')
