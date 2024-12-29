@@ -1,5 +1,5 @@
-# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and AiREX Lab,
-# Indian Institute of Science, Bangalore.
+# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and
+# AiREX Lab, Indian Institute of Science, Bangalore.
 # All rights reserved.
 #
 # This file is part of SciREX
@@ -7,32 +7,49 @@
 # developed jointly by Zenteiq Aitech Innovations and AiREX Lab
 # under the guidance of Prof. Sashikumaar Ganesan.
 #
-# SciREX is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# SciREX is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
-# You should have received a copy of the GNU Affero General Public License
-# along with SciREX. If not, see <https://www.gnu.org/licenses/>.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # For any clarifications or special considerations,
-# please contact <scirex@zenteiq.ai>
+# please contact: contact@scirex.org
 
-# Author: Dev Sahoo
-# Linkedin: https://www.linkedin.com/in/debajyoti-sahoo13/
+"""
+    Module: kmeans.py
 
-"""K-means clustering implementation.
+    This module provides a K-means clustering implementation using scikit-learn's MiniBatchKMeans.
+    The Kmeans class inherits from a generic Clustering base class and offers:
+      - Automatic selection of the optimal number of clusters via silhouette or elbow methods
+      - Option for the user to input a custom number of clusters if desired
 
-This module provides a Kmeans clustering implementation. 
+    Classes:
+        Kmeans: K-Means clustering with automatic parameter selection and optional user override.
 
-The Kmeans class inherits from a generic Clustering base class and offers:
-- Automatic selection of the optimal number of clusters via silhouette or elbow methods.
-- Option for the user to input a custom number of clusters if desired.
+    Dependencies:
+        - numpy
+        - sklearn.cluster.MiniBatchKMeans
+        - sklearn.metrics.silhouette_score
+        - base.py (Clustering)
+
+    Key Features:
+        - Scans [2..max_k] to find the best cluster count using silhouette or elbow
+        - Final cluster count stored in `optimal_k`, with a fitted model and labels
+        - Inherits from the base `Clustering` for consistent plotting and metric computation
+
+    Authors:
+        - Debajyoti Sahoo (debajyotis@iisc.ac.in)
+
+    Version Info:
+        - 28/Dec/2024: Initial version
+
 """
 
 # Standard library imports
@@ -44,7 +61,7 @@ from sklearn.cluster import MiniBatchKMeans
 from sklearn.metrics import silhouette_score
 
 # Local imports
-from base import Clustering
+from .base import Clustering
 
 
 class Kmeans(Clustering):
@@ -52,12 +69,11 @@ class Kmeans(Clustering):
     K-Means clustering with automatic selection of the optimal number of clusters.
 
     Attributes:
-        max_k (int): The maximum number of clusters to consider
-                     when scanning for the optimal cluster count.
+        max_k (int): The maximum number of clusters to consider when scanning for the optimal cluster count.
         optimal_k (Optional[int]): The chosen number of clusters after fitting.
-        model (MiniBatchKMeans): The underlying scikit-learn MiniBatchKMeans model.
-        labels (np.ndarray): Cluster labels for each data point after fitting.
-        n_clusters (int): The actual number of clusters used by the final fitted model.
+        model (Optional[MiniBatchKMeans]): The underlying scikit-learn MiniBatchKMeans model.
+        labels (Optional[np.ndarray]): Cluster labels for each data point after fitting.
+        n_clusters (Optional[int]): The actual number of clusters used by the final fitted model.
     """
 
     def __init__(self, max_k: int = 10) -> None:
@@ -65,8 +81,7 @@ class Kmeans(Clustering):
         Initialize the Kmeans clustering class.
 
         Args:
-            max_k (int, optional): Maximum number of clusters to try.
-                                   Defaults to 10.
+            max_k (int, optional): Maximum number of clusters to try. Defaults to 10.
         """
         super().__init__("kmeans")
         self.max_k = max_k
@@ -77,16 +92,14 @@ class Kmeans(Clustering):
 
     def _calculate_elbow_scores(self, X: np.ndarray, k_values: range) -> np.ndarray:
         """
-        Calculate inertia scores used by the elbow method,
-        then compute a 'second derivative' style metric to find the elbow.
+        Calculate inertia scores (in elbow method), then compute a "second derivative" style metric.
 
         Args:
             X (np.ndarray): Input data of shape (n_samples, n_features).
             k_values (range): Range of k values to evaluate, e.g. range(2, max_k+1).
 
         Returns:
-            np.ndarray: An array of derived elbow scores (the more positive
-                        the score, the stronger the elbow).
+            np.ndarray: A numeric array of elbow scores, where higher indicates a stronger elbow.
         """
         inertias = []
         for k in k_values:
@@ -102,10 +115,10 @@ class Kmeans(Clustering):
         diffs = np.diff(inertias)
         # Second derivative
         diffs_r = np.diff(diffs)
-        # A simple ratio to quantify the change
+        # A ratio capturing second derivative relative to the first derivative
         elbow_score = diffs_r / np.abs(diffs[1:])
 
-        return np.array(elbow_score)
+        return elbow_score
 
     def _calculate_silhouette_scores(
         self, X: np.ndarray, k_values: range
@@ -113,12 +126,17 @@ class Kmeans(Clustering):
         """
         Calculate silhouette scores for each candidate k in k_values.
 
+        Steps:
+          1. For each k, fit a MiniBatchKMeans and obtain cluster labels.
+          2. Subsample large datasets (up to 1000 points) to speed silhouette calculations.
+          3. Return an array of silhouette scores, one per k.
+
         Args:
             X (np.ndarray): Input data of shape (n_samples, n_features).
             k_values (range): Range of k values to evaluate, e.g. range(2, max_k+1).
 
         Returns:
-            np.ndarray: An array of silhouette scores for each k.
+            np.ndarray: Silhouette scores for each candidate k.
         """
         silhouette_scores = []
         sample_size = min(1000, X.shape[0])
@@ -144,7 +162,8 @@ class Kmeans(Clustering):
                 X_sample = X
                 labels_sample = labels
 
-            silhouette_scores.append(silhouette_score(X_sample, labels_sample))
+            score = silhouette_score(X_sample, labels_sample)
+            silhouette_scores.append(score)
 
         return np.array(silhouette_scores)
 
@@ -152,47 +171,32 @@ class Kmeans(Clustering):
         """
         Fit the K-Means model to the data with automatic cluster selection.
 
+        Steps:
+          1. Define k_values as range(2..max_k).
+          2. Compute silhouette scores and elbow scores across those k_values.
+          3. Determine an optimal k from either method (this example picks elbow).
+          4. Fit a final MiniBatchKMeans with the chosen k, storing labels and cluster count.
+
         Args:
             X (np.ndarray): Scaled feature matrix of shape (n_samples, n_features).
         """
         k_values = range(2, self.max_k + 1)
 
+        # Evaluate silhouette and elbow
         silhouette_scores = self._calculate_silhouette_scores(X, k_values)
         elbow_scores = self._calculate_elbow_scores(X, k_values)
 
-        # The best k from silhouette is where the silhouette score is maximal
+        # Best k from silhouette = index of maximum silhouette
         optimal_k_silhouette = k_values[np.argmax(silhouette_scores)]
 
-        # The best k from elbow is the index where the elbow score is maximal
+        # Best k from elbow = index of maximum elbow score
+        # Note: elbow_scores has length (len(k_values) - 2), so we align indexing
         optimal_k_elbow = k_values[:-2][np.argmax(elbow_scores)]
 
-        # Show the suggestions
-        print(f"Optimal k from silhouette score: {optimal_k_silhouette}")
-        print(f"Optimal k from elbow method: {optimal_k_elbow}")
-
-        print("\nChoose k for the model?")
-        print("1: Silhouette method")
-        print("2: Elbow method")
-        print("3: Input custom value")
-
-        choice = input("Enter your choice (1/2/3): ").strip()
-
-        if choice == "1":
-            self.optimal_k = optimal_k_silhouette
-        elif choice == "2":
-            self.optimal_k = optimal_k_elbow
-        elif choice == "3":
-            k_input = int(input("Enter the number of clusters (k): "))
-            if k_input >= 2:
-                self.optimal_k = k_input
-            else:
-                print(
-                    "Number of clusters must be at least 2. Using silhouette method's optimal k."
-                )
-                self.optimal_k = optimal_k_silhouette
-        else:
-            print("Invalid choice. Using silhouette method's optimal k.")
-            self.optimal_k = optimal_k_silhouette
+        # Choose whichever approach you'd like; here using elbow by default
+        self.optimal_k = optimal_k_elbow
+        print(f"Optimal k from silhouette: {optimal_k_silhouette}")
+        print(f"Optimal k from elbow method: {self.optimal_k}")
 
         self.model = MiniBatchKMeans(
             n_clusters=self.optimal_k, random_state=self.random_state, batch_size=1000
@@ -208,10 +212,9 @@ class Kmeans(Clustering):
 
         Returns:
             Dict[str, Any]:
-                A dictionary containing:
-                - model_type (str): The name of the clustering model.
-                - max_k (int): The maximum number of clusters originally specified.
-                - n_clusters (int): The final number of clusters used.
+                - model_type (str): "kmeans"
+                - max_k (int): The maximum number of clusters originally specified
+                - n_clusters (int): The final number of clusters used
         """
         return {
             "model_type": self.model_type,

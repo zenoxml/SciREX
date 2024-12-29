@@ -1,5 +1,5 @@
-# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and AiREX Lab,
-# Indian Institute of Science, Bangalore.
+# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and
+# AiREX Lab, Indian Institute of Science, Bangalore.
 # All rights reserved.
 #
 # This file is part of SciREX
@@ -7,38 +7,59 @@
 # developed jointly by Zenteiq Aitech Innovations and AiREX Lab
 # under the guidance of Prof. Sashikumaar Ganesan.
 #
-# SciREX is free software: you can redistribute it and/or modify
-# it under the terms of the GNU Affero General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# SciREX is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU Affero General Public License for more details.
+#     http://www.apache.org/licenses/LICENSE-2.0
 #
-# You should have received a copy of the GNU Affero General Public License
-# along with SciREX. If not, see <https://www.gnu.org/licenses/>.
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 #
 # For any clarifications or special considerations,
-# please contact <scirex@zenteiq.ai>
+# please contact: contact@scirex.org
 
-# Author: Dev Sahoo
-# Linkedin: https://www.linkedin.com/in/debajyoti-sahoo13/
-
-"""OPTICS (Ordering Points To Identify Clustering Structure) implementation.
-
-This module provides an implementation of the OPTICS clustering algorithm using. 
-It automatically estimates minimum cluster size and minimum samples based on the dataset, 
-and lets the user override these parameters.
 """
+    Module: optics.py
 
+    This module provides an implementation of the OPTICS (Ordering Points To Identify Clustering Structure)
+    clustering algorithm using scikit-learn's OPTICS. It automatically estimates minimum cluster size
+    and minimum samples based on the dataset, and lets the user override these parameters.
+
+    Classes:
+        Optics: An OPTICS clustering implementation with heuristic parameter estimation and optional user override.
+
+    Dependencies:
+        - numpy
+        - sklearn.cluster.OPTICS
+        - base.py (Clustering)
+
+    Key Features:
+        - Automatic estimation of `min_samples` based on dataset size (log2 heuristic)
+        - Automatic estimation of `min_cluster_size` (5% of data or 50, whichever is smaller,
+          but not less than `min_samples`)
+        - Optional user prompts to override both parameters
+        - Computation of discovered clusters, noise points, and summary messages
+
+    Authors:
+        - Debajyoti Sahoo (debajyotis@iisc.ac.in)
+
+    Version Info:
+        - 28/Dec/2024: Initial version
+
+"""
+# Standard library imports
 from typing import Dict, Any, Optional
+
+# Third-party imports
 import numpy as np
 from sklearn.cluster import OPTICS as SKLearnOPTICS
 
 # Local imports
-from base import Clustering
+from .base import Clustering
 
 
 class Optics(Clustering):
@@ -82,7 +103,7 @@ class Optics(Clustering):
         self.min_samples = max(5, int(np.log2(n_samples)) + 1)
 
         # Heuristic for min_cluster_size:
-        #   - minimum of 5% of data or 50
+        #   - Minimum of 5% of data or 50
         #   - but not less than min_samples
         self.min_cluster_size = max(self.min_samples, min(50, int(0.05 * n_samples)))
 
