@@ -2,7 +2,7 @@
 
 This notebook demonstrates how to use **SciREX** for unsupervised clustering with **KMeans**, showcasing automatic parameter selection (via Silhouette Score or Elbow Method) and custom cluster counts.
 
-Author : Dev Sahoo [Linkedin](https://www.linkedin.com/in/debajyoti-sahoo13/)
+Author : Dev Sahoo (debajyotis@iisc.ac.in)
 
 ## Features
 
@@ -13,7 +13,7 @@ Author : Dev Sahoo [Linkedin](https://www.linkedin.com/in/debajyoti-sahoo13/)
 
 ## Overview
 
-- **Notebook**: `kmeans.ipynb`
+- **Filek**: `example_kmeans.py`
 - **Models**:**KMeans** (shown in the example)
 - You can also import and use:
 - **DBSCAN**
@@ -61,14 +61,6 @@ from scirex.core.ml.unsupervised.clustering.kmeans import Kmeans
 
 ## Overview
 
-### The `run` Function
-
-- The script/notebook defines a helper function `run(model, X, dataset_name)`.
-- This function calls `model.run(data=X)`, which handles:
-  1. **Fitting** the model (KMeans in this example).
-  2. **Calculating** standard clustering metrics: Silhouette Score, Calinski-Harabasz Score, Davies-Bouldin Score, and timing.
-  3. **Plotting** the resulting clusters by calling the `.plots(...)` method (inherited from a base class in `base.py`). The plot is saved as a PNG file and then displayed.
-
 ### Datasets
 
 We use two popular scikit-learn datasets to demonstrate how clustering models behave with different cluster shapes:
@@ -88,7 +80,44 @@ X_moons, _ = make_moons(n_samples=1000, noise=0.05, random_state=42)
 X_moons = StandardScaler().fit_transform(X_moons)
 ```
 
+### The `run` Function
+
+- The script/notebook defines a helper function `run(model, X, dataset_name)`.
+- This function calls `model.run(data=X)`, which handles:
+  1. **Fitting** the model (KMeans in this example).
+  2. **Calculating** standard clustering metrics: Silhouette Score, Calinski-Harabasz Score, Davies-Bouldin Score, and timing.
+  3. **Plotting** the resulting clusters by calling the `.plots(...)` method (inherited from a base class in `base.py`). The plot is saved as a PNG file and then displayed.
+
+```python
+def run(model, X, dataset_name: str):
+    """
+    Run clustering model and display results.
+
+    Args:
+        model: Initialized clustering model instance
+        X (np.ndarray): Input data matrix
+        dataset_name (str): Name of dataset for display purposes
+
+    Prints:
+        - Clustering metrics (Silhouette, Calinski-Harabasz, Davies-Bouldin)
+        - Number of clusters (if applicable)
+
+    Displays:
+        - Clustering visualization plot
+    """
+```
+
 ### Running KMeans
+
+The main() function demonstrates clustering on synthetic datasets:
+
+```python
+def main():
+    """
+    Main function to demonstrate KMeans clustering on synthetic datasets.
+    Generates two datasets (blobs and moons) and applies KMeans clustering.
+    """
+```
 
 ```python
 # Instantiate two separate KMeans models
@@ -102,20 +131,9 @@ run(kmeans_blobs, X_blobs, "blobs")
 run(kmeans_moons, X_moons, "moons")
 ```
 
-### Interactive Parameter Selection
-
-When running the models, users are presented with an interactive interface for parameter selection.
-For example with KMeans:
+### Example outputes
 
 ```python
-Optimal k from silhouette score: 4
-Optimal k from elbow method: 3
-
-Choose k for the model?
-1: Silhouette method
-2: Elbow method
-3: Input custom value
-
 KMeans fitted with 3 clusters
 
 --- KMEANS on blobs dataset ---
