@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and AiREX Lab, 
+# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and AiREX Lab,
 # Indian Institute of Science, Bangalore.
 # All rights reserved.
 #
@@ -43,7 +43,7 @@ Versions:
     - 27-Dec-2024 (Version 0.1): Initial Implementation
 """
 
-# Common library imports 
+# Common library imports
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -57,44 +57,45 @@ from scirex.core.sciml.geometry.geometry_2d import Geometry_2D
 from scirex.core.sciml.fe.fespace2d import Fespace2D
 from scirex.core.sciml.fastvpinns.data.datahandler2d import DataHandler2D
 
-i_mesh_type = "quadrilateral" # "quadrilateral"
-i_mesh_generation_method = "internal" # "internal" or "external"
-i_x_min = 0 # minimum x value
-i_x_max = 1 # maximum x value
-i_y_min = 0 # minimum y value
-i_y_max = 1 # maximum y value
-i_n_cells_x = 2 # Number of cells in the x direction
-i_n_cells_y = 2 # Number of cells in the y direction
-i_n_boundary_points = 400 # Number of points on the boundary
-i_output_path = "output/poisson_2d" # Output path
+i_mesh_type = "quadrilateral"  # "quadrilateral"
+i_mesh_generation_method = "internal"  # "internal" or "external"
+i_x_min = 0  # minimum x value
+i_x_max = 1  # maximum x value
+i_y_min = 0  # minimum y value
+i_y_max = 1  # maximum y value
+i_n_cells_x = 2  # Number of cells in the x direction
+i_n_cells_y = 2  # Number of cells in the y direction
+i_n_boundary_points = 400  # Number of points on the boundary
+i_output_path = "output/poisson_2d"  # Output path
 
-i_n_test_points_x = 100 # Number of test points in the x direction
-i_n_test_points_y = 100 # Number of test points in the y direction
+i_n_test_points_x = 100  # Number of test points in the x direction
+i_n_test_points_y = 100  # Number of test points in the y direction
 
 # fe Variables
-i_fe_order = 6 # Order of the finite element space
+i_fe_order = 6  # Order of the finite element space
 i_fe_type = "legendre"
-i_quad_order = 10 # 10 points in 1D, so 100 points in 2D for one cell
+i_quad_order = 10  # 10 points in 1D, so 100 points in 2D for one cell
 i_quad_type = "gauss-jacobi"
 
 # Neural Network Variables
 i_learning_rate_dict = {
-    "initial_learning_rate" : 0.002, # Initial learning rate
-    "use_lr_scheduler" : False, # Use learning rate scheduler
-    "decay_steps": 1000, # Decay steps
-    "decay_rate": 0.96, # Decay rate
-    "staircase": True, # Staircase Decay
+    "initial_learning_rate": 0.002,  # Initial learning rate
+    "use_lr_scheduler": False,  # Use learning rate scheduler
+    "decay_steps": 1000,  # Decay steps
+    "decay_rate": 0.96,  # Decay rate
+    "staircase": True,  # Staircase Decay
 }
 
 i_dtype = tf.float32
 i_activation = "tanh"
-i_beta = 10 # Boundary Loss Penalty ( Adds more weight to the boundary loss)
+i_beta = 10  # Boundary Loss Penalty ( Adds more weight to the boundary loss)
 
 # Epochs
 i_num_epochs = 20000
 
 
 ## Setting up boundary conditions
+
 
 def left_boundary(x, y):
     """
@@ -154,7 +155,12 @@ def get_boundary_function_dict():
     """
     This function will return a dictionary of boundary functions
     """
-    return {1000: bottom_boundary, 1001: right_boundary, 1002: top_boundary, 1003: left_boundary}
+    return {
+        1000: bottom_boundary,
+        1001: right_boundary,
+        1002: top_boundary,
+        1003: left_boundary,
+    }
 
 
 def get_bound_cond_dict():
@@ -173,6 +179,7 @@ def get_bilinear_params_dict():
 
     return {"k": k, "eps": eps}
 
+
 ## CREATE OUTPUT FOLDER
 # use pathlib to create the folder,if it does not exist
 folder = Path(i_output_path)
@@ -182,11 +189,18 @@ if not folder.exists():
 
 
 # get the boundary function dictionary from example file
-bound_function_dict, bound_condition_dict = get_boundary_function_dict(), get_bound_cond_dict()
+bound_function_dict, bound_condition_dict = (
+    get_boundary_function_dict(),
+    get_bound_cond_dict(),
+)
 
 # Initiate a Geometry_2D object
 domain = Geometry_2D(
-    i_mesh_type, i_mesh_generation_method, i_n_test_points_x, i_n_test_points_y, i_output_path
+    i_mesh_type,
+    i_mesh_generation_method,
+    i_n_test_points_x,
+    i_n_test_points_y,
+    i_output_path,
 )
 
 # load the mesh
@@ -200,34 +214,34 @@ cells, boundary_points = domain.generate_quad_mesh_internal(
 
 # fe Space
 fespace = Fespace2D(
-        mesh=domain.mesh,
-        cells=cells,
-        boundary_points=boundary_points,
-        cell_type=domain.mesh_type,
-        fe_order=i_fe_order,
-        fe_type=i_fe_type,
-        quad_order=i_quad_order,
-        quad_type=i_quad_type,
-        fe_transformation_type="bilinear",
-        bound_function_dict=bound_function_dict,
-        bound_condition_dict=bound_condition_dict,
-        forcing_function=rhs,
-        output_path=i_output_path,
-        generate_mesh_plot=True,
-    )
+    mesh=domain.mesh,
+    cells=cells,
+    boundary_points=boundary_points,
+    cell_type=domain.mesh_type,
+    fe_order=i_fe_order,
+    fe_type=i_fe_type,
+    quad_order=i_quad_order,
+    quad_type=i_quad_type,
+    fe_transformation_type="bilinear",
+    bound_function_dict=bound_function_dict,
+    bound_condition_dict=bound_condition_dict,
+    forcing_function=rhs,
+    output_path=i_output_path,
+    generate_mesh_plot=True,
+)
 
 
 # instantiate data handler
 datahandler = DataHandler2D(fespace, domain, dtype=i_dtype)
 
 params_dict = {}
-params_dict['n_cells'] = fespace.n_cells
+params_dict["n_cells"] = fespace.n_cells
 
 from scirex.core.sciml.fastvpinns.model.model import DenseModel
 from scirex.core.sciml.fastvpinns.physics.helmholtz2d import pde_loss_helmholtz
 
 params_dict = {}
-params_dict['n_cells'] = fespace.n_cells
+params_dict["n_cells"] = fespace.n_cells
 
 # get the input data for the PDE
 train_dirichlet_input, train_dirichlet_output = datahandler.get_dirichlet_input()
@@ -235,14 +249,20 @@ train_dirichlet_input, train_dirichlet_output = datahandler.get_dirichlet_input(
 # get bilinear parameters
 # this function will obtain the values of the bilinear parameters from the model
 # and convert them into tensors of desired dtype
-bilinear_params_dict = datahandler.get_bilinear_params_dict_as_tensors(get_bilinear_params_dict)
+bilinear_params_dict = datahandler.get_bilinear_params_dict_as_tensors(
+    get_bilinear_params_dict
+)
 
 model = DenseModel(
     layer_dims=[2, 30, 30, 30, 1],
     learning_rate_dict=i_learning_rate_dict,
     params_dict=params_dict,
     loss_function=pde_loss_helmholtz,
-    input_tensors_list=[datahandler.x_pde_list, train_dirichlet_input, train_dirichlet_output],
+    input_tensors_list=[
+        datahandler.x_pde_list,
+        train_dirichlet_input,
+        train_dirichlet_output,
+    ],
     orig_factor_matrices=[
         datahandler.shape_val_mat_list,
         datahandler.grad_x_mat_list,
@@ -266,7 +286,7 @@ for epoch in tqdm(range(i_num_epochs)):
     # print(elapsed)
     time_array.append(elapsed)
 
-    loss_array.append(loss['loss'])
+    loss_array.append(loss["loss"])
 
 # predict the values for the test points
 test_points = domain.get_test_points()
@@ -324,10 +344,10 @@ plt.savefig("results.png")
 
 
 # print error statistics
-l2_error = np.sqrt(np.mean(error ** 2))
+l2_error = np.sqrt(np.mean(error**2))
 l1_error = np.mean(np.abs(error))
 l_inf_error = np.max(np.abs(error))
-rel_l2_error = l2_error / np.sqrt(np.mean(y_exact ** 2))
+rel_l2_error = l2_error / np.sqrt(np.mean(y_exact**2))
 rel_l1_error = l1_error / np.mean(np.abs(y_exact))
 rel_l_inf_error = l_inf_error / np.max(np.abs(y_exact))
 
