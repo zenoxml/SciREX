@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and AiREX Lab, 
+# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and AiREX Lab,
 # Indian Institute of Science, Bangalore.
 # All rights reserved.
 #
@@ -117,7 +117,12 @@ def setup_results():
 @pytest.mark.parametrize("cell_dimensions", [[4, 4], [2, 4], [6, 5]])
 @pytest.mark.parametrize("precision", ["float32", "float64"])
 def test_setup(
-    cd2d_test_data_internal, quad_order, fe_order, cell_dimensions, precision, setup_results
+    cd2d_test_data_internal,
+    quad_order,
+    fe_order,
+    cell_dimensions,
+    precision,
+    setup_results,
 ):
     # obtain the test data
     bound_function_dict, bound_condition_dict, bilinear_params, rhs, exact_solution = (
@@ -312,4 +317,3 @@ def test_num_test_points(setup_results):
         assert test_points.dtype == precision
         # check shape
         assert test_points.shape == (89 * 89, 2)
-

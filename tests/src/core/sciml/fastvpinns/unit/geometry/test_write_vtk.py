@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and AiREX Lab, 
+# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and AiREX Lab,
 # Indian Institute of Science, Bangalore.
 # All rights reserved.
 #
@@ -47,7 +47,11 @@ def test_write_vtk_internal():
 
     # read internal mesh
     cells, boundary_points = domain.generate_quad_mesh_internal(
-        x_limits=[0, 1], y_limits=[0, 1], n_cells_x=4, n_cells_y=4, num_boundary_points=100
+        x_limits=[0, 1],
+        y_limits=[0, 1],
+        n_cells_x=4,
+        n_cells_y=4,
+        num_boundary_points=100,
     )
 
     # Define test inputs
@@ -80,7 +84,11 @@ def test_write_vtk_solution_mismatch(mesh_generation_method):
     if mesh_generation_method == "internal":
         # read internal mesh
         cells, boundary_points = domain.generate_quad_mesh_internal(
-            x_limits=[0, 1], y_limits=[0, 1], n_cells_x=4, n_cells_y=4, num_boundary_points=100
+            x_limits=[0, 1],
+            y_limits=[0, 1],
+            n_cells_x=4,
+            n_cells_y=4,
+            num_boundary_points=100,
         )
     elif mesh_generation_method == "external":
         # read external mesh

@@ -1,4 +1,4 @@
-# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and AiREX Lab, 
+# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and AiREX Lab,
 # Indian Institute of Science, Bangalore.
 # All rights reserved.
 #
@@ -46,7 +46,11 @@ def test_dirichlet_boundary_internal():
     # Define the geometry
     domain = Geometry_2D("quadrilateral", "internal", 10, 10, "tests/dump")
     cells, boundary_points = domain.generate_quad_mesh_internal(
-        x_limits=[0, 1], y_limits=[0, 1], n_cells_x=4, n_cells_y=4, num_boundary_points=100
+        x_limits=[0, 1],
+        y_limits=[0, 1],
+        n_cells_x=4,
+        n_cells_y=4,
+        num_boundary_points=100,
     )
 
     values = [np.random.rand() for _ in range(4)]

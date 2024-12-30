@@ -89,7 +89,9 @@ def test_read_mesh_invalid_sampling_method(geometry_2d):
     domain = Geometry_2D("quadrilateral", "external", 10, 10, "tests/dump")
 
     # Expect a ValueError when the sampling method is not uniform or lhs
-    with pytest.raises(ValueError, match="Sampling method should be either uniform or lhs."):
+    with pytest.raises(
+        ValueError, match="Sampling method should be either uniform or lhs."
+    ):
         cells, boundary_points = domain.read_mesh(
             mesh_file="tests/support_files/circle_quad.mesh",
             boundary_point_refinement_level=2,
