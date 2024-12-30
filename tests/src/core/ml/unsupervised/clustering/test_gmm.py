@@ -20,7 +20,7 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 # Author : Naren Vohra
-# Added test to check KMeans clustering algorithm on benchmark dataset. 
+# Added test to check GMM clustering algorithm on benchmark dataset. 
 # The dataset is taken from "Thrun, Ultsch, 2020, Clustering benchmark
 # datasets exploiting the fundamental clustering problems, Data in Brief". 
 
@@ -49,7 +49,7 @@ def test_kmeans():
     # calculate silhouette score
     labels = gmm.labels
 
-    silhouette_score_val = silhouette_score(data, labels)
+    silhouette_score_val = silhouette_score(data, labels, random_state = 42)
     print(f"Silhouette score val is {silhouette_score_val}")
 
 

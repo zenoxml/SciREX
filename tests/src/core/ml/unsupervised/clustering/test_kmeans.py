@@ -46,7 +46,7 @@ def test_kmeans():
     # calculate silhouette score
     labels = kmeans.labels
     
-    silhouette_score_val = silhouette_score(data, labels)
+    silhouette_score_val = silhouette_score(data, labels, random_state = 42)
     print(f"Silhouette score val is {silhouette_score_val}")
 
     assert abs(silhouette_score_val - 0.41272703768316205) < 1.e-2

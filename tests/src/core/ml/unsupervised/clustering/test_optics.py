@@ -20,7 +20,7 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 # Author : Naren Vohra
-# Added test to check KMeans clustering algorithm on benchmark dataset. 
+# Added test to check OPTICS clustering algorithm on benchmark dataset. 
 # The dataset is taken from "Thrun, Ultsch, 2020, Clustering benchmark
 # datasets exploiting the fundamental clustering problems, Data in Brief". 
 
