@@ -26,8 +26,7 @@
     Module: agglomerative.py
 
     This module provides an Agglomerative Clustering implementation using scikit-learn.
-    It includes automatic selection of the optimal number of clusters using silhouette scores,
-    with an optional user override.
+    It includes automatic selection of the optimal number of clusters using silhouette scores.
 
     Classes:
         Agglomerative: Implements an agglomerative clustering approach with auto cluster selection.
@@ -41,7 +40,6 @@
     Key Features:
         - Automatic scanning of possible cluster counts (2..max_k)
         - Silhouette-based selection of the best cluster count
-        - Optional user override of the chosen number of clusters
         - Final model/labels accessible after `.fit(...)`
 
     Authors:
@@ -127,25 +125,6 @@ class Agglomerative(Clustering):
         # Choose best k from silhouette
         self.optimal_k = k_values[np.argmax(silhouettes)]
         print(f"Estimated optimal number of clusters (optimal_k): {self.optimal_k}")
-
-        # Optional user override
-        user_input = (
-            input("Do you want to input your own number of clusters? (y/n): ")
-            .strip()
-            .lower()
-        )
-        if user_input == "y":
-            k_input = int(
-                input(
-                    f"Enter the number of clusters (k), current estimate is {self.optimal_k}: "
-                )
-            )
-            if k_input >= 2:
-                self.optimal_k = k_input
-            else:
-                print(
-                    "Number of clusters must be at least 2. Using the estimated optimal_k."
-                )
 
         # Final fit with optimal_k
         self.model = AgglomerativeClustering(

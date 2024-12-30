@@ -41,7 +41,6 @@
         - Automatic estimation of `min_samples` based on dataset size (log2 heuristic)
         - Automatic estimation of `min_cluster_size` (5% of data or 50, whichever is smaller,
           but not less than `min_samples`)
-        - Optional user prompts to override both parameters
         - Computation of discovered clusters, noise points, and summary messages
 
     Authors:
@@ -111,19 +110,6 @@ class Optics(Clustering):
         print(
             f"min_cluster_size = {self.min_cluster_size}, min_samples = {self.min_samples}"
         )
-
-        user_input = (
-            input("Do you want to input your own parameters? (y/n): ").strip().lower()
-        )
-        if user_input == "y":
-            min_cluster_size_input = input(
-                f"Enter 'min_cluster_size' (current: {self.min_cluster_size}): "
-            )
-            min_samples_input = input(
-                f"Enter 'min_samples' (current: {self.min_samples}): "
-            )
-            self.min_cluster_size = int(min_cluster_size_input)
-            self.min_samples = int(min_samples_input)
 
         # Fit the OPTICS model
         self.model = SKLearnOPTICS(
