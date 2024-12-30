@@ -20,38 +20,32 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 # Author : Naren Vohra
-# Added test to check HDBSCAN clustering algorithm on benchmark dataset.
+# Added test to check KMeans clustering algorithm on benchmark dataset. 
 # The dataset is taken from "Thrun, Ultsch, 2020, Clustering benchmark
-# datasets exploiting the fundamental clustering problems, Data in Brief".
+# datasets exploiting the fundamental clustering problems, Data in Brief". 
 
 import pytest
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from scirex.core.ml.unsupervised.clustering.hdbscan import Hdbscan
+from scirex.core.ml.unsupervised.clustering.kmeans import Kmeans
 from sklearn.metrics import silhouette_score
 
-def test_hdbscan():
+def test_kmeans():
     # Load and scale the data
-    data = np.loadtxt("tests/support_files/chainlink.txt")     
-
+    data = np.loadtxt("tests/support_files/engytime.txt") 
+    
     scaler = StandardScaler()
     data = scaler.fit_transform(data)
 
-    # Perform HDBSCAN clustering
-    hdbscan = Hdbscan()
-    hdbscan.fit(data)
+    # Perform KMeans clustering
+    kmeans = Kmeans(max_k = 10)
+    kmeans.fit(data)
 
-    # Get number of clusters
-    n_clusters = hdbscan.n_clusters
-
-    # Assert that number of clusters is 2
-    assert n_clusters == 2
-
-    # Calculate Silhouette score
-    labels = hdbscan.labels
+    # Calculate silhouette score
+    labels = kmeans.labels
     silhouette_score_val = silhouette_score(data, labels, random_state = 42)
-    
-    assert abs(silhouette_score_val - 0.15363442914939499) < 1.e-2 # For 2 clusters
+
+    assert abs(silhouette_score_val - 0.41272703768316205) < 1.e-2 # For 2 clusters
 
 if __name__ == "__main__":
-    test_hdbscan()
+    test_kmeans()
