@@ -43,7 +43,6 @@
     Key Features:
         - Automatic estimation of `eps` via median k-distances
         - Automatic estimation of `min_samples` via log2(n) heuristic
-        - Optional user override for both parameters
         - Counting of discovered clusters and noise points
 
     Authors:
@@ -121,20 +120,6 @@ class Dbscan(Clustering):
 
         print("Estimated parameters from heuristic:")
         print(f"eps = {self.eps:.4f}, min_samples = {self.min_samples}")
-
-        # Optional user override
-        user_input = (
-            input("Do you want to input your own 'eps' and 'min_samples'? (y/n): ")
-            .strip()
-            .lower()
-        )
-        if user_input == "y":
-            eps_input = input(f"Enter 'eps' (current estimate is {self.eps:.4f}): ")
-            min_samples_input = input(
-                f"Enter 'min_samples' (current estimate is {self.min_samples}): "
-            )
-            self.eps = float(eps_input)
-            self.min_samples = int(min_samples_input)
 
         # Fit DBSCAN
         self.model = DBSCAN(eps=self.eps, min_samples=self.min_samples)
