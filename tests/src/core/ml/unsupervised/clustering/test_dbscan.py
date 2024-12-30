@@ -30,53 +30,22 @@ from sklearn.preprocessing import StandardScaler
 from scirex.core.ml.unsupervised.clustering.dbscan import Dbscan
 from sklearn.metrics import silhouette_score
 
-import matplotlib.pyplot as plt
-
-def test_kmeans():
+def test_dbscan():
     # Load and scale the data
-    data = np.loadtxt("../../../../../support_files/chainlink.txt") 
+    data = np.loadtxt("tests/support_files/chainlink.txt") 
     
     scaler = StandardScaler()
     data = scaler.fit_transform(data)
 
-    # Perform KMeans clustering
+    # Perform DBSCAN clustering
     dbscan = Dbscan()
     dbscan.fit(data)
-    #hdbscan = Hdbscan()
-    #hdbscan.fit(data)
 
-    # calculate silhouette score
+    # Calculate silhouette score
     labels = dbscan.labels
+    silhouette_score_val = silhouette_score(data, labels, random_state = 42)
 
-
-
-    
-    unique_labels = set(labels)
-    colors = [plt.cm.Spectral(each) for each in np.linspace(0, 1, len(unique_labels))]
-    
-    plt.figure(figsize = (8, 6))
-
-    for k, col in zip(unique_labels, colors):
-        if k == -1:
-            col = [0, 0, 0, 0]
-
-        class_member_mask = labels == k
-
-        xy = data[class_member_mask]
-
-        plt.plot(xy[:, 0], xy[:, 1], "o", markerfacecolor = tuple(col), markeredgecolor = "k", markersize = 12, label = k)
-
-    plt.title("GMM clustering", fontsize = 18)
-    plt.xlabel("x", fontsize = 18)
-    plt.ylabel("y", fontsize = 18)
-    plt.xticks(fontsize = 16)
-    plt.yticks(fontsize = 16)
-    plt.legend(loc = "upper right", fontsize = 14)
-    plt.show()
-    
-
-    silhouette_score_val = silhouette_score(data, labels)
-    print(f"Silhouette score val is {silhouette_score_val}")
+    assert abs(silhouette_score_val - 0.3301836619003867) < 1.e-12 # For 24 clusters found using eps = 0.1617 and min samples = 10
 
 if __name__ == "__main__":
-    test_kmeans()
+    test_dbscan()
