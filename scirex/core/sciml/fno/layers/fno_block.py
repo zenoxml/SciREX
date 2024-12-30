@@ -55,34 +55,36 @@ from typing import Callable
 
 from scirex.core.sciml.fno.layers.spectral_conv import SpectralConv1d
 
+
 class FNOBlock1d(eqx.Module):
     """
     A single block of the FNO model.
-    
+
     This block consists of a spectral convolution followed by a bypass convolution
     and an activation function.
-    
+
     Attributes:
     spectral_conv: SpectralConv1d
     bypass_conv: eqx.nn.Conv1d
     activation: Callable
-    
+
     Methods:
     __init__: Initializes the FNOBlock1d object
     __call__: Calls the FNOBlock1d object
     """
+
     spectral_conv: SpectralConv1d
     bypass_conv: eqx.nn.Conv1d
     activation: Callable
 
     def __init__(
-            self,
-            in_channels,
-            out_channels,
-            modes,
-            activation,
-            *,
-            key,
+        self,
+        in_channels,
+        out_channels,
+        modes,
+        activation,
+        *,
+        key,
     ):
         spectral_conv_key, bypass_conv_key = jax.random.split(key)
         self.spectral_conv = SpectralConv1d(
@@ -100,9 +102,7 @@ class FNOBlock1d(eqx.Module):
         self.activation = activation
 
     def __call__(
-            self,
-            x,
+        self,
+        x,
     ):
-        return self.activation(
-            self.spectral_conv(x) + self.bypass_conv(x)
-        )
+        return self.activation(self.spectral_conv(x) + self.bypass_conv(x))

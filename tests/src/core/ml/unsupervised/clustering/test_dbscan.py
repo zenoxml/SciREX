@@ -20,9 +20,9 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 # Author : Naren Vohra
-# Added test to check DBSCAN clustering algorithm on benchmark dataset. 
+# Added test to check DBSCAN clustering algorithm on benchmark dataset.
 # The dataset is taken from "Thrun, Ultsch, 2020, Clustering benchmark
-# datasets exploiting the fundamental clustering problems, Data in Brief". 
+# datasets exploiting the fundamental clustering problems, Data in Brief".
 
 import pytest
 import numpy as np
@@ -30,10 +30,11 @@ from sklearn.preprocessing import StandardScaler
 from scirex.core.ml.unsupervised.clustering.dbscan import Dbscan
 from sklearn.metrics import silhouette_score
 
+
 def test_dbscan():
     # Load and scale the data
-    data = np.loadtxt("tests/support_files/chainlink.txt") 
-    
+    data = np.loadtxt("tests/support_files/chainlink.txt")
+
     scaler = StandardScaler()
     data = scaler.fit_transform(data)
 
@@ -43,9 +44,12 @@ def test_dbscan():
 
     # Calculate silhouette score
     labels = dbscan.labels
-    silhouette_score_val = silhouette_score(data, labels, random_state = 42)
+    silhouette_score_val = silhouette_score(data, labels, random_state=42)
 
-    assert abs(silhouette_score_val - 0.3301836619003867) < 1.e-12 # For 24 clusters found using eps = 0.1617 and min samples = 10
+    assert (
+        abs(silhouette_score_val - 0.3301836619003867) < 1.0e-12
+    )  # For 24 clusters found using eps = 0.1617 and min samples = 10
+
 
 if __name__ == "__main__":
     test_dbscan()

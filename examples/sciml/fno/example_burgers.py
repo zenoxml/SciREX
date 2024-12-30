@@ -39,6 +39,7 @@ fno = FNO1d(
     key=jax.random.PRNGKey(0),
 )
 
+
 def dataloader(
     key,
     dataset_x,
@@ -58,14 +59,17 @@ def dataloader(
         batch_indices = permutation[start:end]
 
         yield dataset_x[batch_indices], dataset_y[batch_indices]
-        
+
+
 def loss_fn(model, x, y):
     y_pred = jax.vmap(model)(x)
     loss = jnp.mean(jnp.square(y_pred - y))
     return loss
 
+
 optimizer = optax.adam(3e-4)
 opt_state = optimizer.init(eqx.filter(fno, eqx.is_array))
+
 
 @eqx.filter_jit
 def make_step(model, state, x, y):
@@ -75,13 +79,14 @@ def make_step(model, state, x, y):
     new_model = eqx.apply_updates(model, updates)
     return new_model, new_state, loss, val_loss
 
+
 loss_history = []
 val_loss_history = []
 
 shuffle_key = jax.random.PRNGKey(10)
 for epoch in tqdm(range(200)):
     shuffle_key, subkey = jax.random.split(shuffle_key)
-    for (batch_x, batch_y) in dataloader(
+    for batch_x, batch_y in dataloader(
         subkey,
         train_x[..., ::32],
         train_y[..., ::32],
@@ -89,19 +94,21 @@ for epoch in tqdm(range(200)):
     ):
         fno, opt_state, loss, val_loss = make_step(fno, opt_state, batch_x, batch_y)
         loss_history.append(loss)
-        val_loss_history.append(val_loss)  
+        val_loss_history.append(val_loss)
 
 # Compute the error as reported in the paper
 test_pred = jax.vmap(fno)(test_x)
+
 
 def relative_l2_norm(pred, ref):
     diff_norm = jnp.linalg.norm(pred - ref)
     ref_norm = jnp.linalg.norm(ref)
     return diff_norm / ref_norm
 
+
 rel_l2_set = jax.vmap(relative_l2_norm)(test_pred, test_y)
 
-print(jnp.mean(rel_l2_set)) # ~1e-2
+print(jnp.mean(rel_l2_set))  # ~1e-2
 
 # Create the output directory if it doesn't exist
 output_dir = os.path.join(os.path.dirname(__file__), "outputs", "burgers")
@@ -150,5 +157,3 @@ plt.legend()
 plt.grid()
 output_file = os.path.join(output_dir, "superresolution.png")
 plt.savefig(output_file)
-
-

@@ -51,24 +51,26 @@ import jax
 import equinox as eqx
 import jax.numpy as jnp
 
+
 class SpectralConv1d(eqx.Module):
     """
     A 1D spectral convolution layer.
-    
+
     This layer performs a 1D convolution in the Fourier domain.
-    
+
     Attributes:
     real_weights: jax.Array
     imag_weights: jax.Array
     in_channels: int
     out_channels: int
     modes: int
-    
+
     Methods:
     __init__: Initializes the SpectralConv1d object
     complex_mult1d: Performs complex multiplication in 1D
     __call__: Calls the SpectralConv1d object
     """
+
     real_weights: jax.Array
     imag_weights: jax.Array
     in_channels: int
@@ -76,14 +78,13 @@ class SpectralConv1d(eqx.Module):
     modes: int
 
     def __init__(
-            self,
-            in_channels,
-            out_channels,
-            modes,
-            *,
-            key,
+        self,
+        in_channels,
+        out_channels,
+        modes,
+        *,
+        key,
     ):
-        
         """
         Constructor for the SpectralConv1d class.
 
@@ -130,9 +131,9 @@ class SpectralConv1d(eqx.Module):
         )
 
     def complex_mult1d(
-            self,
-            x_hat,
-            w,
+        self,
+        x_hat,
+        w,
     ):
         """
         Returns the complex multiplication of x_hat and w.
@@ -153,10 +154,9 @@ class SpectralConv1d(eqx.Module):
         """
         return jnp.einsum("iM,ioM->oM", x_hat, w)
 
-
     def __call__(
-            self,
-            x,
+        self,
+        x,
     ):
         """
         Forward pass of the SpectralConv1d layer.
@@ -164,7 +164,7 @@ class SpectralConv1d(eqx.Module):
         Parameters:
         x: jax.Array
             Input array
-        
+
         Returns:
         jax.Array
             Output array
@@ -177,17 +177,14 @@ class SpectralConv1d(eqx.Module):
         # shape of x_hat is (in_channels, spatial_points//2+1)
         x_hat = jnp.fft.rfft(x)
         # shape of x_hat_under_modes is (in_channels, self.modes)
-        x_hat_under_modes = x_hat[:, :self.modes]
+        x_hat_under_modes = x_hat[:, : self.modes]
         weights = self.real_weights + 1j * self.imag_weights
         # shape of out_hat_under_modes is (out_channels, self.modes)
         out_hat_under_modes = self.complex_mult1d(x_hat_under_modes, weights)
 
         # shape of out_hat is (out_channels, spatial_points//2+1)
-        out_hat = jnp.zeros(
-            (self.out_channels, x_hat.shape[-1]),
-            dtype=x_hat.dtype
-        )
-        out_hat = out_hat.at[:, :self.modes].set(out_hat_under_modes)
+        out_hat = jnp.zeros((self.out_channels, x_hat.shape[-1]), dtype=x_hat.dtype)
+        out_hat = out_hat.at[:, : self.modes].set(out_hat_under_modes)
 
         out = jnp.fft.irfft(out_hat, n=spatial_points)
 

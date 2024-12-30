@@ -20,9 +20,9 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 # Author : Naren Vohra
-# Added test to check KMeans clustering algorithm on benchmark dataset. 
+# Added test to check KMeans clustering algorithm on benchmark dataset.
 # The dataset is taken from "Thrun, Ultsch, 2020, Clustering benchmark
-# datasets exploiting the fundamental clustering problems, Data in Brief". 
+# datasets exploiting the fundamental clustering problems, Data in Brief".
 
 import pytest
 import numpy as np
@@ -30,22 +30,24 @@ from sklearn.preprocessing import StandardScaler
 from scirex.core.ml.unsupervised.clustering.kmeans import Kmeans
 from sklearn.metrics import silhouette_score
 
+
 def test_kmeans():
     # Load and scale the data
-    data = np.loadtxt("tests/support_files/engytime.txt") 
-    
+    data = np.loadtxt("tests/support_files/engytime.txt")
+
     scaler = StandardScaler()
     data = scaler.fit_transform(data)
 
     # Perform KMeans clustering
-    kmeans = Kmeans(max_k = 10)
+    kmeans = Kmeans(max_k=10)
     kmeans.fit(data)
 
     # Calculate silhouette score
     labels = kmeans.labels
-    silhouette_score_val = silhouette_score(data, labels, random_state = 42)
+    silhouette_score_val = silhouette_score(data, labels, random_state=42)
 
-    assert abs(silhouette_score_val - 0.41272703768316205) < 1.e-2 # For 2 clusters
+    assert abs(silhouette_score_val - 0.41272703768316205) < 1.0e-2  # For 2 clusters
+
 
 if __name__ == "__main__":
     test_kmeans()

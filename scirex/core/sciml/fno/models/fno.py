@@ -55,19 +55,19 @@ from typing import List
 
 from scirex.core.sciml.fno.layers.fno_block import FNOBlock1d
 
-class FNO1d(eqx.Module):
 
+class FNO1d(eqx.Module):
     """
     A 1D Fourier Neural Operator.
-    
+
     This model consists of a lifting layer, followed by a series of FNO blocks,
     and a projection layer.
-    
+
     Attributes:
     lifting: eqx.nn.Conv1d
     fno_blocks: List[FNOBlock1d]
     projection: eqx.nn.Conv1d
-    
+
     Methods:
     __init__: Initializes the FNO1d object
     __call__: Calls the FNO1d object
@@ -78,17 +78,16 @@ class FNO1d(eqx.Module):
     projection: eqx.nn.Conv1d
 
     def __init__(
-            self,
-            in_channels,
-            out_channels,
-            modes,
-            width,
-            activation,
-            n_blocks,
-            *,
-            key,
+        self,
+        in_channels,
+        out_channels,
+        modes,
+        width,
+        activation,
+        n_blocks,
+        *,
+        key,
     ):
-        
         """
         Constructor for the FNO1d class.
 
@@ -122,13 +121,15 @@ class FNO1d(eqx.Module):
         self.fno_blocks = []
         for i in range(n_blocks):
             key, subkey = jax.random.split(key)
-            self.fno_blocks.append(FNOBlock1d(
-                width,
-                width,
-                modes,
-                activation,
-                key=subkey,
-            ))
+            self.fno_blocks.append(
+                FNOBlock1d(
+                    width,
+                    width,
+                    modes,
+                    activation,
+                    key=subkey,
+                )
+            )
 
         key, projection_key = jax.random.split(key)
         self.projection = eqx.nn.Conv1d(
@@ -139,10 +140,9 @@ class FNO1d(eqx.Module):
         )
 
     def __call__(
-            self,
-            x,
+        self,
+        x,
     ):
-        
         """
         Forward pass of the FNO1d model.
 
@@ -159,7 +159,7 @@ class FNO1d(eqx.Module):
         x = fno(x)
 
         """
-        
+
         x = self.lifting(x)
 
         for fno_block in self.fno_blocks:
