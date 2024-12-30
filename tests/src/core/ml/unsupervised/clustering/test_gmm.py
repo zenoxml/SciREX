@@ -28,6 +28,7 @@ import pytest
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from scirex.core.ml.unsupervised.clustering.gmm import Gmm
+from sklearn.metrics import silhouette_score
 
 import matplotlib.pyplot as plt
 
@@ -45,9 +46,14 @@ def test_kmeans():
     #hdbscan = Hdbscan()
     #hdbscan.fit(data)
 
-    # visualize the clustering data
+    # calculate silhouette score
     labels = gmm.labels
 
+    silhouette_score_val = silhouette_score(data, labels)
+    print(f"Silhouette score val is {silhouette_score_val}")
+
+
+    '''
     unique_labels = set(labels)
     colors = [plt.cm.Spectral(each) for each in np.linspace(0, 1, len(unique_labels))]
     
@@ -70,6 +76,7 @@ def test_kmeans():
     plt.yticks(fontsize = 16)
     plt.legend(loc = "upper right", fontsize = 14)
     plt.show()
+    '''
 
 if __name__ == "__main__":
     test_kmeans()

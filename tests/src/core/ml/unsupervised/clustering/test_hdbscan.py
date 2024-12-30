@@ -28,11 +28,13 @@ import pytest
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from scirex.core.ml.unsupervised.clustering.hdbscan import Hdbscan
+from sklearn.metrics import silhouette_score
 
 def test_hdbscan():
     # Load and scale the data
-    data = np.loadtxt("tests/support_files/chainlink_data.txt")
-    
+    #data = np.loadtxt("tests/support_files/chainlink_data.txt")
+    data = np.loadtxt("../../../../../support_files/chainlink.txt")     
+
     scaler = StandardScaler()
     data = scaler.fit_transform(data)
 
@@ -45,6 +47,12 @@ def test_hdbscan():
     
     # Assert that number of clusters is 2
     assert (n_clusters == 2)
+
+    # Calculate Silhouette score
+    labels = hdbscan.labels
+    silhouette_score_val = silhouette_score(data, labels)
+
+    assert abs(silhouette_score_val - 0.15363442914939499) < 1.e-2
 
 if __name__ == "__main__":
     test_hdbscan()

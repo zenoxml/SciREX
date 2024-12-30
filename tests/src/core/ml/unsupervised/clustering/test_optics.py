@@ -27,31 +27,31 @@
 import pytest
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from scirex.core.ml.unsupervised.clustering.kmeans import Kmeans
+from scirex.core.ml.unsupervised.clustering.optics import Optics
 from sklearn.metrics import silhouette_score
 
 import matplotlib.pyplot as plt
 
 def test_kmeans():
     # Load and scale the data
+    # data = np.loadtxt("tests/support_files/chainlink_data.txt")
     data = np.loadtxt("../../../../../support_files/engytime.txt") 
     
     scaler = StandardScaler()
     data = scaler.fit_transform(data)
 
     # Perform KMeans clustering
-    kmeans = Kmeans(max_k = 10)
-    kmeans.fit(data)
+    optics = Optics()
+    optics.fit(data)
+    #hdbscan = Hdbscan()
+    #hdbscan.fit(data)
 
     # calculate silhouette score
-    labels = kmeans.labels
+    labels = optics.labels
+
+
+
     
-    silhouette_score_val = silhouette_score(data, labels)
-    print(f"Silhouette score val is {silhouette_score_val}")
-
-    assert abs(silhouette_score_val - 0.41272703768316205) < 1.e-2
-
-    '''
     unique_labels = set(labels)
     colors = [plt.cm.Spectral(each) for each in np.linspace(0, 1, len(unique_labels))]
     
@@ -67,14 +67,17 @@ def test_kmeans():
 
         plt.plot(xy[:, 0], xy[:, 1], "o", markerfacecolor = tuple(col), markeredgecolor = "k", markersize = 12, label = k)
 
-    plt.title("KMeans clustering", fontsize = 18)
+    plt.title("GMM clustering", fontsize = 18)
     plt.xlabel("x", fontsize = 18)
     plt.ylabel("y", fontsize = 18)
     plt.xticks(fontsize = 16)
     plt.yticks(fontsize = 16)
     plt.legend(loc = "upper right", fontsize = 14)
     plt.show()
-    '''
+    
+
+    silhouette_score_val = silhouette_score(data, labels)
+    print(f"Silhouette score val is {silhouette_score_val}")
 
 if __name__ == "__main__":
     test_kmeans()
