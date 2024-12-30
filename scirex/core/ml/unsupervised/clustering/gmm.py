@@ -27,8 +27,7 @@
 
     This module provides a Gaussian Mixture Model (GMM) clustering implementation using
     scikit-learn's GaussianMixture. The Gmm class automatically estimates the optimal
-    number of components (clusters) via silhouette scores. It then allows the user
-    to confirm or override this choice.
+    number of components (clusters) via silhouette scores.
 
     Classes:
         Gmm: Gaussian Mixture Model clustering with automatic component selection.
@@ -41,7 +40,6 @@
 
     Key Features:
         - Scans [2..max_k] for the best silhouette score
-        - Optional user override of the chosen number of components
         - Final model is stored, along with predicted cluster labels
         - Ties into the base `Clustering` for plotting/metrics
 
@@ -137,25 +135,6 @@ class Gmm(Clustering):
         # Pick k with best silhouette
         self.optimal_k = k_values[np.argmax(silhouettes)]
         print(f"Estimated optimal number of clusters (optimal_k): {self.optimal_k}")
-
-        # Optional user override
-        user_input = (
-            input("Do you want to input your own number of clusters? (y/n): ")
-            .strip()
-            .lower()
-        )
-        if user_input == "y":
-            k_input = int(
-                input(
-                    f"Enter the number of clusters (k). Current estimate is {self.optimal_k}: "
-                )
-            )
-            if k_input >= 2:
-                self.optimal_k = k_input
-            else:
-                print(
-                    "Number of clusters must be at least 2. Using the estimated optimal_k."
-                )
 
         # Final fit
         self.model = GaussianMixture(
