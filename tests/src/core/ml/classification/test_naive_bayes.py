@@ -51,6 +51,7 @@ from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from scirex.core.ml.supervised.classification.naive_bayes import NaiveBayes
 
+
 class TestNaiveBayes(unittest.TestCase):
     """
     Unit tests for NaiveBayes classifier with Gaussian, Multinomial, and Bernoulli class conditional densities.
@@ -63,9 +64,9 @@ class TestNaiveBayes(unittest.TestCase):
         self.data = load_iris()
         self.X = self.data.data
         self.y = self.data.target
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(self.X, self.y, test_size=0.2, random_state=42)
-        
-       
+        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
+            self.X, self.y, test_size=0.2, random_state=42
+        )
 
     def test_gaussian_naive_bayes(self):
         """
@@ -74,7 +75,11 @@ class TestNaiveBayes(unittest.TestCase):
         model = NaiveBayes(model_type="gaussian")
         model.run(self.X, self.y, test_size=0.2)
         metrics = model.evaluate(self.X_test, self.y_test)
-        self.assertGreaterEqual(metrics["accuracy"], 0.4, "Accuracy should be >= 40% for Gaussian Naive Bayes.")
+        self.assertGreaterEqual(
+            metrics["accuracy"],
+            0.4,
+            "Accuracy should be >= 40% for Gaussian Naive Bayes.",
+        )
 
     def test_multinomial_naive_bayes(self):
         """
@@ -83,7 +88,11 @@ class TestNaiveBayes(unittest.TestCase):
         model = NaiveBayes(model_type="multinomial")
         model.run(self.X, self.y, test_size=0.2)
         metrics = model.evaluate(self.X_test, self.y_test)
-        self.assertGreaterEqual(metrics["accuracy"], 0.5, "Accuracy should be >= 50% for Multinomial Naive Bayes.")
+        self.assertGreaterEqual(
+            metrics["accuracy"],
+            0.5,
+            "Accuracy should be >= 50% for Multinomial Naive Bayes.",
+        )
 
     def test_bernoulli_naive_bayes(self):
         """
@@ -91,12 +100,19 @@ class TestNaiveBayes(unittest.TestCase):
         """
         # Simulate binary data for Bernoulli Naive Bayes
         X_binary = np.where(self.X > np.median(self.X, axis=0), 1, 0)
-        X_train_bin, X_test_bin, y_train_bin, y_test_bin = train_test_split(X_binary, self.y, test_size=0.2, random_state=42)
+        X_train_bin, X_test_bin, y_train_bin, y_test_bin = train_test_split(
+            X_binary, self.y, test_size=0.2, random_state=42
+        )
 
         model = NaiveBayes(model_type="bernoulli")
         model.run(self.X, self.y, test_size=0.2)
         metrics = model.evaluate(self.X_test, self.y_test)
-        self.assertGreaterEqual(metrics["accuracy"], 0.3, "Accuracy should be >= 30% for Bernoulli Naive Bayes.")
+        self.assertGreaterEqual(
+            metrics["accuracy"],
+            0.3,
+            "Accuracy should be >= 30% for Bernoulli Naive Bayes.",
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -60,8 +60,14 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
-from sklearn.model_selection import train_test_split 
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import (
+    accuracy_score,
+    precision_score,
+    recall_score,
+    f1_score,
+    confusion_matrix,
+)
 from sklearn.preprocessing import StandardScaler
 
 
@@ -124,7 +130,7 @@ class Classification(ABC):
             path (str): Filepath to the CSV data file.
 
         Returns:
-            Tuple[np.ndarray, np.ndarray]: 
+            Tuple[np.ndarray, np.ndarray]:
                 - Features dataset (X) of shape (n_samples, n_features).
                 - Labels (y) of shape (n_samples,).
         """
@@ -145,7 +151,7 @@ class Classification(ABC):
         Args:
             X (np.ndarray): A 2D array of shape (n_samples, n_features) containing the features.
             y (np.ndarray): A 1D array of shape (n_samples,) containing the labels.
-        
+
         Subclasses must implement this method. After fitting the model,
         `self.model` should be populated with the trained model.
         """
@@ -178,12 +184,12 @@ class Classification(ABC):
         cax = ax.matshow(cm, cmap=plt.cm.Blues)
         fig.colorbar(cax)
 
-        ax.set_xticklabels([''] + [str(i) for i in np.unique(y_true)])
-        ax.set_yticklabels([''] + [str(i) for i in np.unique(y_true)])
+        ax.set_xticklabels([""] + [str(i) for i in np.unique(y_true)])
+        ax.set_yticklabels([""] + [str(i) for i in np.unique(y_true)])
 
-        ax.set_xlabel('Predicted', fontsize=12)
-        ax.set_ylabel('True', fontsize=12)
-        ax.set_title('Confusion Matrix', fontsize=14)
+        ax.set_xlabel("Predicted", fontsize=12)
+        ax.set_ylabel("True", fontsize=12)
+        ax.set_title("Confusion Matrix", fontsize=14)
 
         plt.tight_layout()
 
@@ -194,10 +200,10 @@ class Classification(ABC):
         return fig
 
     def run(
-        self, 
-        data: Optional[np.ndarray] = None, 
-        path: Optional[str] = None, 
-        test_size: float = 0.2
+        self,
+        data: Optional[np.ndarray] = None,
+        path: Optional[str] = None,
+        test_size: float = 0.2,
     ) -> Dict[str, Any]:
         """
         Run the complete classification pipeline: data loading/preprocessing,
@@ -224,7 +230,9 @@ class Classification(ABC):
         X, y = data if data is not None else self.prepare_data(path)
 
         # Split the data into train and test sets
-        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=self.random_state)
+        X_train, X_test, y_train, y_test = train_test_split(
+            X, y, test_size=test_size, random_state=self.random_state
+        )
 
         # Fit the model on the training data
         self.fit(X_train, y_train)
@@ -237,9 +245,9 @@ class Classification(ABC):
 
         # Calculate classification metrics
         accuracy = accuracy_score(y_test, y_pred)
-        precision = precision_score(y_test, y_pred, average='weighted')
-        recall = recall_score(y_test, y_pred, average='weighted')
-        f1 = f1_score(y_test, y_pred, average='weighted')
+        precision = precision_score(y_test, y_pred, average="weighted")
+        recall = recall_score(y_test, y_pred, average="weighted")
+        f1 = f1_score(y_test, y_pred, average="weighted")
 
         # Plot confusion matrix
         self.plot_confusion_matrix(y_test, y_pred)

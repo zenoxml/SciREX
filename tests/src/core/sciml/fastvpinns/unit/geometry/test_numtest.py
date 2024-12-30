@@ -34,7 +34,11 @@ def test_numtest_points_internal(n_test_x, n_test_y):
 
     # Generate the mesh
     cells, boundary_points = domain.generate_quad_mesh_internal(
-        x_limits=[0, 1], y_limits=[0, 1], n_cells_x=4, n_cells_y=4, num_boundary_points=100
+        x_limits=[0, 1],
+        y_limits=[0, 1],
+        n_cells_x=4,
+        n_cells_y=4,
+        num_boundary_points=100,
     )
 
     # Generate random values for the boundary conditions

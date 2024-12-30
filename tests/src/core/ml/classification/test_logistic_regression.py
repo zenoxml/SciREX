@@ -51,7 +51,10 @@ import numpy as np
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from scirex.core.ml.supervised.classification.logistic_regression import LogisticRegressionClassifier
+from scirex.core.ml.supervised.classification.logistic_regression import (
+    LogisticRegressionClassifier,
+)
+
 
 class TestLogisticRegression(unittest.TestCase):
     """
@@ -72,11 +75,11 @@ class TestLogisticRegression(unittest.TestCase):
         iris = load_iris()
         cls.X = iris.data
         cls.y = iris.target
-        
+
         # Standardize the dataset
         scaler = StandardScaler()
         cls.X = scaler.fit_transform(cls.X)
-        
+
         cls.X_train, cls.X_test, cls.y_train, cls.y_test = train_test_split(
             cls.X, cls.y, test_size=0.2, random_state=42
         )
@@ -88,8 +91,10 @@ class TestLogisticRegression(unittest.TestCase):
         model = LogisticRegressionClassifier()
         model.fit(self.X_train, self.y_train)
         predictions = model.predict(self.X_test)
-        
-        self.assertEqual(len(predictions), len(self.y_test), "Prediction length mismatch.")
+
+        self.assertEqual(
+            len(predictions), len(self.y_test), "Prediction length mismatch."
+        )
 
     def test_evaluation_metrics(self):
         """
@@ -117,7 +122,7 @@ class TestLogisticRegression(unittest.TestCase):
 
         self.assertTrue(
             set(unique_classes).issubset(set(expected_classes)),
-            "Predicted classes do not match expected classes."
+            "Predicted classes do not match expected classes.",
         )
 
 

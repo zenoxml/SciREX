@@ -52,14 +52,18 @@
 import numpy as np
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
-from scirex.core.ml.supervised.classification.logistic_regression import LogisticRegressionClassifier
+from scirex.core.ml.supervised.classification.logistic_regression import (
+    LogisticRegressionClassifier,
+)
 
 # Load the Iris dataset
 data = load_iris()
 X, y = data.data, data.target
 
 # Split the dataset into train and test sets (default split is 80-20)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
 
 # Initialize the Logistic Regression classifier
 logistic_model = LogisticRegressionClassifier()
@@ -74,5 +78,3 @@ for metric, value in results.items():
 
 # Plot the confusion matrix
 logistic_model.plot(y_test, logistic_model.predict(X_test))
-
-

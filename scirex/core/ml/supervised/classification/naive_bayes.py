@@ -97,7 +97,9 @@ class NaiveBayes(Classification):
         elif model_type == "bernoulli":
             self.model = BernoulliNB()
         else:
-            raise ValueError("Invalid model_type. Choose 'gaussian', 'multinomial', or 'bernoulli'.")
+            raise ValueError(
+                "Invalid model_type. Choose 'gaussian', 'multinomial', or 'bernoulli'."
+            )
 
     def fit(self, X_train: np.ndarray, y_train: np.ndarray) -> None:
         """
@@ -140,13 +142,26 @@ class NaiveBayes(Classification):
         y_pred = self.model.predict(X_test)
         cm = confusion_matrix(y_test, y_pred)
         plt.figure(figsize=(8, 6))
-        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=np.unique(y_test), yticklabels=np.unique(y_test))
+        sns.heatmap(
+            cm,
+            annot=True,
+            fmt="d",
+            cmap="Blues",
+            xticklabels=np.unique(y_test),
+            yticklabels=np.unique(y_test),
+        )
         plt.xlabel("Predicted")
         plt.ylabel("Actual")
         plt.title(f"Confusion Matrix - {self.model_type.capitalize()} Naive Bayes")
         plt.show()
 
-    def grid_search(self, X_train: np.ndarray, y_train: np.ndarray, param_grid: Dict[str, Any], cv: int = 5) -> None:
+    def grid_search(
+        self,
+        X_train: np.ndarray,
+        y_train: np.ndarray,
+        param_grid: Dict[str, Any],
+        cv: int = 5,
+    ) -> None:
         """
         Perform hyperparameter tuning using grid search.
 
@@ -156,13 +171,22 @@ class NaiveBayes(Classification):
             param_grid (Dict[str, Any]): Dictionary of hyperparameters to search.
             cv (int): Number of cross-validation folds. Default is 5.
         """
-        grid = GridSearchCV(estimator=self.model, param_grid=param_grid, scoring="accuracy", cv=cv)
+        grid = GridSearchCV(
+            estimator=self.model, param_grid=param_grid, scoring="accuracy", cv=cv
+        )
         grid.fit(X_train, y_train)
         self.model = grid.best_estimator_
         print(f"Best Parameters: {grid.best_params_}")
         print(f"Best Cross-Validated Accuracy: {grid.best_score_}")
 
-    def run(self, data: np.ndarray, labels: np.ndarray, test_size: float = 0.2, param_grid: Dict[str, Any] = None, cv: int = 5) -> Dict[str, Any]:
+    def run(
+        self,
+        data: np.ndarray,
+        labels: np.ndarray,
+        test_size: float = 0.2,
+        param_grid: Dict[str, Any] = None,
+        cv: int = 5,
+    ) -> Dict[str, Any]:
         """
         Execute the full classification pipeline with optional grid search.
 
@@ -177,7 +201,9 @@ class NaiveBayes(Classification):
             Dict[str, Any]: Performance metrics.
         """
         # Split the data into training and test sets
-        X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=test_size, random_state=self.random_state)
+        X_train, X_test, y_train, y_test = train_test_split(
+            data, labels, test_size=test_size, random_state=self.random_state
+        )
 
         # Perform grid search if param_grid is provided
         if param_grid:
@@ -205,7 +231,7 @@ class NaiveBayes(Classification):
         return {
             "alpha": self.model.alpha,
             "fit_prior": self.model.fit_prior,
-            "class_prior": self.model.class_prior
+            "class_prior": self.model.class_prior,
         }
 
     # Method to save the model to a file

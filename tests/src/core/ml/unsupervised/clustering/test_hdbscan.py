@@ -20,14 +20,15 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 # Author : Naren Vohra
-# Added test to check HDBSCAN clustering algorithm on benchmark dataset. 
+# Added test to check HDBSCAN clustering algorithm on benchmark dataset.
 # The dataset is taken from "Thrun, Ultsch, 2020, Clustering benchmark
-# datasets exploiting the fundamental clustering problems, Data in Brief". 
+# datasets exploiting the fundamental clustering problems, Data in Brief".
 
 import pytest
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from scirex.core.ml.unsupervised.clustering.hdbscan import Hdbscan
+
 
 def test_hdbscan():
     min_samples = 5
@@ -35,7 +36,7 @@ def test_hdbscan():
 
     # Load and scale the data
     data = np.loadtxt("tests/support_files/chainlink_data.txt")
-    
+
     scaler = StandardScaler()
     data = scaler.fit_transform(data)
 
@@ -45,9 +46,10 @@ def test_hdbscan():
 
     # Get number of clusters
     n_clusters = hdbscan.n_clusters
-    
+
     # Assert that number of clusters is 2
-    assert (n_clusters == 2)
+    assert n_clusters == 2
+
 
 if __name__ == "__main__":
     test_hdbscan()

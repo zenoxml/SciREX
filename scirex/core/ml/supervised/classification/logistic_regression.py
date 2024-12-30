@@ -69,6 +69,7 @@ from typing import Dict, Any
 
 from .base import Classification
 
+
 class LogisticRegressionClassifier(Classification):
     """
     Implements Logistic Regression for classification tasks.
@@ -114,22 +115,18 @@ class LogisticRegressionClassifier(Classification):
             "f1_score": report["weighted avg"]["f1-score"],
         }
 
-    
     def predict(self, X_test: np.ndarray) -> np.ndarray:
         """
         Predict the labels for the test data.
-    
+
         Args:
             X_test (np.ndarray): Test data features.
-    
+
         Returns:
             np.ndarray: Array of predicted labels.
         """
         # Use the model to predict the labels for the given test data
         return self.model.predict(X_test)
-    
-    
-        
 
     def plot(self, X_test: np.ndarray, y_test: np.ndarray) -> None:
         """
@@ -142,13 +139,22 @@ class LogisticRegressionClassifier(Classification):
         y_pred = self.model.predict(X_test)
         cm = confusion_matrix(y_test, y_pred)
         plt.figure(figsize=(8, 6))
-        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=np.unique(y_test), yticklabels=np.unique(y_test))
+        sns.heatmap(
+            cm,
+            annot=True,
+            fmt="d",
+            cmap="Blues",
+            xticklabels=np.unique(y_test),
+            yticklabels=np.unique(y_test),
+        )
         plt.xlabel("Predicted")
         plt.ylabel("Actual")
         plt.title("Confusion Matrix - Logistic Regression")
         plt.show()
 
-    def grid_search(self, X_train: np.ndarray, y_train: np.ndarray, param_grid: Dict[str, Any]) -> None:
+    def grid_search(
+        self, X_train: np.ndarray, y_train: np.ndarray, param_grid: Dict[str, Any]
+    ) -> None:
         """
         Perform hyperparameter tuning using grid search.
 
@@ -157,13 +163,21 @@ class LogisticRegressionClassifier(Classification):
             y_train (np.ndarray): Training data labels.
             param_grid (Dict[str, Any]): Dictionary of hyperparameters to search.
         """
-        grid = GridSearchCV(estimator=self.model, param_grid=param_grid, scoring="accuracy", cv=5)
+        grid = GridSearchCV(
+            estimator=self.model, param_grid=param_grid, scoring="accuracy", cv=5
+        )
         grid.fit(X_train, y_train)
         self.model = grid.best_estimator_
         print(f"Best Parameters: {grid.best_params_}")
         print(f"Best Cross-Validated Accuracy: {grid.best_score_}")
 
-    def run(self, data: np.ndarray, labels: np.ndarray, split_ratio: float = 0.2, param_grid: Dict[str, Any] = None) -> Dict[str, Any]:
+    def run(
+        self,
+        data: np.ndarray,
+        labels: np.ndarray,
+        split_ratio: float = 0.2,
+        param_grid: Dict[str, Any] = None,
+    ) -> Dict[str, Any]:
         """
         Execute the full classification pipeline with optional grid search.
 
@@ -177,7 +191,9 @@ class LogisticRegressionClassifier(Classification):
             Dict[str, Any]: Performance metrics.
         """
         # Split the data into training and test sets
-        X_train, X_test, y_train, y_test = train_test_split(data, labels, test_size=split_ratio)
+        X_train, X_test, y_train, y_test = train_test_split(
+            data, labels, test_size=split_ratio
+        )
 
         # Perform grid search if param_grid is provided
         if param_grid:
@@ -206,5 +222,5 @@ class LogisticRegressionClassifier(Classification):
             "C": self.model.C,
             "max_iter": self.model.max_iter,
             "solver": self.model.solver,
-            "penalty": self.model.penalty
+            "penalty": self.model.penalty,
         }
