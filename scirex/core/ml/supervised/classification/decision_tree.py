@@ -157,7 +157,6 @@ class DecisionTreeClassifier(Classification):
 
     # Add these methods to decision_tree.py
 
-
     def predict(self, X: np.ndarray) -> np.ndarray:
         """Predict class labels for samples in X.
 
@@ -173,7 +172,6 @@ class DecisionTreeClassifier(Classification):
         if self.model is None:
             raise ValueError("Model must be fitted before prediction")
         return self.model.predict(X)
-
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
         """Predict class probabilities for samples in X.
@@ -191,7 +189,6 @@ class DecisionTreeClassifier(Classification):
             raise ValueError("Model must be fitted before prediction")
         return self.model.predict_proba(X)
 
-
     def evaluate(self, X_test: np.ndarray, y_test: np.ndarray) -> Dict[str, float]:
         """Evaluate model performance on test data.
 
@@ -206,7 +203,12 @@ class DecisionTreeClassifier(Classification):
                 - recall: Recall score (micro-averaged)
                 - f1_score: F1 score (micro-averaged)
         """
-        from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+        from sklearn.metrics import (
+            accuracy_score,
+            precision_score,
+            recall_score,
+            f1_score,
+        )
 
         if self.model is None:
             raise ValueError("Model must be fitted before evaluation")

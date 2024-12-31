@@ -181,7 +181,6 @@ class SVMClassifier(Classification):
 
     # Add these methods to svm.py
 
-
     def predict(self, X: np.ndarray) -> np.ndarray:
         """Predict class labels for samples in X.
 
@@ -197,7 +196,6 @@ class SVMClassifier(Classification):
         if self.model is None:
             raise ValueError("Model must be fitted before prediction")
         return self.model.predict(X)
-
 
     def predict_proba(self, X: np.ndarray) -> np.ndarray:
         """Predict class probabilities for samples in X.
@@ -215,7 +213,6 @@ class SVMClassifier(Classification):
             raise ValueError("Model must be fitted before prediction")
         return self.model.predict_proba(X)
 
-
     def evaluate(self, X_test: np.ndarray, y_test: np.ndarray) -> Dict[str, float]:
         """Evaluate model performance on test data.
 
@@ -230,7 +227,12 @@ class SVMClassifier(Classification):
                 - recall: Recall score (micro-averaged)
                 - f1_score: F1 score (micro-averaged)
         """
-        from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+        from sklearn.metrics import (
+            accuracy_score,
+            precision_score,
+            recall_score,
+            f1_score,
+        )
 
         if self.model is None:
             raise ValueError("Model must be fitted before evaluation")
@@ -243,7 +245,6 @@ class SVMClassifier(Classification):
             "recall": recall_score(y_test, y_pred, average="weighted"),
             "f1_score": f1_score(y_test, y_pred, average="weighted"),
         }
-
 
     def _validate_kernel(self, kernel: str) -> None:
         """Validate the kernel type.
