@@ -59,7 +59,7 @@ class DenseModel(tf.keras.Model):
     """Neural network model for solving PDEs using PINNs.
 
     This class implements a custom neural network architecture for solving
-    partial differential equations using Physics Informed Neural Networks. 
+    partial differential equations using Physics Informed Neural Networks.
     It supports flexible layer configurations and various loss components.
 
     Attributes:
@@ -149,7 +149,6 @@ class DenseModel(tf.keras.Model):
         # if dtype is not a valid tensorflow dtype, raise an error
         if not isinstance(self.tensor_dtype, tf.DType):
             raise TypeError("The given dtype is not a valid tensorflow dtype")
-
 
         self.force_function_list = force_function_list
 
@@ -294,9 +293,7 @@ class DenseModel(tf.keras.Model):
         return base_config
 
     @tf.function
-    def train_step(
-        self, beta=10, bilinear_params_dict=None
-    ) -> dict:  
+    def train_step(self, beta=10, bilinear_params_dict=None) -> dict:
         """
         The train step method for the model.
 
@@ -331,12 +328,11 @@ class DenseModel(tf.keras.Model):
                     pred_grad_y = gradients[:, 1]
 
                 tape1.watch(gradients)
-            
+
             # Compute the second order derivatives
             second_order_derivatives = tape1.gradient(gradients, self.input_tensor)
             pred_grad_xx = second_order_derivatives[:, 0]
             pred_grad_yy = second_order_derivatives[:, 1]
-                
 
             pde_residual = self.loss_function(
                 pred_nn=predicted_values,
@@ -347,7 +343,6 @@ class DenseModel(tf.keras.Model):
                 forcing_function=self.force_matrix,
                 bilinear_params=bilinear_params_dict,
             )
-
 
             # Compute the total loss for the PDE
             total_pde_loss = total_pde_loss + pde_residual
