@@ -63,7 +63,7 @@ from scirex.core.dl.fcnn import (
     evaluate,
     train,
 )
-
+ 
 
 def load_mnist(batch_size: int) -> Tuple[Tuple, Tuple]:
     """
@@ -158,6 +158,7 @@ if __name__ == "__main__":
     keys = jax.random.split(key, 4)
     layers = [
         lambda x: x.T
+        # fmt: off
         eqx.nn.Conv2d(in_channels=1, out_channels=32, kernel_size=3, key=keys[0]),
         jax.nn.relu,
         eqx.nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, key=keys[1]),
@@ -167,6 +168,7 @@ if __name__ == "__main__":
         # Flatten 
         lambda x: x.reshape(-1),
         eqx.nn.Linear(64 * 22 * 22, 10, key=keys[3]),
+        # fmt: on
     ]
     trained_model, history = train(
         model=Model(layers),
