@@ -154,3 +154,68 @@ class DecisionTreeClassifier(Classification):
             importance_dict[f"feature_{idx}"] = importance
 
         return importance_dict
+
+    # Add these methods to decision_tree.py
+
+
+def predict(self, X: np.ndarray) -> np.ndarray:
+    """Predict class labels for samples in X.
+
+    Args:
+        X: Test samples of shape (n_samples, n_features)
+
+    Returns:
+        Array of predicted class labels
+
+    Raises:
+        ValueError: If model hasn't been fitted yet
+    """
+    if self.model is None:
+        raise ValueError("Model must be fitted before prediction")
+    return self.model.predict(X)
+
+
+def predict_proba(self, X: np.ndarray) -> np.ndarray:
+    """Predict class probabilities for samples in X.
+
+    Args:
+        X: Test samples of shape (n_samples, n_features)
+
+    Returns:
+        Array of shape (n_samples, n_classes) with class probabilities
+
+    Raises:
+        ValueError: If model hasn't been fitted yet
+    """
+    if self.model is None:
+        raise ValueError("Model must be fitted before prediction")
+    return self.model.predict_proba(X)
+
+
+def evaluate(self, X_test: np.ndarray, y_test: np.ndarray) -> Dict[str, float]:
+    """Evaluate model performance on test data.
+
+    Args:
+        X_test: Test features of shape (n_samples, n_features)
+        y_test: True labels of shape (n_samples,)
+
+    Returns:
+        Dictionary containing evaluation metrics:
+            - accuracy: Overall classification accuracy
+            - precision: Precision score (micro-averaged)
+            - recall: Recall score (micro-averaged)
+            - f1_score: F1 score (micro-averaged)
+    """
+    from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+
+    if self.model is None:
+        raise ValueError("Model must be fitted before evaluation")
+
+    y_pred = self.predict(X_test)
+
+    return {
+        "accuracy": accuracy_score(y_test, y_pred),
+        "precision": precision_score(y_test, y_pred, average="weighted"),
+        "recall": recall_score(y_test, y_pred, average="weighted"),
+        "f1_score": f1_score(y_test, y_pred, average="weighted"),
+    }
