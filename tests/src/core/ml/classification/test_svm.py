@@ -94,11 +94,12 @@ class TestSVM(unittest.TestCase):
                 model = SVMClassifier(kernel=kernel)
                 model.fit(self.X_train, self.y_train)
                 metrics = model.evaluate(self.X_test, self.y_test)
-                
+
                 self.assertIn("accuracy", metrics)
                 self.assertGreaterEqual(
-                    metrics["accuracy"], 0.4,
-                    f"Accuracy for {kernel} kernel should be >= 40%"
+                    metrics["accuracy"],
+                    0.4,
+                    f"Accuracy for {kernel} kernel should be >= 40%",
                 )
 
     def test_parameter_optimization(self):
@@ -107,11 +108,11 @@ class TestSVM(unittest.TestCase):
         """
         model = SVMClassifier(kernel="rbf", cv=3)
         model.fit(self.X_train, self.y_train)
-        
+
         params = model.get_model_params()
         self.assertIsNotNone(params["best_params"])
         self.assertIn("C", params["best_params"])
-        
+
         if model.kernel != "linear":
             self.assertIn("gamma", params["best_params"])
 
@@ -138,16 +139,18 @@ class TestSVM(unittest.TestCase):
         probabilities = model.predict_proba(self.X_test)
 
         self.assertEqual(
-            probabilities.shape, (len(self.y_test), len(np.unique(self.y))),
-            "Probability matrix shape mismatch"
+            probabilities.shape,
+            (len(self.y_test), len(np.unique(self.y))),
+            "Probability matrix shape mismatch",
         )
-        
+
         # Check if probabilities sum to 1 for each prediction
         prob_sums = np.sum(probabilities, axis=1)
         np.testing.assert_array_almost_equal(
-            prob_sums, np.ones_like(prob_sums),
+            prob_sums,
+            np.ones_like(prob_sums),
             decimal=5,
-            err_msg="Probabilities should sum to 1 for each prediction"
+            err_msg="Probabilities should sum to 1 for each prediction",
         )
 
     def test_model_params(self):

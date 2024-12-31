@@ -28,6 +28,7 @@ References:
     [2] Scholkopf, B., & Smola, A. J. (2002). Learning with Kernels
     [3] Platt, J. (1999). Probabilistic Outputs for SVMs
 """
+
 from typing import Dict, Any, Optional, Literal
 import numpy as np
 from sklearn.svm import SVC
@@ -35,18 +36,19 @@ from sklearn.model_selection import GridSearchCV
 
 from .base import Classification
 
+
 class SVMClassifier(Classification):
     """SVM classifier with automatic parameter tuning.
-    
+
     This implementation supports different kernel types and includes
     automatic parameter optimization using grid search with cross-validation.
     Each kernel is optimized for its specific characteristics and use cases.
-    
+
     Attributes:
         kernel: Type of kernel function
         cv: Number of cross-validation folds
         best_params: Best parameters found by grid search
-        
+
     Example:
         >>> classifier = SVMClassifier(kernel="rbf", cv=5)
         >>> X_train = np.array([[1, 2], [2, 3], [3, 4]])
@@ -54,15 +56,15 @@ class SVMClassifier(Classification):
         >>> classifier.fit(X_train, y_train)
         >>> print(classifier.best_params)
     """
-    
+
     def __init__(
         self,
         kernel: Literal["linear", "rbf", "poly", "sigmoid"] = "rbf",
         cv: int = 5,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         """Initialize SVM classifier.
-        
+
         Args:
             kernel: Kernel function type. Options:
                    "linear": Linear kernel for linearly separable data
@@ -76,13 +78,13 @@ class SVMClassifier(Classification):
         self.kernel = kernel
         self.cv = cv
         self.best_params: Optional[Dict[str, Any]] = None
-        
+
     def _get_param_grid(self):
         """Get parameter grid for grid search based on kernel type.
-        
+
         Returns:
             Dictionary of parameters to search for the chosen kernel.
-            
+
         Notes:
             Parameter grids are optimized for each kernel:
             - Linear: Only C (regularization)
@@ -91,77 +93,77 @@ class SVMClassifier(Classification):
             - Sigmoid: C, gamma, and coef0
         """
         param_grid = {
-            'C': [0.1, 1, 10, 100],
+            "C": [0.1, 1, 10, 100],
         }
-        
+
         if self.kernel == "linear":
             return param_grid
-        
+
         elif self.kernel == "rbf":
-            param_grid.update({
-                'gamma': ['scale', 'auto', 0.001, 0.01, 0.1, 1],
-            })
-            
+            param_grid.update(
+                {
+                    "gamma": ["scale", "auto", 0.001, 0.01, 0.1, 1],
+                }
+            )
+
         elif self.kernel == "poly":
-            param_grid.update({
-                'degree': [2, 3, 4],
-                'gamma': ['scale', 'auto', 0.001, 0.01, 0.1, 1],
-                'coef0': [0, 1],
-            })
-            
+            param_grid.update(
+                {
+                    "degree": [2, 3, 4],
+                    "gamma": ["scale", "auto", 0.001, 0.01, 0.1, 1],
+                    "coef0": [0, 1],
+                }
+            )
+
         elif self.kernel == "sigmoid":
-            param_grid.update({
-                'gamma': ['scale', 'auto', 0.001, 0.01, 0.1, 1],
-                'coef0': [0, 1],
-            })
-            
+            param_grid.update(
+                {
+                    "gamma": ["scale", "auto", 0.001, 0.01, 0.1, 1],
+                    "coef0": [0, 1],
+                }
+            )
+
         return param_grid
-        
+
     def fit(self, X: np.ndarray, y: np.ndarray) -> None:
         """Fit SVM model with parameter tuning.
-        
+
         Performs grid search to find optimal parameters for the chosen
         kernel type.
-        
+
         Args:
             X: Training feature matrix of shape (n_samples, n_features)
             y: Training labels of shape (n_samples,)
-            
+
         Notes:
             - Uses probability estimation for better prediction granularity
             - Employs parallel processing for faster grid search
             - May take longer for larger datasets due to quadratic complexity
         """
         base_model = SVC(
-            kernel=self.kernel,
-            random_state=self.random_state,
-            probability=True
+            kernel=self.kernel, random_state=self.random_state, probability=True
         )
-        
+
         param_grid = self._get_param_grid()
-        
+
         grid_search = GridSearchCV(
-            base_model,
-            param_grid,
-            cv=self.cv,
-            scoring='accuracy',
-            n_jobs=-1
+            base_model, param_grid, cv=self.cv, scoring="accuracy", n_jobs=-1
         )
-        
+
         print(f"Training SVM with {self.kernel} kernel...")
         print("This may take a while for larger datasets.")
-        
+
         grid_search.fit(X, y)
-        
+
         self.best_params = grid_search.best_params_
         self.model = grid_search.best_estimator_
-        
+
         print(f"Best parameters found: {self.best_params}")
         print(f"Best cross-validation score: {grid_search.best_score_:.4f}")
-        
+
     def get_model_params(self) -> Dict[str, Any]:
         """Get parameters of the fitted model.
-        
+
         Returns:
             Dictionary containing:
                 - model_type: Type of classifier
@@ -173,5 +175,5 @@ class SVMClassifier(Classification):
             "model_type": self.model_type,
             "kernel": self.kernel,
             "best_params": self.best_params,
-            "cv": self.cv
+            "cv": self.cv,
         }

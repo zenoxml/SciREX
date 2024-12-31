@@ -51,7 +51,9 @@ import numpy as np
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
-from scirex.core.ml.supervised.classification.decision_tree import DecisionTreeClassifier
+from scirex.core.ml.supervised.classification.decision_tree import (
+    DecisionTreeClassifier,
+)
 
 
 class TestDecisionTree(unittest.TestCase):
@@ -92,8 +94,7 @@ class TestDecisionTree(unittest.TestCase):
         predictions = model.predict(self.X_test)
 
         self.assertEqual(
-            len(predictions), len(self.y_test), 
-            "Prediction length mismatch."
+            len(predictions), len(self.y_test), "Prediction length mismatch."
         )
 
     def test_evaluation_metrics(self):
@@ -119,15 +120,18 @@ class TestDecisionTree(unittest.TestCase):
         importance = model.get_feature_importance()
 
         self.assertEqual(
-            len(importance), self.X.shape[1],
-            "Feature importance length should match number of features"
+            len(importance),
+            self.X.shape[1],
+            "Feature importance length should match number of features",
         )
-        
+
         # Check if importance scores sum to approximately 1
         total_importance = sum(importance.values())
         self.assertAlmostEqual(
-            total_importance, 1.0, places=5,
-            msg="Feature importance scores should sum to 1"
+            total_importance,
+            1.0,
+            places=5,
+            msg="Feature importance scores should sum to 1",
         )
 
     def test_model_params(self):
@@ -155,16 +159,18 @@ class TestDecisionTree(unittest.TestCase):
         probabilities = model.predict_proba(self.X_test)
 
         self.assertEqual(
-            probabilities.shape, (len(self.y_test), len(np.unique(self.y))),
-            "Probability matrix shape mismatch"
+            probabilities.shape,
+            (len(self.y_test), len(np.unique(self.y))),
+            "Probability matrix shape mismatch",
         )
-        
+
         # Check if probabilities sum to 1 for each prediction
         prob_sums = np.sum(probabilities, axis=1)
         np.testing.assert_array_almost_equal(
-            prob_sums, np.ones_like(prob_sums),
+            prob_sums,
+            np.ones_like(prob_sums),
             decimal=5,
-            err_msg="Probabilities should sum to 1 for each prediction"
+            err_msg="Probabilities should sum to 1 for each prediction",
         )
 
 
