@@ -54,7 +54,7 @@ dependencies = [
     "scipy",
     "gmsh",
     "pyyaml",
-    "black",
+    "black==24.8.0",
     "pytest",
     "pytest-benchmark",
     "pytest-cov",
