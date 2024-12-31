@@ -52,7 +52,7 @@ def pde_loss_cd2d(
 ) -> tf.Tensor:
     """Calculates residual for 2D convection-diffusion problem.
 
-    Implements the PINNs methodology for computing variational residuals
+    Implements the PINNs methodology for computing residuals
     in 2D convection-diffusion equations with known coefficients.
 
     Args:
