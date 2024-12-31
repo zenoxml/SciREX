@@ -20,9 +20,9 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 # Author : Naren Vohra
-# Added test to check Agglomerative clustering algorithm on benchmark dataset. 
+# Added test to check Agglomerative clustering algorithm on benchmark dataset.
 # The dataset is taken from "Thrun, Ultsch, 2020, Clustering benchmark
-# datasets exploiting the fundamental clustering problems, Data in Brief". 
+# datasets exploiting the fundamental clustering problems, Data in Brief".
 
 import pytest
 import numpy as np
@@ -30,10 +30,11 @@ from sklearn.preprocessing import StandardScaler
 from scirex.core.ml.unsupervised.clustering.agglomerative import Agglomerative
 from sklearn.metrics import silhouette_score
 
+
 def test_agglomerative():
     # Load and scale the data
-    data = np.loadtxt("tests/support_files/engytime.txt") 
-    
+    data = np.loadtxt("tests/support_files/engytime.txt")
+
     scaler = StandardScaler()
     data = scaler.fit_transform(data)
 
@@ -43,9 +44,10 @@ def test_agglomerative():
 
     # Calculate silhouette score
     labels = agglomerative.labels
-    silhouette_score_val = silhouette_score(data, labels, random_state = 42)
-   
-    assert abs(silhouette_score_val - 0.38969149409053977) < 1.e-1 # For 3 clusters
+    silhouette_score_val = silhouette_score(data, labels, random_state=42)
+
+    assert abs(silhouette_score_val - 0.38969149409053977) < 1.0e-1  # For 3 clusters
+
 
 if __name__ == "__main__":
     test_agglomerative()
