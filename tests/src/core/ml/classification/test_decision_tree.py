@@ -40,7 +40,7 @@
         - scirex.core.ml.supervised.classification.decision_tree
 
     Authors:
-        - Protyush P. Chowdhury (protyushc@iisc.ac.in)
+        - Harshwardhan S. Fartale (harshwardha1c@iisc.ac.in)
 
     Version Info:
         - 31/Dec/2024: Initial version
