@@ -40,6 +40,8 @@ nav:
                   - base: api/core/ml/supervised/classification/base.md
                   - naive bayes: api/core/ml/supervised/classification/naive_bayes.md
                   - Logistic regression: api/core/ml/supervised/classification/logistic_regression.md
+                  - Decision tree: api/core/ml/supervised/classification/decision_tree.md
+                  - SVM: api/core/ml/supervised/classification/svm.md
           - Unsupervised:
               - Clustering: 
                   - Base: api/core/ml/unsupervised/clustering/base.md
