@@ -30,7 +30,7 @@ Convener, AiREX Lab
 - [**Thivin Anandh**](https://thivinanandh.github.io/) (Zenteiq Aitech Innovations)
 - [**Divij Ghose**](https://divijghose.github.io) (Zenteiq Aitech Innovations)
 - [**Dr. Naren Vohra**](https://nvohra0016.github.io/) (AiREX Lab)
-- **Lokesh M**  (AiREX Lab), 
+- [**Lokesh Mohanty**](https://lokeshmohanty.github.io/) (AiREX Lab)
 
 ### Technical Leads (Past)
 -
@@ -39,7 +39,7 @@ Convener, AiREX Lab
 - **Thivin Anandh**
 - **Divij G**
 - **Dr. Naren Vohra**
-- **Lokesh M**
+- **Lokesh Mohanty**
 - **Dr. Sashikumaar Ganesan**
 
 ### 🏗️ Lead Development Teams
