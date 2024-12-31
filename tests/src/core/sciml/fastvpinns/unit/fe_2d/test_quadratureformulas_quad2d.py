@@ -46,4 +46,4 @@ def test_invalid_fe_type(quad_order):
 
     quad_formula_main = Quadratureformulas_Quad2D(quad_order, "gauss-jacobi")
     num_quad = quad_formula_main.get_num_quad_points()
-    assert num_quad == quad_order**2
+    assert num_quad == quad_order ** 2

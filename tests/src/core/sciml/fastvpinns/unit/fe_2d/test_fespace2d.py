@@ -145,12 +145,21 @@ def test_shape_functions(fe_type, transformation):
     basis_gradyy_at_quad = fespace.fe_cell[0].basis_gradyy_at_quad
 
     # Assert their shapes
-    assert basis_at_quad.shape == (fespace.fe_order**2, fespace.quad_order**2)
-    assert basis_gradx_at_quad.shape == (fespace.fe_order**2, fespace.quad_order**2)
-    assert basis_grady_at_quad.shape == (fespace.fe_order**2, fespace.quad_order**2)
-    assert basis_gradxy_at_quad.shape == (fespace.fe_order**2, fespace.quad_order**2)
-    assert basis_gradxx_at_quad.shape == (fespace.fe_order**2, fespace.quad_order**2)
-    assert basis_gradyy_at_quad.shape == (fespace.fe_order**2, fespace.quad_order**2)
+    assert basis_at_quad.shape == (fespace.fe_order ** 2, fespace.quad_order ** 2)
+    assert basis_gradx_at_quad.shape == (fespace.fe_order ** 2, fespace.quad_order ** 2)
+    assert basis_grady_at_quad.shape == (fespace.fe_order ** 2, fespace.quad_order ** 2)
+    assert basis_gradxy_at_quad.shape == (
+        fespace.fe_order ** 2,
+        fespace.quad_order ** 2,
+    )
+    assert basis_gradxx_at_quad.shape == (
+        fespace.fe_order ** 2,
+        fespace.quad_order ** 2,
+    )
+    assert basis_gradyy_at_quad.shape == (
+        fespace.fe_order ** 2,
+        fespace.quad_order ** 2,
+    )
 
     # Clean up objects
     del (
@@ -471,13 +480,13 @@ def test_rhs_vector():
     force_1 = fespace.get_forcing_function_values_vector(0, 0)
 
     # assert shape
-    assert force_1.shape == (fespace.fe_order**2, 1)
+    assert force_1.shape == (fespace.fe_order ** 2, 1)
 
     # generate the forcing term for second component
     force_2 = fespace.get_forcing_function_values_vector(0, 1)
 
     # assert shape
-    assert force_2.shape == (fespace.fe_order**2, 1)
+    assert force_2.shape == (fespace.fe_order ** 2, 1)
 
     # remove the temporary directory
     shutil.rmtree("tests/dump")

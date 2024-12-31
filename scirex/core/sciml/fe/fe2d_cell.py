@@ -246,9 +246,11 @@ class FE2D_Cell:
         Returns:
             None
         """
-        self.quad_weight, self.quad_xi, self.quad_eta = (
-            self.fe_setup.assign_quadrature_rules()
-        )
+        (
+            self.quad_weight,
+            self.quad_xi,
+            self.quad_eta,
+        ) = self.fe_setup.assign_quadrature_rules()
 
     def assign_fe_transformation(self) -> None:
         """
@@ -318,10 +320,12 @@ class FE2D_Cell:
         grad_yy_ref = self.basis_function.gradyy(self.quad_xi, self.quad_eta)
 
         # get the double derivatives of the basis functions ( orig co-ordinates )
-        grad_xx_orig, grad_xy_orig, grad_yy_orig = (
-            self.fetransformation.get_orig_from_ref_second_derivative(
-                grad_xx_ref, grad_xy_ref, grad_yy_ref, self.quad_xi, self.quad_eta
-            )
+        (
+            grad_xx_orig,
+            grad_xy_orig,
+            grad_yy_orig,
+        ) = self.fetransformation.get_orig_from_ref_second_derivative(
+            grad_xx_ref, grad_xy_ref, grad_yy_ref, self.quad_xi, self.quad_eta
         )
 
         # = the value

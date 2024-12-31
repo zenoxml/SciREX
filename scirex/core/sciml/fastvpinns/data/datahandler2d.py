@@ -164,9 +164,10 @@ class DataHandler2D(DataHandler):
         Returns:
             The Dirichlet boundary data as a tuple of tensors
         """
-        input_dirichlet, actual_dirichlet = (
-            self.fespace.generate_dirichlet_boundary_data()
-        )
+        (
+            input_dirichlet,
+            actual_dirichlet,
+        ) = self.fespace.generate_dirichlet_boundary_data()
 
         # convert to tensors
         input_dirichlet = tf.constant(input_dirichlet, dtype=self.dtype)

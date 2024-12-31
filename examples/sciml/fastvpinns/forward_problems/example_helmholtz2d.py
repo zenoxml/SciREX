@@ -137,7 +137,7 @@ def rhs(x, y):
     term1 = 2 * np.pi * np.cos(np.pi * y) * np.sin(np.pi * x)
     term2 = 2 * np.pi * np.cos(np.pi * x) * np.sin(np.pi * y)
     term3 = (x + y) * np.sin(np.pi * x) * np.sin(np.pi * y)
-    term4 = -2 * (np.pi**2) * (x + y) * np.sin(np.pi * x) * np.sin(np.pi * y)
+    term4 = -2 * (np.pi ** 2) * (x + y) * np.sin(np.pi * x) * np.sin(np.pi * y)
 
     result = term1 + term2 + term3 + term4
     return result
@@ -344,10 +344,10 @@ plt.savefig("results.png")
 
 
 # print error statistics
-l2_error = np.sqrt(np.mean(error**2))
+l2_error = np.sqrt(np.mean(error ** 2))
 l1_error = np.mean(np.abs(error))
 l_inf_error = np.max(np.abs(error))
-rel_l2_error = l2_error / np.sqrt(np.mean(y_exact**2))
+rel_l2_error = l2_error / np.sqrt(np.mean(y_exact ** 2))
 rel_l1_error = l1_error / np.mean(np.abs(y_exact))
 rel_l_inf_error = l_inf_error / np.max(np.abs(y_exact))
 

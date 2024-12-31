@@ -122,7 +122,7 @@ def rhs(x, y):
     """
     omegaX = 2.0 * np.pi
     omegaY = 2.0 * np.pi
-    f_temp = -2.0 * (omegaX**2) * (np.sin(omegaX * x) * np.sin(omegaY * y))
+    f_temp = -2.0 * (omegaX ** 2) * (np.sin(omegaX * x) * np.sin(omegaY * y))
 
     return f_temp
 
@@ -333,10 +333,10 @@ plt.savefig("results.png")
 
 
 # print error statistics
-l2_error = np.sqrt(np.mean(error**2))
+l2_error = np.sqrt(np.mean(error ** 2))
 l1_error = np.mean(np.abs(error))
 l_inf_error = np.max(np.abs(error))
-rel_l2_error = l2_error / np.sqrt(np.mean(y_exact**2))
+rel_l2_error = l2_error / np.sqrt(np.mean(y_exact ** 2))
 rel_l1_error = l1_error / np.mean(np.abs(y_exact))
 rel_l_inf_error = l_inf_error / np.max(np.abs(y_exact))
 

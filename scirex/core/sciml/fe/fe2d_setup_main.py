@@ -167,18 +167,18 @@ class FE2DSetupMain:
             if self.fe_type == "legendre" or self.fe_type == "jacobi":
                 # jacobi is added for backward compatibility with prev pushes
                 # generally, jacobi is referred to as Legendre basis on previous iterations
-                return Basis2DQNLegendre(self.fe_order**2)
+                return Basis2DQNLegendre(self.fe_order ** 2)
 
             elif self.fe_type == "legendre_special":
-                return Basis2DQNLegendreSpecial(self.fe_order**2)
+                return Basis2DQNLegendreSpecial(self.fe_order ** 2)
 
             # ----- CHEBYSHEV ---- #
             elif self.fe_type == "chebyshev_2":
-                return Basis2DQNChebyshev2(self.fe_order**2)
+                return Basis2DQNChebyshev2(self.fe_order ** 2)
 
             # ----- PLain jacobi ---- #
             elif self.fe_type == "jacobi_plain":
-                return Basis2DQNJacobi(self.fe_order**2)
+                return Basis2DQNJacobi(self.fe_order ** 2)
 
             else:
                 print(

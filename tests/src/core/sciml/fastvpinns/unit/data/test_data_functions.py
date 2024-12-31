@@ -125,9 +125,13 @@ def test_setup(
     setup_results,
 ):
     # obtain the test data
-    bound_function_dict, bound_condition_dict, bilinear_params, rhs, exact_solution = (
-        cd2d_test_data_internal
-    )
+    (
+        bound_function_dict,
+        bound_condition_dict,
+        bilinear_params,
+        rhs,
+        exact_solution,
+    ) = cd2d_test_data_internal
     n_cells_x = cell_dimensions[0]
     n_cells_y = cell_dimensions[1]
     n_cells = n_cells_x * n_cells_y
@@ -213,7 +217,7 @@ def test_x_pde_list(setup_results):
         # check precision
         assert x_pde_list.dtype == precision
         # check shape
-        assert x_pde_list.shape == (n_cell * quad_order**2, 2)
+        assert x_pde_list.shape == (n_cell * quad_order ** 2, 2)
 
 
 def test_dirichlet_inputs(setup_results):
@@ -269,9 +273,9 @@ def test_shape_tensors(setup_results):
         assert grad_x_mat_list.dtype == precision
         assert grad_y_mat_list.dtype == precision
         # check shape
-        assert shape_val_mat_list.shape == (n_cell, fe_order**2, quad_order**2)
-        assert grad_x_mat_list.shape == (n_cell, fe_order**2, quad_order**2)
-        assert grad_y_mat_list.shape == (n_cell, fe_order**2, quad_order**2)
+        assert shape_val_mat_list.shape == (n_cell, fe_order ** 2, quad_order ** 2)
+        assert grad_x_mat_list.shape == (n_cell, fe_order ** 2, quad_order ** 2)
+        assert grad_y_mat_list.shape == (n_cell, fe_order ** 2, quad_order ** 2)
 
 
 def test_forcing_function_list(setup_results):
@@ -294,7 +298,7 @@ def test_forcing_function_list(setup_results):
         # check precision
         assert forcing_function_list.dtype == precision
         # check shape
-        assert forcing_function_list.shape == (fe_order**2, n_cell)
+        assert forcing_function_list.shape == (fe_order ** 2, n_cell)
 
 
 def test_num_test_points(setup_results):
