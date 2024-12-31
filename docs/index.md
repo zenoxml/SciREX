@@ -63,7 +63,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 ## ✨ Contributing
 
-We welcome contributions from both the research and industrial communities! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
+We welcome contributions from both the research and industrial communities! Please see our Contributing Guidelinesfor details.
 
 ## 📚 Citation
 

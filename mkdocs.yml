@@ -95,6 +95,8 @@ nav:
               - Super Resolution: api/core/sciml/superresolution.md 
   - Tutorial:
           - Classification Tutorial: api/core/tutorial/classification_tutorial.md
+  - Contribution:
+          - contribution: api/core/Contribution/contribution.md         
 markdown_extensions:
   - pymdownx.highlight:
       anchor_linenums: true

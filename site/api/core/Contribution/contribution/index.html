@@ -16,7 +16,7 @@
     
     
       
-        <title>Postprocessing - SciREX Documentation</title>
+        <title>Contributing to SciREX - SciREX Documentation</title>
       
     
     
@@ -71,6 +71,11 @@
     <label class="md-overlay" for="__drawer"></label>
     <div data-md-component="skip">
       
+        
+        <a href="#contributing-to-scirex" class="md-skip">
+          Skip to content
+        </a>
+      
     </div>
     <div data-md-component="announce">
       
@@ -100,7 +105,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Postprocessing
+              Contributing to SciREX
             
           </span>
         </div>
@@ -2159,9 +2164,426 @@
                   
 
 
-  <h1>Postprocessing</h1>
-
-
+<h1 id="contributing-to-scirex">Contributing to SciREX</h1>
+<p>First off, thank you for considering contributing to SciREX! We value contributions from both the academic and industrial communities.</p>
+<p>All types of contributions are encouraged and valued. This document outlines various ways to help and details about how this project handles them. Please read the relevant sections before making your contribution.</p>
+<blockquote>
+<p>If you like the project but don't have time to contribute, there are other ways to support it:
+- Star the project on GitHub
+- Share it in academic and professional networks
+- Cite it in your research papers
+- Mention it at conferences and workshops
+- Use it in your research or industrial projects</p>
+</blockquote>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#questions-and-support">Questions and Support</a></li>
+<li><a href="#ways-to-contribute">Ways to Contribute</a></li>
+<li><a href="#reporting-bugs">Reporting Bugs</a></li>
+<li><a href="#suggesting-enhancements">Suggesting Enhancements</a></li>
+<li><a href="#code-contributions">Code Contributions</a></li>
+<li><a href="#documentation">Documentation</a></li>
+<li><a href="#research-contributions">Research Contributions</a></li>
+<li><a href="#development-guidelines">Development Guidelines</a></li>
+<li><a href="#setting-up-development-environment">Setting Up Development Environment</a></li>
+<li><a href="#code-style">Code Style</a></li>
+<li><a href="#testing">Testing</a></li>
+<li><a href="#documentation-standards">Documentation Standards</a></li>
+<li><a href="#legal-notices">Legal Notices</a></li>
+</ul>
+<h2 id="questions-and-support">Questions and Support</h2>
+<p>Before asking a question:
+- Read the <a href="https://scirex.org/docs">Documentation</a>
+- Search existing <a href="https://github.com/zenoxml/SciREX/issues">Issues</a>
+- Check our <a href="https://discord.gg/NWcCPx22Hq/">Discord community</a></p>
+<p>For new questions:
+1. Open an <a href="https://github.com/zenoxml/SciREX/issues/new">Issue</a>
+2. Provide context about your use case
+3. Include relevant details (Python version, OS, etc.)
+4. Specify if it's a research or industrial application</p>
+<h2 id="ways-to-contribute">Ways to Contribute</h2>
+<h3 id="reporting-bugs">Reporting Bugs</h3>
+<h4 id="before-submitting-a-bug-report">Before Submitting a Bug Report</h4>
+<ul>
+<li>Verify you're using the latest version</li>
+<li>Check if it's a known issue in our <a href="https://github.com/zenoxml/SciREX/issues">bug tracker</a></li>
+<li>Search academic literature if it's a known scientific computing issue</li>
+<li>Collect information:</li>
+<li>Full error traceback</li>
+<li>OS and hardware details</li>
+<li>Minimal reproducible example</li>
+<li>Scientific context if applicable</li>
+</ul>
+<h4 id="submitting-a-bug-report">Submitting a Bug Report</h4>
+<blockquote>
+<p><strong>Security Issues</strong>: Never report security vulnerabilities through public GitHub issues. Email security@zenteiq.ai instead.</p>
+</blockquote>
+<p>Submit bugs through GitHub issues:
+1. Use the bug report template
+2. Describe expected vs actual behavior
+3. Provide reproduction steps
+4. Include relevant scientific context
+5. Attach minimal test data if needed</p>
+<h3 id="suggesting-enhancements">Suggesting Enhancements</h3>
+<p>For enhancement suggestions:
+1. Verify the functionality doesn't exist
+2. Explain the scientific/technical motivation
+3. Provide mathematical foundations if applicable
+4. Describe implementation approach
+5. Reference relevant research papers</p>
+<h3 id="code-contributions">Code Contributions</h3>
+<h4 id="first-time-contributors">First-time Contributors</h4>
+<ol>
+<li>Fork the repository</li>
+<li>Clone your fork:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/&lt;YOUR_USERNAME&gt;/SciREX.git
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>SciREX
+</code></pre></div></li>
+<li>Create a branch:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature/&lt;descriptive-name&gt;
+</code></pre></div></li>
+<li>Install dependencies:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev,test]&quot;</span>
+</code></pre></div></li>
+</ol>
+<h4 id="development-workflow">Development Workflow</h4>
+<ol>
+<li>Write tests first</li>
+<li>Implement your changes</li>
+<li>Add documentation</li>
+<li>Run test suite:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>pytest<span class="w"> </span>tests/
+</code></pre></div></li>
+<li>Submit a pull request</li>
+</ol>
+<h3 id="documentation">Documentation</h3>
+<p>Documentation contributions should:
+- Follow scientific writing standards
+- Include mathematical notation where appropriate
+- Provide practical examples
+- Reference relevant literature
+- Follow our documentation style guide</p>
+<h3 id="research-contributions">Research Contributions</h3>
+<p>For research-related contributions:
+- Provide theoretical foundations
+- Include mathematical proofs if applicable
+- Add benchmark results
+- Reference related work
+- Follow scientific reproducibility guidelines</p>
+<h2 id="development-guidelines">Development Guidelines</h2>
+<h3 id="code-style">Code Style</h3>
+<ul>
+<li>Follow PEP 8</li>
+<li>Use meaningful scientific variable names</li>
+<li>Document mathematical equations</li>
+<li>Include algorithm complexity analysis</li>
+<li>Add references to papers/methods</li>
+</ul>
+<h3 id="testing">Testing</h3>
+<ul>
+<li>Write unit tests for new features</li>
+<li>Include numerical accuracy tests</li>
+<li>Add performance benchmarks</li>
+<li>Test edge cases</li>
+<li>Verify mathematical correctness</li>
+</ul>
+<h2 id="styleguides">Styleguides</h2>
+<h3 id="code-style-and-documentation">Code Style and Documentation</h3>
+<h4 id="google-style-guide-adaptation-for-scientific-computing">Google Style Guide Adaptation for Scientific Computing</h4>
+<p>We follow the <a href="https://google.github.io/styleguide/pyguide.html">Google Python Style Guide</a> with specific adaptations for scientific computing:</p>
+<h5 id="function-and-variable-names">Function and Variable Names</h5>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="c1"># Good</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="k">def</span> <span class="nf">solve_navier_stokes</span><span class="p">(</span><span class="n">reynolds_number</span><span class="p">,</span> <span class="n">initial_conditions</span><span class="p">):</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>    <span class="n">velocity_field</span> <span class="o">=</span> <span class="n">initialize_flow_field</span><span class="p">()</span>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>    <span class="n">pressure_gradient</span> <span class="o">=</span> <span class="n">compute_pressure_gradient</span><span class="p">()</span>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="c1"># Bad</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a><span class="k">def</span> <span class="nf">solveNS</span><span class="p">(</span><span class="n">re</span><span class="p">,</span> <span class="n">ic</span><span class="p">):</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>    <span class="n">v</span> <span class="o">=</span> <span class="n">init_flow</span><span class="p">()</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>    <span class="n">dp</span> <span class="o">=</span> <span class="n">comp_press</span><span class="p">()</span>
+</code></pre></div>
+<h5 id="docstring-format">Docstring Format</h5>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="k">def</span> <span class="nf">compute_finite_difference</span><span class="p">(</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>    <span class="n">function_values</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> 
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>    <span class="n">dx</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> 
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>    <span class="n">order</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">2</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Computes finite difference approximation of derivatives.</span>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="sd">    Implements centered finite difference scheme of specified order for</span>
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="sd">    approximating derivatives of discrete data.</span>
+<a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
+<a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="sd">    Args:</span>
+<a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a><span class="sd">        function_values: Array of function values at discrete points.</span>
+<a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a><span class="sd">            Shape: (n_points,) or (n_points, n_dimensions)</span>
+<a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a><span class="sd">        dx: Grid spacing (assumed uniform)</span>
+<a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a><span class="sd">        order: Order of accuracy for finite difference scheme.</span>
+<a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="sd">            Must be 2 or 4. Defaults to 2.</span>
+<a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>
+<a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a><span class="sd">    Returns:</span>
+<a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="sd">        np.ndarray: Approximated derivatives at each point.</span>
+<a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a><span class="sd">            Same shape as input function_values.</span>
+<a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a>
+<a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="sd">    Raises:</span>
+<a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a><span class="sd">        ValueError: If order is not 2 or 4</span>
+<a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="sd">        ValueError: If function_values has less than order + 1 points</span>
+<a id="__codelineno-5-25" name="__codelineno-5-25" href="#__codelineno-5-25"></a>
+<a id="__codelineno-5-26" name="__codelineno-5-26" href="#__codelineno-5-26"></a><span class="sd">    Notes:</span>
+<a id="__codelineno-5-27" name="__codelineno-5-27" href="#__codelineno-5-27"></a><span class="sd">        Uses the following stencils:</span>
+<a id="__codelineno-5-28" name="__codelineno-5-28" href="#__codelineno-5-28"></a><span class="sd">        2nd order: f&#39;(x) ≈ (f(x+h) - f(x-h))/(2h)</span>
+<a id="__codelineno-5-29" name="__codelineno-5-29" href="#__codelineno-5-29"></a><span class="sd">        4th order: f&#39;(x) ≈ (-f(x+2h) + 8f(x+h) - 8f(x-h) + f(x-2h))/(12h)</span>
+<a id="__codelineno-5-30" name="__codelineno-5-30" href="#__codelineno-5-30"></a>
+<a id="__codelineno-5-31" name="__codelineno-5-31" href="#__codelineno-5-31"></a><span class="sd">    References:</span>
+<a id="__codelineno-5-32" name="__codelineno-5-32" href="#__codelineno-5-32"></a><span class="sd">        [1] LeVeque, R. J. (2007). Finite Difference Methods for Ordinary </span>
+<a id="__codelineno-5-33" name="__codelineno-5-33" href="#__codelineno-5-33"></a><span class="sd">            and Partial Differential Equations.</span>
+<a id="__codelineno-5-34" name="__codelineno-5-34" href="#__codelineno-5-34"></a><span class="sd">    &quot;&quot;&quot;</span>
+</code></pre></div>
+<h5 id="module-level-docstrings">Module-Level Docstrings</h5>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="sd">&quot;&quot;&quot;Solvers for partial differential equations using finite element methods.</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a><span class="sd">This module implements various finite element solvers for elliptic, parabolic,</span>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="sd">and hyperbolic PDEs. The implementation follows the formulation in Hughes (2000)</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="sd">with extensions for stabilized methods.</span>
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="sd">Key classes:</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a><span class="sd">    - FEMSolver: Base solver class</span>
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a><span class="sd">    - EllipticSolver: For elliptic PDEs</span>
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a><span class="sd">    - ParabolicSolver: For parabolic PDEs</span>
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a><span class="sd">Key functions:</span>
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a><span class="sd">    - assemble_stiffness_matrix: Assembles global stiffness matrix</span>
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a><span class="sd">    - solve_linear_system: Solves resulting linear system</span>
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a><span class="sd">Note that all solvers assume a well-posed problem with appropriate boundary</span>
+<a id="__codelineno-6-17" name="__codelineno-6-17" href="#__codelineno-6-17"></a><span class="sd">conditions.</span>
+<a id="__codelineno-6-18" name="__codelineno-6-18" href="#__codelineno-6-18"></a>
+<a id="__codelineno-6-19" name="__codelineno-6-19" href="#__codelineno-6-19"></a><span class="sd">References:</span>
+<a id="__codelineno-6-20" name="__codelineno-6-20" href="#__codelineno-6-20"></a><span class="sd">    [1] Hughes, T. J. R. (2000). The Finite Element Method: Linear Static and </span>
+<a id="__codelineno-6-21" name="__codelineno-6-21" href="#__codelineno-6-21"></a><span class="sd">        Dynamic Finite Element Analysis.</span>
+<a id="__codelineno-6-22" name="__codelineno-6-22" href="#__codelineno-6-22"></a><span class="sd">&quot;&quot;&quot;</span>
+</code></pre></div>
+<h5 id="class-docstrings">Class Docstrings</h5>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="k">class</span> <span class="nc">AdaptiveMesh</span><span class="p">:</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A mesh that adapts based on solution features.</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="sd">    This class implements adaptive mesh refinement/coarsening based on</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="sd">    error estimates. The refinement strategy follows the procedure outlined</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="sd">    in Bank et al. (1983).</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="sd">    Attributes:</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="sd">        nodes: Array of node coordinates, shape (n_nodes, dimension)</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="sd">        elements: Array of element connectivity, shape (n_elements, nodes_per_element)</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="sd">        error_estimator: Callable that computes error estimates</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="sd">        refinement_threshold: Float, threshold for mesh refinement</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="sd">    Example:</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="sd">        &gt;&gt;&gt; mesh = AdaptiveMesh(domain=[0, 1], initial_elements=10)</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="sd">        &gt;&gt;&gt; mesh.refine(error_threshold=1e-3)</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="sd">        &gt;&gt;&gt; solution = solve_pde(mesh)</span>
+<a id="__codelineno-7-18" name="__codelineno-7-18" href="#__codelineno-7-18"></a>
+<a id="__codelineno-7-19" name="__codelineno-7-19" href="#__codelineno-7-19"></a><span class="sd">    References:</span>
+<a id="__codelineno-7-20" name="__codelineno-7-20" href="#__codelineno-7-20"></a><span class="sd">        [1] Bank, R. E., Sherman, A. H., &amp; Weiser, A. (1983). &quot;Refinement </span>
+<a id="__codelineno-7-21" name="__codelineno-7-21" href="#__codelineno-7-21"></a><span class="sd">            Algorithms and Data Structures for Regular Local Mesh Refinement&quot;</span>
+<a id="__codelineno-7-22" name="__codelineno-7-22" href="#__codelineno-7-22"></a><span class="sd">    &quot;&quot;&quot;</span>
+</code></pre></div>
+<h5 id="exception-handling">Exception Handling</h5>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="k">def</span> <span class="nf">integrate_numerically</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">method</span><span class="o">=</span><span class="s1">&#39;gauss&#39;</span><span class="p">):</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Performs numerical integration using specified method.</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="sd">    Args:</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="sd">        function: Callable to integrate</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="sd">        bounds: Tuple of (lower, upper) bounds</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="sd">        method: Integration method (&#39;gauss&#39; or &#39;simpson&#39;)</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a><span class="sd">    Raises:</span>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="sd">        ValueError: If bounds are invalid or method is unsupported</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a><span class="sd">        IntegrationError: If integration fails to converge</span>
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="sd">    Note:</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a><span class="sd">        For singular integrands, consider using adaptive methods</span>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>    <span class="k">if</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a>        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>            <span class="sa">f</span><span class="s2">&quot;Lower bound </span><span class="si">{</span><span class="n">bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2"> must be less than upper bound </span><span class="si">{</span><span class="n">bounds</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2">&quot;</span>
+<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>        <span class="p">)</span>
+<a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>
+<a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>    <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a>        <span class="n">result</span> <span class="o">=</span> <span class="n">_perform_integration</span><span class="p">(</span><span class="n">function</span><span class="p">,</span> <span class="n">bounds</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+<a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a>    <span class="k">except</span> <span class="n">ConvergenceError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+<a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a>        <span class="k">raise</span> <span class="n">IntegrationError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Integration failed to converge: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<h5 id="type-hints-and-comments">Type Hints and Comments</h5>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="kn">import</span> <span class="nn">scipy.sparse</span> <span class="k">as</span> <span class="nn">sp</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="k">def</span> <span class="nf">solve_sparse_system</span><span class="p">(</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>    <span class="n">matrix</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">sp</span><span class="o">.</span><span class="n">spmatrix</span><span class="p">],</span>  <span class="c1"># System matrix</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a>    <span class="n">rhs</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>  <span class="c1"># Right-hand side vector</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>    <span class="n">solver</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;gmres&#39;</span><span class="p">,</span>  <span class="c1"># Iterative solver type</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>    <span class="n">preconditioner</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>  <span class="c1"># Custom preconditioner</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>    <span class="n">tolerance</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">1e-6</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Solves sparse linear system Ax = b.&quot;&quot;&quot;</span>
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a>
+<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="n">Example</span> <span class="n">docstring</span><span class="p">:</span>
+<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="err">```</span><span class="n">python</span>
+<a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="k">def</span> <span class="nf">solve_pde</span><span class="p">(</span><span class="n">mesh</span><span class="p">,</span> <span class="n">boundary_conditions</span><span class="p">,</span> <span class="n">tolerance</span><span class="o">=</span><span class="mf">1e-6</span><span class="p">):</span>
+<a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Solves partial differential equations using the finite element method.</span>
+<a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a>
+<a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a><span class="sd">    Implements the algorithm described in [Smith et al., 2023] using an adaptive</span>
+<a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a><span class="sd">    mesh refinement strategy.</span>
+<a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a>
+<a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a><span class="sd">    The method solves the equation:</span>
+<a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a>
+<a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a><span class="sd">    ∂u/∂t = α∇²u + f(x,t)</span>
+<a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a>
+<a id="__codelineno-9-26" name="__codelineno-9-26" href="#__codelineno-9-26"></a><span class="sd">    Args:</span>
+<a id="__codelineno-9-27" name="__codelineno-9-27" href="#__codelineno-9-27"></a><span class="sd">        mesh (FEMesh): Finite element mesh object</span>
+<a id="__codelineno-9-28" name="__codelineno-9-28" href="#__codelineno-9-28"></a><span class="sd">        boundary_conditions (dict): Dictionary of boundary conditions</span>
+<a id="__codelineno-9-29" name="__codelineno-9-29" href="#__codelineno-9-29"></a><span class="sd">        tolerance (float, optional): Convergence tolerance. Defaults to 1e-6</span>
+<a id="__codelineno-9-30" name="__codelineno-9-30" href="#__codelineno-9-30"></a>
+<a id="__codelineno-9-31" name="__codelineno-9-31" href="#__codelineno-9-31"></a><span class="sd">    Returns:</span>
+<a id="__codelineno-9-32" name="__codelineno-9-32" href="#__codelineno-9-32"></a><span class="sd">        np.ndarray: Solution vector on mesh nodes</span>
+<a id="__codelineno-9-33" name="__codelineno-9-33" href="#__codelineno-9-33"></a>
+<a id="__codelineno-9-34" name="__codelineno-9-34" href="#__codelineno-9-34"></a><span class="sd">    References:</span>
+<a id="__codelineno-9-35" name="__codelineno-9-35" href="#__codelineno-9-35"></a><span class="sd">        [1] Smith et al. (2023). Advanced PDE Solvers. J. Comp. Physics</span>
+<a id="__codelineno-9-36" name="__codelineno-9-36" href="#__codelineno-9-36"></a><span class="sd">    &quot;&quot;&quot;</span>
+</code></pre></div>
+<h3 id="commit-messages">Commit Messages</h3>
+<ul>
+<li>Use clear, descriptive commit messages</li>
+<li>Follow the format: <code>&lt;type&gt;(&lt;scope&gt;): &lt;description&gt;</code></li>
+<li>Types: feat, fix, docs, style, refactor, perf, test</li>
+<li>Include issue numbers if applicable</li>
+</ul>
+<p>Example:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>feat(pinns): implement physics-informed loss function
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>- Add custom loss terms for PDE constraints
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>- Implement automatic differentiation for physics terms
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>- Add tests for conservation laws
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>- Update documentation with mathematical formulation
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>Fixes #123
+</code></pre></div></p>
+<h2 id="improving-the-documentation">Improving The Documentation</h2>
+<p>Documentation improvements are highly valued. Please follow these guidelines:</p>
+<h3 id="types-of-documentation">Types of Documentation</h3>
+<ol>
+<li><strong>API Documentation</strong></li>
+<li>Clear function/class descriptions</li>
+<li>Mathematical foundations</li>
+<li>Parameter explanations</li>
+<li>Example usage</li>
+<li>
+<p>References to papers</p>
+</li>
+<li>
+<p><strong>Tutorials</strong></p>
+</li>
+<li>Step-by-step guides</li>
+<li>Practical examples</li>
+<li>Clear explanations</li>
+<li>
+<p>Reproducible code</p>
+</li>
+<li>
+<p><strong>Theoretical Documentation</strong></p>
+</li>
+<li>Mathematical background</li>
+<li>Algorithm descriptions</li>
+<li>Derivations</li>
+<li>
+<p>Limitations and assumptions</p>
+</li>
+<li>
+<p><strong>Benchmark Documentation</strong></p>
+</li>
+<li>Performance metrics</li>
+<li>Comparison with other methods</li>
+<li>Hardware specifications</li>
+<li>Test conditions</li>
+</ol>
+<h3 id="documentation-standards">Documentation Standards</h3>
+<ul>
+<li>Use clear, scientific language</li>
+<li>Include mathematical notation where appropriate</li>
+<li>Provide practical examples</li>
+<li>Reference relevant literature</li>
+<li>Follow consistent formatting</li>
+</ul>
+<h2 id="contributing-workflow">Contributing Workflow</h2>
+<ol>
+<li>
+<p><strong>Fork and Clone</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/&lt;YOUR_USERNAME&gt;/SciREX.git
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a><span class="nb">cd</span><span class="w"> </span>SciREX
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Set Up Environment</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>python<span class="w"> </span>-m<span class="w"> </span>venv<span class="w"> </span>venv
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="nb">source</span><span class="w"> </span>venv/bin/activate<span class="w">  </span><span class="c1"># or `venv\Scripts\activate` on Windows</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>pip<span class="w"> </span>install<span class="w"> </span>-e<span class="w"> </span><span class="s2">&quot;.[dev,test,docs]&quot;</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>pre-commit<span class="w"> </span>install
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Create Feature Branch</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feature/your-feature-name
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Development Process</strong></p>
+</li>
+<li>Write tests first</li>
+<li>Implement changes</li>
+<li>Add documentation</li>
+<li>Run test suite</li>
+<li>Check code style</li>
+<li>
+<p>Update benchmarks if needed</p>
+</li>
+<li>
+<p><strong>Review Checklist</strong></p>
+</li>
+<li>[ ] Tests pass</li>
+<li>[ ] Documentation updated</li>
+<li>[ ] Code style guidelines followed</li>
+<li>[ ] Benchmarks updated (if applicable)</li>
+<li>[ ] Mathematical correctness verified</li>
+<li>
+<p>[ ] Examples added</p>
+</li>
+<li>
+<p><strong>Submit Pull Request</strong></p>
+</li>
+<li>Use PR template</li>
+<li>Link related issues</li>
+<li>Describe changes</li>
+<li>Add benchmark results</li>
+<li>
+<p>Request review</p>
+</li>
+<li>
+<p><strong>Review Process</strong></p>
+</li>
+<li>Address reviewer comments</li>
+<li>Update documentation</li>
+<li>Maintain mathematical rigor</li>
+<li>Ensure reproducibility</li>
+</ol>
+<h2 id="legal-notices">Legal Notices</h2>
+<ul>
+<li>All contributions must be licensed under the Apache License 2.0</li>
+<li>Contributors must sign our Contributor License Agreement</li>
+<li>Maintain all copyright notices</li>
+<li>Include appropriate citations</li>
+</ul>
+<p>For detailed documentation and guidelines, visit <a href="https://scirex.org/docs/contributing">https://scirex.org/docs/contributing</a></p>
+<hr />
+<p><em>This document is maintained by the SciREX team at Zenteiq Aitech Innovations and AiREX Lab.</em></p>
 
 
 
