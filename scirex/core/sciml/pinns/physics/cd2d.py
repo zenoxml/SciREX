@@ -78,7 +78,7 @@ def pde_loss_cd2d(
             Shape: (1,)
 
     Note:
-        The weak form includes:
+        The loss includes:
         - Diffusion term: -ε∇^2(u)
         - Convection term: b·∇u
         - Reaction term: cu
