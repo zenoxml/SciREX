@@ -23,15 +23,15 @@
 # For any clarifications or special considerations,
 # please contact <scirex@zenteiq.ai>
 
-"""Loss Function Implementation for 2D Convection-Diffusion Problem.
+"""Loss Function Implementation for 2D Poisson Problem.
 
-This module implements the loss function for solving 2D convection-diffusion 
+This module implements the loss function for solving 2D Poisson 
 equations using Physics Informed Neural Networks. It focuses on computing 
 residuals of the PDE with known coefficients.
 
 
 Key functions:
-    - pde_loss_cd2d: Computes  PDE loss
+    - pde_loss_poisson2d: Computes  PDE loss
 
 Note:
 References:
@@ -41,7 +41,7 @@ References:
 import tensorflow as tf
 
 
-def pde_loss_cd2d(
+def pde_loss_poisson2d(
     pred_nn: tf.Tensor,
     pred_grad_x_nn: tf.Tensor,
     pred_grad_y_nn: tf.Tensor,
@@ -50,10 +50,10 @@ def pde_loss_cd2d(
     forcing_function: callable,
     bilinear_params: dict,
 ) -> tf.Tensor:
-    """Calculates residual for 2D convection-diffusion problem.
+    """Calculates residual for 2D Poisson problem.
 
-    Implements the PINNs methodology for computing residuals
-    in 2D convection-diffusion equations with known coefficients.
+    Implements the PINNs methodology for computing variational residuals
+    in 2D Poisson equation with known coefficients.
 
     Args:
         pred_nn: Neural network solution at quadrature points
@@ -69,20 +69,15 @@ def pde_loss_cd2d(
         forcing_function: Right-hand side forcing term
         bilinear_params: Dictionary containing:
             eps: Diffusion coefficient
-            b_x: x-direction convection coefficient
-            b_y: y-direction convection coefficient
-            c: reaction coefficient
 
     Returns:
         Cell-wise residuals averaged over test functions
             Shape: (1,)
 
     Note:
-        The loss includes:
+        The weak form includes:
         - Diffusion term: -ε∇^2(u)
-        - Convection term: b·∇u
-        - Reaction term: cu
-        where ε, b, and c are known coefficients.
+        where ε is a known coefficient.
     """
 
     pde_diffusion_x = pred_grad_xx_nn
@@ -91,15 +86,7 @@ def pde_loss_cd2d(
 
     pde_diffusion = -1.0 * bilinear_params["eps"] * (pde_diffusion_x + pde_diffusion_y)
 
-    conv_x = pred_grad_x_nn
-
-    conv_y = pred_grad_y_nn
-
-    pde_conv = bilinear_params["b_x"] * conv_x + bilinear_params["b_y"] * conv_y
-
-    pde_reaction = bilinear_params["c"] * pred_nn
-
-    residual = (pde_diffusion + pde_conv + pde_reaction) - forcing_function
+    residual = pde_diffusion - forcing_function
 
     # Perform Reduce mean along the axis 0
     pde_residual = tf.reduce_mean(tf.square(residual), axis=0)
