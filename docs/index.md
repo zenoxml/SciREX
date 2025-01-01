@@ -30,13 +30,35 @@ SciREX is an open-source scientific computing and machine learning framework des
   - Benchmark Datasets
   - Performance Metrics
 
+
+##  Getting started
+- Clone the SciREX repo
+```sh
+mkdir scirex
+cd scirex
+git clone https://github.com/zenoxml/SciREX.git 
+``` 
+- Create a virtual environment
+```sh
+python3 -m venv .
+source bin/activate
+```
+- Install dependencies using:
+```sh
+pip install -e .
+```
+- This completes the installation. Check out the examples for usage 
 ## 📖 Documentation
 
 Visit our [documentation](https://scirex.org/docs) for:
 - Getting Started Guide
+
 - API Reference
+
 - Mathematical Background
+
 - Tutorials and Examples
+
 - Contribution Guidelines
 
 ## 📄 License

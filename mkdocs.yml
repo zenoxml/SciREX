@@ -55,6 +55,18 @@ nav:
           - tensorflow_wrapper: api/core/dl/tensorflow_wrapper.md
           - fcnn: api/core/dl/fcnn.md
       - SciML:
+          - PINNS:
+            - Model:
+              - Model: api/core/sciml/pinns/model/model.md
+            - Physics: 
+              - cd2d: api/core/sciml/pinns/physics/cd2d.md
+              - Poisson2d: api/core/sciml/pinns/physics/poisson2d.md  
+          - FNO:
+            - Layer:
+              - FNO block: api/core/sciml/fno/layers/fno_block.md 
+              - Spectral conv: api/core/sciml/fno/layers/spectral_conv.md
+            - Models: 
+              - FNO: api/core/sciml/fno/layers/fno.md        
           - Geometry:
               - geometry_2d: api/core/sciml/geometry/geometry_2d.md
               - geometry: api/core/sciml/geometry/geometry.md
@@ -67,7 +79,7 @@ nav:
               - Function 3D: api/core/sciml/fe/basis_function_3d.md
               - FE_transformation_2d: api/core/sciml/fe/fe_transformation_2d.md
               - FE_transformation_3d: api/core/sciml/fe/fe_transformation_3d.md
-              - FE2D_Cell: api/core/sciml/fe/FE2D_Cell.md
+              - FE2D_Cell: api/core/sciml/fe/fe2d_cell.md
               - fe2d_setup_main: api/core/sciml/fe/fe2d_setup_main.md
               - fespace: api/core/sciml/fe/fespace.md
               - fespace2d: api/core/sciml/fe/fespace2d.md
@@ -91,10 +103,21 @@ nav:
               - helmholtz2d: api/core/sciml/fastvpinns/physics/helmholtz2d.md
               - poisson2d:  api/core/sciml/fastvpinns/physics/poisson2d.md
               - poissson2d Inverse :   api/core/sciml/fastvpinns/physics/poisson_2d_inverse.md          
-          - Super Resolution:
-              - Super Resolution: api/core/sciml/superresolution.md 
-  - Tutorial:
-          - Classification Tutorial: api/core/tutorial/classification_tutorial.md
+          - Super Resolution:      
+              - Super Resolution: api/core/sciml/superresolution.md
+      - Model compression:
+          - pruning: api/core/model_compression/pruning.md
+          - quantization: api/core/model_compression/quantization.md
+  - Examples:
+        - Sciml:
+          - Fastvpinns:
+             - example helmhotlz2d: api/core/examples/sciml/fastvpinns/example_helmholtz2d.md
+             - example poisson2d: api/core/examples/sciml/fastvpinns/example_poisson2d.md
+          - FNO:
+             - example_advection: api/core/examples/sciml/fno/example_advection.md 
+             - example_burgers: api/core/examples/sciml/fno/example_burgers.md 
+             - example_heat: api/core/examples/sciml/fno/example_heat.md 
+             - example_wave: api/core/examples/sciml/fno/example_wave.md 
   - Contribution:
           - contribution: api/core/Contribution/contribution.md         
 markdown_extensions:
@@ -110,20 +133,19 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.mark
   - attr_list
-  - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.twemoji
-      emoji_generator: !!python/name:materialx.emoji.to_svg
+ # - pymdownx.emoji:
+ #     emoji_index: !!python/name:materialx.emoji.twemoji
+ #     emoji_generator: !!python/name:materialx.emoji.to_svg
 
 
 plugins:
   - mkdocstrings:
       handlers:
         python:
+          paths: [".", "scirex", "examples"]
           options:
             rendering:
               show_source: true
-            
-
               
   - search:
       lang: en
