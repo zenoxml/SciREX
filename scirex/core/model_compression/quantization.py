@@ -82,7 +82,7 @@ class QuantizationAwareTraining:
         )
         return model
 
-    def train(self, train_data, train_labels, epochs=1, validation_split=0.1):
+    def train(self, train_data, train_labels, epochs=10, validation_split=0.1):
         """
         Trains the base model.
 
@@ -118,7 +118,7 @@ class QuantizationAwareTraining:
         )
 
     def train_q_aware_model(
-        self, train_data, train_labels, batch_size=500, epochs=1, validation_split=0.1
+        self, train_data, train_labels, batch_size=500, epochs=10, validation_split=0.1
     ):
         """
         Trains the quantization-aware model.
