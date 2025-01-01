@@ -28,7 +28,6 @@
 # This class performs pruning on a given model using TensorFlow Model Optimization, trains it, and evaluates both the baseline and pruned models.
 # It also exports the pruned model in Keras and TFLite formats and provides methods for calculating the gzipped model size.
 
-
 import tempfile
 import os
 import tensorflow as tf
@@ -52,7 +51,7 @@ class ModelPruning:
         self,
         input_shape=(28, 28),
         num_classes=10,
-        epochs=2,
+        epochs=10,
         batch_size=128,
         validation_split=0.1,
     ):
@@ -112,7 +111,10 @@ class ModelPruning:
         :param train_labels: Training data labels.
         """
         self.model.fit(
-            train_images, train_labels, epochs=4, validation_split=self.validation_split
+            train_images,
+            train_labels,
+            epochs=10,
+            validation_split=self.validation_split,
         )
 
     def evaluate_baseline(self, test_images, test_labels):
@@ -131,13 +133,13 @@ class ModelPruning:
 
     def save_baseline_model(self):
         """
-        Saves the baseline model to a temporary file.
+        Saves the baseline model to a temporary file using the .keras format.
 
         :return: Path to the saved model file.
         :rtype: str
         """
-        _, keras_file = tempfile.mkstemp(".h5")
-        keras.models.save_model(self.model, keras_file, include_optimizer=False)
+        keras_file = tempfile.mktemp(".keras")
+        self.model.save(keras_file, save_format="keras")  # Use the .keras format
         return keras_file
 
     def apply_pruning(self):
@@ -151,7 +153,13 @@ class ModelPruning:
         batch_size = self.batch_size
         epochs = self.epochs
         validation_split = self.validation_split
-        num_images = self.model.input_shape[0] * (1 - validation_split)
+
+        # Ensure the model is built before accessing input_shape
+        self.model.build((None, *self.input_shape))  # Build the model
+        num_images = self.model.input_shape[1] * (
+            1 - validation_split
+        )  # Use 1 instead of 0 for axis
+
         end_step = np.ceil(num_images / batch_size).astype(np.int32) * epochs
 
         pruning_params = {
