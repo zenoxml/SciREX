@@ -41,10 +41,8 @@ SciREX is an open-source scientific computing and machine learning framework des
 
 ## 📖 Documentation
 
-Visit our [documentation](https://scirex.org/docs) for:
+Visit our [documentation](https://scirex-airexlab.netlify.app) for:
 - Getting Started Guide
-- API Reference
-- Mathematical Background
 - Tutorials and Examples
 - Contribution Guidelines
 
