@@ -1,6 +1,8 @@
 import numpy as np
 import tensorflow as tf
-from scirex.core.model_compression.quantization import QuantizationAwareTraining  # Import the class from the specified module
+from scirex.core.model_compression.quantization import (
+    QuantizationAwareTraining,
+)  # Import the class from the specified module
 import os
 
 # Load MNIST dataset
@@ -24,7 +26,9 @@ qat.apply_quantization_aware_training()
 qat.train_q_aware_model(train_images, train_labels, epochs=10)
 
 # Evaluate the quantized model
-q_aware_accuracy = qat.evaluate(test_images, test_labels)[1]  # Get only the quantized model accuracy
+q_aware_accuracy = qat.evaluate(test_images, test_labels)[
+    1
+]  # Get only the quantized model accuracy
 
 print("Quantization-aware model accuracy:", q_aware_accuracy)
 
@@ -49,13 +53,3 @@ qat.save_model(post_quantized_tflite_model, post_quantized_filename)
 # Measure and print the size of the post-quantized TFLite model
 post_quantized_model_size = qat.measure_model_size(post_quantized_filename)
 print(f"Post-quantized model size: {post_quantized_model_size:.2f} MB")
-
-
-
-
-
-
-
-
-
-

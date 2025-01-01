@@ -5,7 +5,9 @@ from scirex.core.model_compression.pruning import ModelPruning
 
 
 # Load MNIST dataset
-(train_images, train_labels), (test_images, test_labels) = tf.keras.datasets.mnist.load_data()
+(train_images, train_labels), (test_images, test_labels) = (
+    tf.keras.datasets.mnist.load_data()
+)
 
 # Normalize the input images
 train_images = train_images / 255.0
