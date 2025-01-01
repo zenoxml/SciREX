@@ -78,4 +78,4 @@ examples/**/*.png
 # remove all folders which has output in their name
 output/
 
-results.png
+results.png"main.py" 
