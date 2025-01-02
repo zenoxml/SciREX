@@ -1,0 +1,117 @@
+/* Make Site Name Invisible (Black Text) */
+.md-header__inner .md-header__title {
+    font-size: 0.1rem !important; /* Reduce the size of the dot */
+    color: #000000 !important; /* Set the color to black */
+    visibility: visible !important; /* Ensure the dot remains visible */
+}
+
+/* If Header Background is Not Black */
+.md-header {
+    background-color: #000000 !important; /* Ensure the header matches the dot */
+}
+
+/* General Background Styling with Vertical Binary Pattern */
+body {
+    background: url('../assets/binary-bg.png') repeat-y center center;
+    background-size: cover;
+    background-attachment: fixed;
+    background-color: #0d0d16; /* Fallback dark color */
+    color: #ffffff; /* Text color for readability */
+    font-family: 'Roboto', sans-serif;
+}
+
+/* Header Styling */
+.md-header {
+    background: rgba(0, 0, 0, 0.2); /* Slight transparency */
+    border-bottom: 1px solid #2b2b2b;
+}
+
+/* Navigation Bar */
+.md-nav__link {
+    color: #ffffff !important;
+}
+
+.md-nav__link:hover {
+    color: #00aaff !important;
+}
+
+/* Hide Dark/Light Mode Toggle */
+.md-header__button[title="Switch to dark mode"],
+.md-header__button[title="Switch to light mode"] {
+    display: none !important;
+}
+
+/* Sidebar Styling */
+.md-sidebar {
+    background: rgba(13, 13, 22, 0.9); /* Slight transparency */
+    color: #ffffff;
+}
+
+/* Main Content Styling */
+.md-content {
+    background: rgba(13, 13, 22, 0.95); /* Slight transparency */
+    color: #ffffff;
+    border-radius: 5px;
+    padding: 20px;
+}
+
+/* Code Blocks Styling */
+code {
+    background: #1e1e2e;
+    color: #00ffcc;
+}
+
+/* Links Styling */
+a {
+    color: #00aaff;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Dropdown Menu Styling */
+.md-nav__item--nested > .md-nav__link {
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.md-nav__item--nested > .md-nav__link:hover {
+    background: rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Active Dropdown Item */
+.md-nav__link--active {
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+/* Adjust Search Bar Colors */
+.md-search__form {
+    background: #1a1a2e !important;
+    border: 1px solid #2b2b2b;
+}
+
+.md-search__input {
+    background: #1a1a2e !important;
+    color: #ffffff !important;
+}
+
+/* Active Tab Highlight */
+.md-tabs__link--active {
+    color: #00aaff !important;
+    border-bottom: 2px solid #00aaff !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.md-tabs__link:focus,
+.md-tabs__link:hover {
+    background: transparent !important;
+    box-shadow: none !important;
+    outline: none !important;
+}

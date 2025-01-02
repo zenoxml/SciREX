@@ -1,4 +1,4 @@
-site_name: SciREX Documentation
+site_name: .
 theme:
   name: material
   features:
@@ -27,12 +27,13 @@ theme:
       accent: lime
 
     
-  logo: assets/logo.png
+  logo: assets/image.png
+
 
   # Add a custom vibrant logo here
 
 nav:
-  - Home: index.md
+  - Docs: index.md
   - Core:
       - Machine Learning:
           - Supervised:
@@ -153,6 +154,9 @@ plugins:
 
 extra_css:
   - assets/custom.css  # Custom vibrant colors
+
+extra_picture:
+  - assets/binary-bg.png
 
 extra_javascript:
   - assets/custom.js  # Advanced interactivity like smooth scrolling or dynamic effects
