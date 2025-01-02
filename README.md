@@ -9,7 +9,7 @@
 
 </div>
 
-SciREX is an open-source scientific computing and machine learning framework designed for researchers and engineers. Jointly developed by Zenteiq Aitech Innovations Private Limited and the AiREX (AI for Research and Engineering eXcellence) Lab at Indian Institute of Science, Bangalore, SciREX bridges the gap between theoretical research and practical implementation while maintaining mathematical rigor and computational efficiency.
+SciREX is an open-source scientific AI and machine learning framework designed for researchers and engineers. Jointly developed by Zenteiq Aitech Innovations Private Limited and the AiREX (AI for Research and Engineering eXcellence) Lab at Indian Institute of Science, Bangalore, SciREX bridges the gap between theoretical research and practical implementation while maintaining mathematical rigor and computational efficiency.
 
 ## Key Features
 
@@ -41,7 +41,7 @@ SciREX is an open-source scientific computing and machine learning framework des
 
 ## Documentation
 
-Visit our [documentation](https://scirex-airexlab.netlify.app) for:
+Visit our [documentation](https://scirex.org/docs/) for:
 - Getting Started Guide
 - Tutorials and Examples
 - Contribution Guidelines
