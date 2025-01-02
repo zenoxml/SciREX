@@ -114,4 +114,13 @@ a:hover {
     background: transparent !important;
     box-shadow: none !important;
     outline: none !important;
+}/* Make the logo clickable */
+.md-header__button.md-logo {
+    pointer-events: auto;
 }
+
+/* Adjust the logo container to ensure the click works */
+.md-header__button.md-logo img {
+    cursor: pointer;
+}
+

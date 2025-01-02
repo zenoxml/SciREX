@@ -1,6 +1,6 @@
 # SciREX: Scientific Research and Engineering eXcellence
 
-SciREX is an open-source scientific computing and machine learning framework designed for researchers and engineers. Jointly developed by Zenteiq Aitech Innovations Private Limited and the AiREX (AI for Research and Engineering eXcellence) Lab at Indian Institute of Science, Bangalore, SciREX bridges the gap between theoretical research and practical implementation while maintaining mathematical rigor and computational efficiency.
+SciREX is an open-source scientific AI and machine learning framework designed for researchers and engineers. Jointly developed by Zenteiq Aitech Innovations Private Limited and the AiREX (AI for Research and Engineering eXcellence) Lab at Indian Institute of Science, Bangalore, SciREX bridges the gap between theoretical research and practical implementation while maintaining mathematical rigor and computational efficiency.
 
 ##  Key Features
 
@@ -50,7 +50,9 @@ pip install -e .
 - This completes the installation. Check out the examples for usage 
 ##  Documentation
 
-Visit our [documentation](https://scirex.org/docs) for:
+Visit our [documentation](https://scirex.org/docs)
+ for:
+
 - Getting Started Guide
 
 - API Reference
@@ -86,21 +88,6 @@ Unless required by applicable law or agreed to in writing, software distributed 
 ##  Contributing
 
 We welcome contributions from both the research and industrial communities! Please see our Contributing Guidelinesfor details.
-
-##  Citation
-
-If you use SciREX in your research, please cite:
-
-```bibtex
-@software{scirex2024,
-  title = {SciREX: Scientific Research and Engineering eXcellence},
-  author = {{Zenteiq Aitech Innovations} and {AiREX Lab}},
-  year = {2024},
-  url = {https://scirex.org},
-  version = {1.0.0},
-  doi = {10.xxxx/xxxxx}
-}
-```
 
 ##  Community
 
