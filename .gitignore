@@ -79,3 +79,4 @@ examples/**/*.png
 output/
 
 results.png
+lib64

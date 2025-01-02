@@ -72,22 +72,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 We welcome contributions from both the research and industrial communities! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
-## Citation
-
-If you use SciREX in your research, please cite:
-
-```bibtex
-@software{scirex2024,
-  title = {SciREX: Scientific Research and Engineering eXcellence},
-  author = {{Zenteiq Aitech Innovations} and {AiREX Lab}},
-  year = {2024},
-  url = {https://scirex.org},
-  version = {1.0.0},
-  doi = {10.xxxx/xxxxx}
-}
-```
-
-## Community
+## 🤝 Community
 
 - <a href="https://discord.gg/NWcCPx22Hq/" target="_blank">Discord</a>
 
