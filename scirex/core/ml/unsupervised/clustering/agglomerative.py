@@ -23,31 +23,32 @@
 # please contact: contact@scirex.org
 
 """
-    Module: agglomerative.py
+Module: agglomerative.py
 
-    This module provides an Agglomerative Clustering implementation using scikit-learn.
-    It includes automatic selection of the optimal number of clusters using silhouette scores.
+This module provides an Agglomerative Clustering implementation using scikit-learn.
+It optionally allows a user-defined cluster count or uses silhouette scores (2..max_k) to
+auto-select the optimal cluster count.
 
-    Classes:
-        Agglomerative: Implements an agglomerative clustering approach with auto cluster selection.
+Classes:
+    Agglomerative: Implements an agglomerative clustering approach with optional
+                   user-specified n_clusters or silhouette-based auto selection.
 
-    Dependencies:
-        - numpy
-        - sklearn.cluster.AgglomerativeClustering
-        - sklearn.metrics.silhouette_score
-        - base.py (Clustering)
+Dependencies:
+    - numpy
+    - sklearn.cluster.AgglomerativeClustering
+    - sklearn.metrics.silhouette_score
+    - base.py (Clustering)
 
-    Key Features:
-        - Automatic scanning of possible cluster counts (2..max_k)
-        - Silhouette-based selection of the best cluster count
-        - Final model/labels accessible after `.fit(...)`
+Key Features:
+    - Automatic scanning of possible cluster counts (2..max_k) if n_clusters is not provided
+    - Silhouette-based selection of the best cluster count
+    - Provides get_model_params() for retrieving final clustering info
 
-    Authors:
-        - Debajyoti Sahoo (debajyotis@iisc.ac.in)
+Authors:
+    - Debajyoti Sahoo (debajyotis@iisc.ac.in)
 
-    Version Info:
-        - 28/Dec/2024: Initial version
-
+Version Info:
+    - 28/Dec/2024: Initial release
 """
 
 # Standard library imports
@@ -64,85 +65,100 @@ from .base import Clustering
 
 class Agglomerative(Clustering):
     """
-    Agglomerative Clustering with automatic selection of the optimal cluster count via silhouette.
+    Agglomerative Clustering with optional user-defined 'n_clusters' or
+    automatic silhouette-based selection.
 
     Attributes:
-        max_k (int): The maximum number of clusters to consider.
-        optimal_k (Optional[int]): The chosen number of clusters after evaluating silhouette
-                                   scores and optional user input.
-        n_clusters (Optional[int]): Final cluster count (same as optimal_k).
+        n_clusters (Optional[int]):
+            User-specified cluster count. If not provided, the algorithm auto-selects.
+        max_k (int):
+            Maximum number of clusters for auto-selection if n_clusters is None.
+        labels (Optional[np.ndarray]):
+            Cluster labels for each data point after fitting.
+        n_clusters_ (Optional[int]):
+            The actual number of clusters used in the final model.
     """
 
-    def __init__(self, max_k: int = 10) -> None:
+    def __init__(self, n_clusters: Optional[int] = None, max_k: int = 10) -> None:
         """
         Initialize the Agglomerative clustering class.
 
         Args:
-            max_k (int, optional): Maximum number of clusters to try. Defaults to 10.
+            n_clusters (Optional[int], optional):
+                If provided, the class will use this cluster count directly.
+                Otherwise, it scans 2..max_k using silhouette. Defaults to None.
+            max_k (int, optional):
+                Maximum number of clusters to try (auto selection) if n_clusters is None.
+                Defaults to 10.
         """
         super().__init__("agglomerative")
+        self.n_clusters = n_clusters
         self.max_k = max_k
-        self.optimal_k: Optional[int] = None
-        self.n_clusters: Optional[int] = None
+
+        self.labels: Optional[np.ndarray] = None
+        self.n_clusters_: Optional[int] = None
+        self.model: Optional[AgglomerativeClustering] = None
 
     def fit(self, X: np.ndarray) -> None:
         """
-        Fit the Agglomerative Clustering model with automatic cluster count selection.
+        Fit the Agglomerative Clustering model to the data.
+
+        - If n_clusters is provided, skip auto selection and use that value.
+        - Else, compute silhouette scores for k in [2..max_k],
+          pick the best k, and finalize the clustering.
 
         Args:
-            X (np.ndarray): Scaled feature matrix of shape (n_samples, n_features).
+            X (np.ndarray): Input data array of shape (n_samples, n_features).
         """
         X = X.astype(np.float32, copy=False)
         n_samples = X.shape[0]
-        k_values = range(2, self.max_k + 1)
-        silhouettes = []
 
-        # Subsample size for silhouette
-        silhouette_sample_size = min(1000, n_samples)
-
-        for k in k_values:
-            model = AgglomerativeClustering(
-                n_clusters=k,
-                linkage="average",  # or 'ward', 'complete', 'single'
+        # 1) If user specified a cluster count
+        if self.n_clusters is not None:
+            optimal_k = self.n_clusters
+            print(
+                f"Fitting AgglomerativeClustering with user-defined n_clusters={optimal_k}.\n"
             )
-            labels = model.fit_predict(X)
-            unique_labels = np.unique(labels)
+        else:
+            # 2) Auto selection using silhouette
+            k_values = range(2, self.max_k + 1)
+            silhouette_scores = []
+            sample_size = min(1000, n_samples)
 
-            # If there's only one cluster, silhouette is invalid
-            if len(unique_labels) <= 1:
-                silhouettes.append(-1)
-                continue
+            for k in k_values:
+                model = AgglomerativeClustering(n_clusters=k, linkage="average")
+                labels = model.fit_predict(X)
 
-            # Subsample if data is large
-            if n_samples > silhouette_sample_size:
-                indices = np.random.choice(
-                    n_samples, silhouette_sample_size, replace=False
-                )
-                silhouettes.append(silhouette_score(X[indices], labels[indices]))
-            else:
-                silhouettes.append(silhouette_score(X, labels))
+                if len(np.unique(labels)) <= 1:
+                    silhouette_scores.append(-1)
+                    continue
 
-        # Choose best k from silhouette
-        self.optimal_k = k_values[np.argmax(silhouettes)]
-        print(f"Estimated optimal number of clusters (optimal_k): {self.optimal_k}")
+                if n_samples > sample_size:
+                    indices = np.random.choice(n_samples, sample_size, replace=False)
+                    score = silhouette_score(X[indices], labels[indices])
+                else:
+                    score = silhouette_score(X, labels)
 
-        # Final fit with optimal_k
-        self.model = AgglomerativeClustering(
-            n_clusters=self.optimal_k, linkage="average"
-        )
+                silhouette_scores.append(score)
+
+            # pick best silhouette
+            idx_best = np.argmax(silhouette_scores)
+            optimal_k = k_values[idx_best]
+            print(f"Optimal k (silhouette) = {optimal_k}")
+
+        # Final fit
+        self.model = AgglomerativeClustering(n_clusters=optimal_k, linkage="average")
         self.labels = self.model.fit_predict(X)
-        self.n_clusters = len(np.unique(self.labels))
+        self.n_clusters_ = len(np.unique(self.labels))
 
-        print(f"Agglomerative Clustering fitted with k = {self.optimal_k}")
+        print(f"AgglomerativeClustering fitted with {optimal_k} clusters.\n")
 
     def get_model_params(self) -> Dict[str, Any]:
         """
-        Get parameters of the fitted Agglomerative Clustering model.
+        Retrieve key parameters and results from the fitted AgglomerativeClustering model.
 
         Returns:
             Dict[str, Any]:
-                A dictionary containing:
-                - model_type (str): "agglomerative"
-                - n_clusters (int): The final chosen cluster count
+                - n_clusters (int): The final number of clusters used
         """
-        return {"model_type": self.model_type, "n_clusters": self.optimal_k}
+        return {"n_clusters": self.n_clusters_}

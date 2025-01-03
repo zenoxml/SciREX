@@ -26,7 +26,7 @@
     Module: dbscan.py
 
     This module provides a DBSCAN (Density-Based Spatial Clustering of Applications with Noise)
-    implementation using scikit-learn's DBSCAN class.
+    implementation.
 
     It includes an optional automated heuristic for estimating `eps` and `min_samples`
     by analyzing neighborhood distances. The user can override these defaults before fitting.
@@ -52,7 +52,6 @@
         - 28/Dec/2024: Initial version
 
 """
-
 # Standard library imports
 from typing import Dict, Any, Optional
 
@@ -70,86 +69,122 @@ class Dbscan(Clustering):
     DBSCAN clustering algorithm with optional automatic estimation of `eps` and `min_samples`.
 
     Attributes:
-        eps (Optional[float]): The maximum neighborhood distance after estimation/user input.
-        min_samples (Optional[int]): The number of samples in a neighborhood for
-                                     a point to be considered a core point.
-        n_clusters (Optional[int]): The number of clusters found (excluding noise).
-        n_noise (Optional[int]): The number of noise points labeled as -1 by DBSCAN.
+        eps (Optional[float]):
+            If provided, use this neighborhood distance for DBSCAN.
+        min_samples (Optional[int]):
+            If provided, use this minimum samples count for a point to be considered a core point.
+        labels (Optional[np.ndarray]):
+            Cluster labels for each data point after fitting.
+        n_clusters_ (Optional[int]):
+            The number of clusters found (excluding noise).
+        n_noise_ (Optional[int]):
+            The number of noise points labeled as -1.
     """
 
-    def __init__(self) -> None:
+    def __init__(
+        self, eps: Optional[float] = None, min_samples: Optional[int] = None
+    ) -> None:
         """
-        Initialize the DBSCAN clustering model.
-
-        By default, `eps` and `min_samples` are not set until the user calls `.fit(...)`.
-        The final values are determined by a heuristic (plus optional user override).
-        """
-        super().__init__("dbscan")
-        self.eps: Optional[float] = None
-        self.min_samples: Optional[int] = None
-        self.n_clusters: Optional[int] = None
-        self.n_noise: Optional[int] = None
-
-    def fit(self, X: np.ndarray) -> None:
-        """
-        Fit the DBSCAN model to the data with a heuristic approach to determine eps and min_samples.
+        Initialize the Dbscan clustering class.
 
         Args:
-            X (np.ndarray): Input data array of shape (n_samples, n_features).
+            eps (Optional[float], optional):
+                User-defined neighborhood distance. If None, auto-estimation is used.
+            min_samples (Optional[int], optional):
+                User-defined min_samples. If None, auto-estimation is used.
         """
-        X = X.astype(np.float32, copy=False)
+        super().__init__("dbscan")
+        self.eps = eps
+        self.min_samples = min_samples
+
+        # Final results after fitting
+        self.labels: Optional[np.ndarray] = None
+        self.n_clusters_: Optional[int] = None
+        self.n_noise_: Optional[int] = None
+        self.model: Optional[DBSCAN] = None
+
+    def _estimate_params(self, X: np.ndarray) -> None:
+        """
+        Estimate eps and min_samples if they are not already set by the user,
+        using a heuristic approach:
+          - min_samples = max(5, floor(log2(n)) + 1)
+          - eps = median distance to the 'min_samples-th' nearest neighbor
+        """
         n_samples = X.shape[0]
         rng = np.random.default_rng(self.random_state)
 
-        # Heuristic for min_samples
-        self.min_samples = max(5, int(np.log2(n_samples)) + 1)
+        # Estimate min_samples if not set by user
+        if self.min_samples is None:
+            auto_min_samples = max(5, int(np.log2(n_samples)) + 1)
+            self.min_samples = auto_min_samples
+        else:
+            auto_min_samples = self.min_samples
 
-        # Subsample for k-distance estimation
-        sample_size = min(1000, n_samples)
-        indices = rng.choice(n_samples, sample_size, replace=False)
-        X_sample = X[indices]
+        # Estimate eps if not set by user
+        if self.eps is None:
+            # Subsample for distance estimation
+            sample_size = min(1000, n_samples)
+            indices = rng.choice(n_samples, sample_size, replace=False)
+            X_sample = X[indices]
 
-        # Compute k-distance (k = min_samples)
-        nbrs = NearestNeighbors(n_neighbors=self.min_samples)
-        nbrs.fit(X_sample)
-        distances, _ = nbrs.kneighbors(X_sample)
-        k_distances = distances[
-            :, -1
-        ]  # Distance to the min_samples-th nearest neighbor
-        self.eps = float(np.median(k_distances))
+            # Compute the distance to the (min_samples)-th neighbor
+            nbrs = NearestNeighbors(n_neighbors=auto_min_samples)
+            nbrs.fit(X_sample)
+            distances, _ = nbrs.kneighbors(X_sample)
+            k_distances = distances[:, -1]
 
-        print("Estimated parameters from heuristic:")
+            auto_eps = float(np.median(k_distances))
+            self.eps = auto_eps
+
+        print("Auto-estimated parameters:")
         print(f"eps = {self.eps:.4f}, min_samples = {self.min_samples}")
 
-        # Fit DBSCAN
+    def fit(self, X: np.ndarray) -> None:
+        """
+        Fit the DBSCAN model to the data.
+
+        If eps or min_samples are None, a heuristic is used to estimate them.
+        The resulting DBSCAN model is stored in self.model, along with labels,
+        cluster count, and noise count.
+
+        Args:
+            X (np.ndarray): Input data of shape (n_samples, n_features).
+        """
+        X = X.astype(np.float32, copy=False)
+
+        # If user didn't provide eps or min_samples, estimate them
+        if self.eps is None or self.min_samples is None:
+            self._estimate_params(X)
+        else:
+            print(
+                f"Using user-defined eps = {self.eps}, min_samples = {self.min_samples}"
+            )
+
+        # fit DBSCAN
         self.model = DBSCAN(eps=self.eps, min_samples=self.min_samples)
         self.labels = self.model.fit_predict(X)
 
-        # Compute the number of clusters (excluding noise)
-        self.n_clusters = len(set(self.labels)) - (1 if -1 in self.labels else 0)
-        self.n_noise = np.count_nonzero(self.labels == -1)
+        # Count clusters (excluding noise)
+        self.n_clusters_ = len(set(self.labels)) - (1 if -1 in self.labels else 0)
+        self.n_noise_ = np.count_nonzero(self.labels == -1)
 
-        print(
-            f"DBSCAN fitted with eps = {self.eps:.4f}, min_samples = {self.min_samples}"
-        )
-        print(f"Number of clusters found: {self.n_clusters}")
-        print(f"Number of noise points: {self.n_noise}")
+        print(f"\nDBSCAN fitted with eps={self.eps}, min_samples={self.min_samples}")
 
     def get_model_params(self) -> Dict[str, Any]:
         """
-        Get parameters of the fitted DBSCAN model.
+        Retrieve key parameters and results from the fitted DBSCAN model.
 
         Returns:
             Dict[str, Any]:
-                A dictionary containing:
-                - model_type (str)
-                - eps (float)
-                - min_samples (int)
-                - n_clusters (int)
+                - model_type (str): "dbscan"
+                - eps (float): The final eps used
+                - min_samples (int): The final min_samples used
+                - n_clusters (int): Number of clusters found (excluding noise)
+                - n_noise (int): Number of noise points (-1 label)
         """
         return {
-            "model_type": self.model_type,
             "eps": self.eps,
             "min_samples": self.min_samples,
-            "n_clusters": self.n_clusters,
+            "n_clusters": self.n_clusters_,
+            "n_noise": self.n_noise_,
         }

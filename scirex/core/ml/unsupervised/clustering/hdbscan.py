@@ -23,36 +23,30 @@
 # please contact: contact@scirex.org
 
 """
-    Module: hdbscan.py
+Module: hdbscan.py
 
-    This module provides an implementation of the HDBSCAN (Hierarchical Density-Based Spatial 
-    Clustering of Applications with Noise) algorithm.
+This module provides an HDBSCAN (Hierarchical Density-Based Spatial Clustering of
+Applications with Noise) implementation. It optionally allows user-defined
+`min_cluster_size` and `min_samples`, or applies heuristics to determine them.
 
-    HDBSCAN automatically finds clusters of varying densities by constructing a hierarchical
-    tree structure and extracting stable clusters from the hierarchy using the EOM
-    (Excess of Mass) method or another selection approach.
+Classes:
+    Hdbscan: Implements HDBSCAN with an optional user override or heuristic-based approach.
 
-    Classes:
-        Hdbscan: Implements HDBSCAN with a heuristic for `min_cluster_size` and `min_samples`,
-                 plus optional user override.
+Dependencies:
+    - numpy
+    - hdbscan (pip install hdbscan)
+    - base.py (Clustering)
 
-    Dependencies:
-        - numpy
-        - sklearn.cluster.HDBSCAN
-        - base.py (Clustering)
+Key Features:
+    - If user-defined 'min_cluster_size' or 'min_samples' is given, skip auto-heuristic
+    - Otherwise, compute simple heuristics
+    - Inherits from base `Clustering` for consistency with other clustering modules
 
-    Key Features:
-        - Automatic heuristic for `min_cluster_size` and `min_samples`
-        - Optional user override for parameters
-        - Summarizes discovered clusters and noise points
-        - Inherits from base `Clustering` for a consistent pipeline
+Authors:
+    - Debajyoti Sahoo (debajyotis@iisc.ac.in)
 
-    Authors:
-        - Debajyoti Sahoo (debajyotis@iisc.ac.in)
-
-    Version Info:
-        - 28/Dec/2024: Initial version
-
+Version Info:
+    - 28/Dec/2024: Initial release
 """
 
 # Standard library imports
@@ -68,81 +62,130 @@ from .base import Clustering
 
 class Hdbscan(Clustering):
     """
-    HDBSCAN clustering with automatic heuristic for `min_cluster_size` and `min_samples`,
-    plus optional user override.
+    HDBSCAN clustering with optional user-defined 'min_cluster_size' and 'min_samples',
+    or a heuristic-based approach if they are not provided.
 
     Attributes:
-        min_cluster_size (Optional[int]): The minimum size of a cluster (in samples).
-        min_samples (Optional[int]): The minimum number of samples in a neighborhood for
-                                     a point to be considered a core point.
-        n_clusters (Optional[int]): Number of clusters discovered (excluding noise).
-        n_noise (Optional[int]): Number of points labeled as noise (i.e., assigned label -1).
+        min_cluster_size (Optional[int]):
+            User-specified or auto-calculated minimum cluster size.
+        min_samples (Optional[int]):
+            User-specified or auto-calculated minimum samples for a point to be core.
+        cluster_selection_method (str):
+            Method for extracting clusters from the condensed tree. Defaults to 'eom'.
+        labels (Optional[np.ndarray]):
+            Cluster labels for each data point after fitting (some may be -1 for noise).
+        n_clusters_ (Optional[int]):
+            Number of clusters discovered (excluding noise).
+        n_noise_ (Optional[int]):
+            Number of data points labeled as noise (-1).
     """
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        min_cluster_size: Optional[int] = None,
+        min_samples: Optional[int] = None,
+        cluster_selection_method: str = "eom",
+    ) -> None:
         """
         Initialize the HDBSCAN clustering model.
 
-        By default, `min_cluster_size` and `min_samples` are computed at fit time
-        based on dataset properties, then optionally overridden by user input.
+        Args:
+            min_cluster_size (Optional[int], optional):
+                If provided, HDBSCAN will use this min cluster size directly.
+            min_samples (Optional[int], optional):
+                If provided, HDBSCAN will use this min_samples directly.
+            cluster_selection_method (str, optional):
+                The method to extract clusters from condensed tree:
+                'eom' (Excess of Mass) or 'leaf'. Defaults to 'eom'.
         """
         super().__init__("hdbscan")
-        self.min_cluster_size: Optional[int] = None
-        self.min_samples: Optional[int] = None
-        self.n_clusters: Optional[int] = None
-        self.n_noise: Optional[int] = None
+        self.min_cluster_size = min_cluster_size
+        self.min_samples = min_samples
+        self.cluster_selection_method = cluster_selection_method
 
-    def fit(self, X: np.ndarray, expected_clusters: Optional[int] = None) -> None:
+        # Attributes set after fitting
+        self.labels: Optional[np.ndarray] = None
+        self.n_clusters_: Optional[int] = None
+        self.n_noise_: Optional[int] = None
+        self.model: Optional[HDBSCAN] = None
+
+    def _estimate_params(self, X: np.ndarray) -> None:
         """
-        Fit the HDBSCAN model to the data using a simple heuristic for initial parameters.
+        Estimate min_cluster_size and min_samples using simple heuristics:
+          - min_samples = max(1, floor(log(n)))
+          - min_cluster_size = max(5, floor(2% of n))
+        """
+        n_samples = X.shape[0]
+        # Heuristic for min_samples
+        auto_min_samples = max(1, int(np.log(n_samples)))
+        # Heuristic for min_cluster_size
+        auto_min_cluster_size = max(5, int(0.02 * n_samples))
+
+        # If not user-defined, assign
+        if self.min_cluster_size is None:
+            self.min_cluster_size = auto_min_cluster_size
+        if self.min_samples is None:
+            self.min_samples = auto_min_samples
+
+        print("Auto-estimated parameters for HDBSCAN:")
+        print(
+            f"min_cluster_size = {self.min_cluster_size}, "
+            f"min_samples = {self.min_samples}"
+        )
+
+    def fit(self, X: np.ndarray) -> None:
+        """
+        Fit HDBSCAN to the data.
+
+        - If min_cluster_size/min_samples are None, estimate them heuristically.
+        - Then create and fit an HDBSCAN model, storing labels, cluster count, and noise count.
 
         Args:
             X (np.ndarray): Input data array of shape (n_samples, n_features).
-            expected_clusters (Optional[int]): Potential future extension for approximate cluster count.
         """
         X = X.astype(np.float32, copy=False)
-        n_samples = X.shape[0]
 
-        # Heuristic estimation of parameters
-        self.min_samples = max(1, int(np.log(n_samples)))
-        self.min_cluster_size = max(5, int(0.02 * n_samples))
+        # If user did not provide min_cluster_size or min_samples, estimate them
+        if self.min_cluster_size is None or self.min_samples is None:
+            self._estimate_params(X)
+        else:
+            print(
+                f"Using user-defined parameters: "
+                f"min_cluster_size={self.min_cluster_size}, "
+                f"min_samples={self.min_samples}"
+            )
 
-        print("Estimated parameters:")
-        print(
-            f"min_cluster_size = {self.min_cluster_size}, min_samples = {self.min_samples}"
-        )
-
-        # (Optional) prompt user for overrides if desired (not shown in snippet)
-        # For example: user_input = input("Do you want to override? ...")
-
+        # Create and fit the model
         self.model = HDBSCAN(
             min_cluster_size=self.min_cluster_size,
             min_samples=self.min_samples,
-            cluster_selection_method="eom",
+            cluster_selection_method=self.cluster_selection_method,
         )
-        self.model.fit(X)
+        self.labels = self.model.fit_predict(X)
 
-        self.labels = self.model.labels_
-        self.n_clusters = len(set(self.labels)) - (1 if -1 in self.labels else 0)
-        self.n_noise = np.count_nonzero(self.labels == -1)
+        # Count clusters (excluding noise)
+        self.n_clusters_ = len(set(self.labels)) - (1 if -1 in self.labels else 0)
+        self.n_noise_ = np.count_nonzero(self.labels == -1)
 
-        print(f"Number of clusters: {self.n_clusters}")
-        print(f"Number of noise points: {self.n_noise}")
+        print(
+            f"\nHDBSCAN fitted with min_cluster_size={self.min_cluster_size}, "
+            f"min_samples={self.min_samples}"
+        )
 
     def get_model_params(self) -> Dict[str, Any]:
         """
-        Get the model parameters and clustering results.
+        Retrieve key parameters and results from the fitted HDBSCAN model.
 
         Returns:
             Dict[str, Any]:
-                - model_type (str): "hdbscan"
-                - min_cluster_size (int)
-                - min_samples (int)
-                - n_clusters (int)
+                - min_cluster_size (int): Final min_cluster_size used
+                - min_samples (int): Final min_samples used
+                - n_clusters (int): Number of clusters discovered
+                - n_noise (int): Number of noise points
         """
         return {
-            "model_type": self.model_type,
             "min_cluster_size": self.min_cluster_size,
             "min_samples": self.min_samples,
-            "n_clusters": self.n_clusters,
+            "n_clusters": self.n_clusters_,
+            "n_noise": self.n_noise_,
         }

@@ -23,33 +23,33 @@
 # please contact: contact@scirex.org
 
 """
-    Module: optics.py
+Module: optics.py
 
-    This module provides an implementation of the OPTICS (Ordering Points To Identify Clustering Structure)
-    clustering algorithm using scikit-learn's OPTICS. It automatically estimates minimum cluster size
-    and minimum samples based on the dataset, and lets the user override these parameters.
+This module provides an OPTICS (Ordering Points To Identify the Clustering Structure)
+implementation.
 
-    Classes:
-        Optics: An OPTICS clustering implementation with heuristic parameter estimation and optional user override.
+It allows optional user-defined 'min_samples' and 'min_cluster_size', or applies
+a heuristic approach if they're not provided.
 
-    Dependencies:
-        - numpy
-        - sklearn.cluster.OPTICS
-        - base.py (Clustering)
+Classes:
+    Optics: Implements OPTICS with optional user override or heuristic-based approach.
 
-    Key Features:
-        - Automatic estimation of `min_samples` based on dataset size (log2 heuristic)
-        - Automatic estimation of `min_cluster_size` (5% of data or 50, whichever is smaller,
-          but not less than `min_samples`)
-        - Computation of discovered clusters, noise points, and summary messages
+Dependencies:
+    - numpy
+    - sklearn.cluster.OPTICS
+    - base.py (Clustering)
 
-    Authors:
-        - Debajyoti Sahoo (debajyotis@iisc.ac.in)
+Key Features:
+    - If user-defined 'min_samples' or 'min_cluster_size' is set, skip auto-heuristic
+    - Otherwise, compute a simple heuristic
 
-    Version Info:
-        - 28/Dec/2024: Initial version
+Authors:
+    - Debajyoti Sahoo (debajyotis@iisc.ac.in)
 
+Version Info:
+    - 28/Dec/2024: Initial release
 """
+
 # Standard library imports
 from typing import Dict, Any, Optional
 
@@ -63,88 +63,126 @@ from .base import Clustering
 
 class Optics(Clustering):
     """
-    OPTICS clustering implementation with parameter estimation and optional user override.
+    OPTICS clustering with optional user-defined 'min_samples' and 'min_cluster_size',
+    or a heuristic-based approach if they are not provided.
 
     Attributes:
-        min_samples (int): The minimum number of samples in a neighborhood for a point
-                           to be considered a core point. Initialized after heuristic
-                           or user input.
-        min_cluster_size (int): The minimum number of samples in a cluster.
-                                Initialized after heuristic or user input.
-        n_clusters (int): Number of clusters found (excluding noise).
-        n_noise (int): Number of points labeled as noise.
+        min_samples (Optional[int]):
+            If provided, used directly by OPTICS; otherwise estimated.
+        min_cluster_size (Optional[int]):
+            If provided, used directly by OPTICS; otherwise estimated.
+        xi (float):
+            Determines the minimum steepness on the reachability plot for cluster extraction.
+        labels (Optional[np.ndarray]):
+            Cluster labels for each data point after fitting (-1 for noise).
+        n_clusters_ (Optional[int]):
+            Number of clusters discovered (excluding noise).
+        n_noise_ (Optional[int]):
+            Number of data points labeled as noise.
     """
 
-    def __init__(self) -> None:
+    def __init__(
+        self,
+        min_samples: Optional[int] = None,
+        min_cluster_size: Optional[int] = None,
+        xi: float = 0.05,
+    ) -> None:
         """
         Initialize the OPTICS clustering model.
 
-        By default, `min_cluster_size` and `min_samples` are estimated after analyzing
-        dataset size. The user can override these parameters in the `.fit(...)` method.
+        Args:
+            min_samples (Optional[int], optional):
+                If provided, the algorithm uses this min_samples. Otherwise, a heuristic is used.
+            min_cluster_size (Optional[int], optional):
+                If provided, the algorithm uses this min_cluster_size. Otherwise, a heuristic is used.
+            xi (float, optional):
+                Determines the minimum steepness on the reachability plot for cluster extraction.
+                Defaults to 0.05.
         """
         super().__init__("optics")
-        self.min_samples: Optional[int] = None
-        self.min_cluster_size: Optional[int] = None
-        self.n_clusters: Optional[int] = None
-        self.n_noise: Optional[int] = None
+        self.min_samples = min_samples
+        self.min_cluster_size = min_cluster_size
+        self.xi = xi
+
+        # Attributes set after fitting
+        self.labels: Optional[np.ndarray] = None
+        self.n_clusters_: Optional[int] = None
+        self.n_noise_: Optional[int] = None
+
+    def _estimate_params(self, X: np.ndarray) -> None:
+        """
+        Estimate 'min_samples' and 'min_cluster_size' if they are not already provided
+        by the user. We apply a simple heuristic approach:
+          - min_samples = max(5, floor(log2(n)) + 1)
+          - min_cluster_size = max(min_samples, min(50, floor(0.05 * n)))
+        """
+        n_samples = X.shape[0]
+
+        if self.min_samples is None:
+            auto_min_samples = max(5, int(np.log2(n_samples)) + 1)
+            self.min_samples = auto_min_samples
+
+        if self.min_cluster_size is None:
+            # Use min_cluster_size >= min_samples, up to 5% of data or 50
+            auto_min_cluster_size = max(
+                self.min_samples, min(50, int(0.05 * n_samples))
+            )
+            self.min_cluster_size = auto_min_cluster_size
+
+        print("Auto-estimated parameters for OPTICS:")
+        print(
+            f"min_samples = {self.min_samples}, min_cluster_size = {self.min_cluster_size}"
+        )
 
     def fit(self, X: np.ndarray) -> None:
         """
-        Fit the OPTICS model to the data, estimating `min_cluster_size` and `min_samples`.
+        Fit the OPTICS model to the data.
+        - If min_samples/min_cluster_size are not set, estimate them heuristically.
+        - Then create and fit an OPTICS model, storing labels and cluster info.
 
         Args:
             X (np.ndarray): Input data array of shape (n_samples, n_features).
         """
         X = X.astype(np.float32, copy=False)
-        n_samples, n_features = X.shape
+        n_samples = X.shape[0]
 
-        # Heuristic for min_samples
-        self.min_samples = max(5, int(np.log2(n_samples)) + 1)
+        # If user did not provide min_samples or min_cluster_size, estimate them
+        if self.min_samples is None or self.min_cluster_size is None:
+            self._estimate_params(X)
+        else:
+            print(
+                f"Using user-defined parameters: min_samples={self.min_samples}, "
+                f"min_cluster_size={self.min_cluster_size}"
+            )
 
-        # Heuristic for min_cluster_size:
-        #   - Minimum of 5% of data or 50
-        #   - but not less than min_samples
-        self.min_cluster_size = max(self.min_samples, min(50, int(0.05 * n_samples)))
-
-        print("Estimated parameters:")
-        print(
-            f"min_cluster_size = {self.min_cluster_size}, min_samples = {self.min_samples}"
-        )
-
-        # Fit the OPTICS model
+        # fit the model
         self.model = SKLearnOPTICS(
             min_samples=self.min_samples,
             min_cluster_size=self.min_cluster_size,
-            xi=0.05,
+            xi=self.xi,
             metric="euclidean",
             n_jobs=-1,
         )
         self.model.fit(X)
 
         self.labels = self.model.labels_
-        self.n_clusters = len(set(self.labels)) - (1 if -1 in self.labels else 0)
-        self.n_noise = np.count_nonzero(self.labels == -1)
-
-        if self.n_clusters == 0:
-            print("Warning: No clusters found. All points labeled as noise.")
-        else:
-            print(f"OPTICS found {self.n_clusters} clusters")
-            print(f"Noise points: {self.n_noise} ({(self.n_noise/n_samples)*100:.1f}%)")
+        self.n_clusters_ = len(set(self.labels)) - (1 if -1 in self.labels else 0)
+        self.n_noise_ = np.count_nonzero(self.labels == -1)
 
     def get_model_params(self) -> Dict[str, Any]:
         """
-        Get the model parameters and clustering results.
+        Retrieve key parameters and results from the fitted OPTICS model.
 
         Returns:
-            Dict[str, Any]: A dictionary containing:
-                - model_type (str): The name of the clustering algorithm ("optics").
-                - min_cluster_size (int): Final min_cluster_size used.
-                - min_samples (int): Final min_samples used.
-                - n_clusters (int, optional): Number of clusters found.
+            Dict[str, Any]:
+                - min_samples (int): The final min_samples used
+                - min_cluster_size (int): The final min_cluster_size used
+                - n_clusters (int): Number of clusters discovered (excluding noise)
+                - n_noise (int): Number of data points labeled as noise
         """
         return {
-            "model_type": self.model_type,
-            "min_cluster_size": self.min_cluster_size,
             "min_samples": self.min_samples,
-            "n_clusters": self.n_clusters,
+            "min_cluster_size": self.min_cluster_size,
+            "n_clusters": self.n_clusters_,
+            "n_noise": self.n_noise_,
         }
