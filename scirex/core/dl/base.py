@@ -201,7 +201,6 @@ class Model:
         """
         return jax.vmap(self.net.predict)(jnp.array(x))
 
-
     @eqx.filter_jit
     def _evaluate(self, net: Network, x: jnp.ndarray, y: jnp.ndarray):
         """
