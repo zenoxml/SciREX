@@ -113,7 +113,6 @@ class Agglomerative(Clustering):
         Args:
             X (np.ndarray): Input data array of shape (n_samples, n_features).
         """
-        # Convert to float32 if you want consistent dtype
         X = X.astype(np.float32, copy=False)
         n_samples = X.shape[0]
 

@@ -23,32 +23,35 @@
 # please contact: contact@scirex.org
 
 """
-    Module: gmm.py
+Module: gmm.py
 
-    This module provides a Gaussian Mixture Model (GMM) clustering implementation using
-    scikit-learn's GaussianMixture. The Gmm class automatically estimates the optimal
-    number of components (clusters) via silhouette scores.
+This module provides a Gaussian Mixture Model (GMM) clustering implementation using
+scikit-learn's GaussianMixture. 
 
-    Classes:
-        Gmm: Gaussian Mixture Model clustering with automatic component selection.
+It optionally allows a user-defined number of components or automatically scans
+[2..max_k] for the best silhouette score.
 
-    Dependencies:
-        - numpy
-        - sklearn.mixture.GaussianMixture
-        - sklearn.metrics.silhouette_score
-        - base.py (Clustering)
+Classes:
+    Gmm: Gaussian Mixture Model clustering with optional user-specified n_components
+         or silhouette-based auto selection.
 
-    Key Features:
-        - Scans [2..max_k] for the best silhouette score
-        - Final model is stored, along with predicted cluster labels
-        - Ties into the base `Clustering` for plotting/metrics
+Dependencies:
+    - numpy
+    - sklearn.mixture.GaussianMixture
+    - sklearn.metrics.silhouette_score
+    - base.py (Clustering)
 
-    Authors:
-        - Debajyoti Sahoo (debajyotis@iisc.ac.in)
+Key Features:
+    - Automatic scanning of [2..max_k] for best silhouette score if n_components is None
+    - Final model is stored, along with predicted cluster labels
+    - Ties into the base `Clustering` for plotting/metrics
 
-    Version Info:
-        - 28/Dec/2024: Initial version
+Authors:
+    - Debajyoti Sahoo (debajyotis@iisc.ac.in)
 
+Version Info:
+    - 28/Dec/2024: Updated to allow optional user-defined n_components, 
+                   otherwise auto selection via silhouette.
 """
 
 # Standard library imports
@@ -65,32 +68,47 @@ from .base import Clustering
 
 class Gmm(Clustering):
     """
-    Gaussian Mixture Model clustering with automatic component selection via silhouette scores.
+    Gaussian Mixture Model clustering with optional user-defined 'n_components'
+    or automatic silhouette-based selection.
 
     Attributes:
-        max_k (int): Maximum number of components (clusters) to consider when searching
-                     for the optimal mixture size.
-        optimal_k (Optional[int]): The chosen (user-verified) number of components after fitting.
-        model (Optional[GaussianMixture]): The underlying scikit-learn GaussianMixture model.
-        labels (Optional[np.ndarray]): Cluster/component labels for each data point after fitting.
+        n_components (Optional[int]):
+            The actual number of components used in the final fitted model.
+            If provided, the class will skip auto-selection
+            and directly use this many mixture components.
+        max_k (int):
+            Maximum number of components to consider for auto selection if n_components is None.
+        labels (Optional[np.ndarray]):
+            Cluster/component labels for each data point after fitting.
     """
 
-    def __init__(self, max_k: int = 10) -> None:
+    def __init__(self, n_components: Optional[int] = None, max_k: int = 10) -> None:
         """
-        Initialize the GMM clustering.
+        Initialize the Gmm clustering class.
 
         Args:
-            max_k (int, optional): Maximum number of components to try. Defaults to 10.
+            n_components (Optional[int], optional):
+                If provided, the model will directly use this many Gaussian components.
+                Otherwise, it scans [2..max_k] for the best silhouette score. Defaults to None.
+            max_k (int, optional):
+                Maximum components to try for auto selection if n_components is None. Defaults to 10.
         """
         super().__init__("gmm")
+        self.n_components = n_components
         self.max_k = max_k
-        self.optimal_k: Optional[int] = None
-        self.model: Optional[GaussianMixture] = None
+
+        # Populated after fitting
         self.labels: Optional[np.ndarray] = None
+        self.n_components_: Optional[int] = None
+        self.model: Optional[GaussianMixture] = None
 
     def fit(self, X: np.ndarray) -> None:
         """
-        Fit the GMM model to the data with automatic component selection.
+        Fit the GMM model to the data.
+
+        If user-defined n_components is set, skip auto selection.
+        Otherwise, compute silhouette scores across [2..max_k]
+        and pick the best.
 
         Args:
             X (np.ndarray): Scaled feature matrix of shape (n_samples, n_features).
@@ -98,64 +116,58 @@ class Gmm(Clustering):
         X = X.astype(np.float32, copy=False)
         n_samples, n_features = X.shape
 
-        k_values = range(2, self.max_k + 1)
-        silhouettes = []
+        if self.n_components is not None:
+            # Use user-specified
+            self.n_components_ = self.n_components
+            print(f"Fitting GMM with user-defined n_components={self.n_components_}.\n")
+        else:
+            # Automatic silhouette-based selection
+            k_values = range(2, self.max_k + 1)
+            silhouettes = []
 
-        # Prepare a random generator for subsampling
-        rng = np.random.default_rng(self.random_state)
-        silhouette_sample_size = min(1000, n_samples)
+            # Subsampling for silhouette
+            rng = np.random.default_rng(self.random_state)
+            sample_size = min(1000, n_samples)
 
-        # Evaluate silhouette scores for each candidate k
-        for k in k_values:
-            gmm = GaussianMixture(n_components=k, random_state=self.random_state)
-            gmm.fit(X)
-            labels = gmm.predict(X)
+            for k in k_values:
+                gmm = GaussianMixture(n_components=k, random_state=self.random_state)
+                gmm.fit(X)
+                labels_candidate = gmm.predict(X)
 
-            # Ensure at least 2 distinct clusters
-            if len(np.unique(labels)) > 1:
-                # Subsample if large
-                if n_samples > silhouette_sample_size:
-                    sample_indices = rng.choice(
-                        n_samples, silhouette_sample_size, replace=False
-                    )
-                    X_sample_silhouette = X[sample_indices]
-                    labels_sample = labels[sample_indices]
+                # Must have at least 2 distinct clusters for silhouette
+                if len(np.unique(labels_candidate)) > 1:
+                    if n_samples > sample_size:
+                        indices = rng.choice(n_samples, sample_size, replace=False)
+                        X_sample = X[indices]
+                        labels_sample = labels_candidate[indices]
+                    else:
+                        X_sample = X
+                        labels_sample = labels_candidate
+                    score = silhouette_score(X_sample, labels_sample)
                 else:
-                    X_sample_silhouette = X
-                    labels_sample = labels
+                    score = -1  # invalid silhouette
 
-                silhouettes.append(
-                    silhouette_score(
-                        X_sample_silhouette.reshape(-1, n_features), labels_sample
-                    )
-                )
-            else:
-                silhouettes.append(-1)  # Invalid silhouette if only one cluster
+                silhouettes.append(score)
 
-        # Pick k with best silhouette
-        self.optimal_k = k_values[np.argmax(silhouettes)]
-        print(f"Estimated optimal number of clusters (optimal_k): {self.optimal_k}")
+            best_k = k_values[np.argmax(silhouettes)]
+            self.n_components_ = best_k
+            print(f"Optimal k (silhouette) = {best_k}\n")
 
-        # Final fit
+        # Final GMM fit
         self.model = GaussianMixture(
-            n_components=self.optimal_k, random_state=self.random_state
+            n_components=self.n_components_, random_state=self.random_state
         )
         self.labels = self.model.fit_predict(X)
-        print(f"GMM fitted with optimal_k = {self.optimal_k}")
+
+        print(f"GMM fitted with n_components={self.n_components_}.\n")
 
     def get_model_params(self) -> Dict[str, Any]:
         """
-        Get parameters of the fitted GMM model.
+        Get parameters/results of the fitted GMM model.
 
         Returns:
             Dict[str, Any]:
-                A dictionary containing:
-                - model_type (str)
-                - optimal_k (int)
-                - max_k (int)
+                - n_components (int): The final number of components used
+                - max_k (int): The maximum considered if auto
         """
-        return {
-            "model_type": self.model_type,
-            "optimal_k": self.optimal_k,
-            "max_k": self.max_k,
-        }
+        return {"n_components": self.n_components_, "max_k": self.max_k}
