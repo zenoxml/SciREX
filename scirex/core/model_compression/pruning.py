@@ -23,7 +23,7 @@
 # For any clarifications or special considerations,
 # please contact <scirex@zenteiq.ai>
 
-# Author: Nithyashree R
+# Author: Nithyashree Ravikumar
 
 # This class performs pruning on a given model using TensorFlow Model Optimization, trains it, and evaluates both the baseline and pruned models.
 # It also exports the pruned model in Keras and TFLite formats and provides methods for calculating the gzipped model size.
