@@ -48,8 +48,7 @@ Authors:
     - Debajyoti Sahoo (debajyotis@iisc.ac.in)
 
 Version Info:
-    - 28/Dec/2024: Updated to allow optional user-defined n_clusters,
-                   otherwise auto selection via silhouette.
+    - 28/Dec/2024: Initial release
 """
 
 # Standard library imports
@@ -78,8 +77,6 @@ class Agglomerative(Clustering):
             Cluster labels for each data point after fitting.
         n_clusters_ (Optional[int]):
             The actual number of clusters used in the final model.
-        model (Optional[AgglomerativeClustering]):
-            Underlying scikit-learn AgglomerativeClustering model after fitting.
     """
 
     def __init__(self, n_clusters: Optional[int] = None, max_k: int = 10) -> None:

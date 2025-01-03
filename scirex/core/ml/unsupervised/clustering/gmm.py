@@ -50,8 +50,7 @@ Authors:
     - Debajyoti Sahoo (debajyotis@iisc.ac.in)
 
 Version Info:
-    - 28/Dec/2024: Updated to allow optional user-defined n_components, 
-                   otherwise auto selection via silhouette.
+    - 28/Dec/2024: Initial release
 """
 
 # Standard library imports
@@ -153,7 +152,6 @@ class Gmm(Clustering):
             self.n_components_ = best_k
             print(f"Optimal k (silhouette) = {best_k}\n")
 
-        # Final GMM fit
         self.model = GaussianMixture(
             n_components=self.n_components_, random_state=self.random_state
         )

@@ -199,12 +199,6 @@ class Kmeans(Clustering):
         Otherwise, it performs automatic selection of the optimal number of clusters using both
         the silhouette and elbow methods.
 
-        Steps:
-            1. If n_clusters is provided, skip to final model fitting.
-            2. If not, evaluate silhouette and elbow scores across k values in range(2, max_k+1).
-            3. Choose the 'optimal_k' from the elbow method (demonstration choice).
-            4. Fit a final MiniBatchKMeans with 'optimal_k', storing labels, inertia, and cluster centers.
-
         Args:
             X (np.ndarray):
                 Scaled feature matrix of shape (n_samples, n_features).

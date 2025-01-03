@@ -62,7 +62,7 @@ from sklearn.preprocessing import StandardScaler
 from scirex.core.ml.unsupervised.clustering.kmeans import Kmeans
 
 
-def run(model, X, dataset_name: str):
+def run_clustering(model, X, dataset_name: str):
     """
     Run clustering model and display results.
 
@@ -125,8 +125,8 @@ def main():
     kmeans_moons = Kmeans(max_k=10)
 
     # Run clustering on both datasets
-    run(kmeans_blobs, X_blobs, "blobs")
-    run(kmeans_moons, X_moons, "moons")
+    run_clustering(kmeans_blobs, X_blobs, "blobs")
+    run_clustering(kmeans_moons, X_moons, "moons")
 
 
 if __name__ == "__main__":

@@ -40,15 +40,13 @@ Dependencies:
 Key Features:
     - If user-defined 'min_cluster_size' or 'min_samples' is given, skip auto-heuristic
     - Otherwise, compute simple heuristics
-    - Summarizes discovered clusters and noise points
     - Inherits from base `Clustering` for consistency with other clustering modules
 
 Authors:
     - Debajyoti Sahoo (debajyotis@iisc.ac.in)
 
 Version Info:
-    - 28/Dec/2024: Updated to allow optional user-defined parameters, 
-                   otherwise auto selection via heuristics.
+    - 28/Dec/2024: Initial release
 """
 
 # Standard library imports
