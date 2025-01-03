@@ -27,22 +27,11 @@
 
     This module contains unit tests for the Fully Connected Neural Network implementation with the SciREX framework.
 
-    It provides functionality to:
-      - Train Fully Connected Neural Networks on a batched dataset
-      - Evaluate model performance using classification metrics
-
-    Dependencies:
-        - pytest
-        - jax (for automatic differentiation and jit compilation)
-        - equinox (for neural network modules)
-        - optax (for optimization)
-        - scirex.core.dl.fcnn
-
     Authors:
         - Lokesh Mohanty (lokeshm@iisc.ac.in)
 
     Version Info:
-        - 30/Dec/2024: Initial version
+        - 03/01/2024: Initial version
 
 """
 import pytest
@@ -50,219 +39,58 @@ import jax
 import jax.numpy as jnp
 import equinox as eqx
 import optax
-from scirex.core.dl.fcnn import (
-    Model,
-    cross_entropy_loss,
-    compute_accuracy,
-    evaluate,
-    make_step,
-    train,
-)
+from scirex.core.dl import Model, FCNN
+from scirex.core.dl.utils import mse_loss
 
 
-class DummyLayer(eqx.Module):
-    """A simple dummy layer for testing"""
+key = jax.random.PRNGKey(0)
 
-    weight: jax.Array
+layers = [
+    eqx.nn.Linear(20, 10, key=key),
+    jax.nn.relu,
+    eqx.nn.Linear(10, 1, key=key)
+]
+layersConv = [
+    eqx.nn.Conv2d(1, 2, 2, key=key),
+    eqx.nn.MaxPool2d(2),
+    jnp.ravel,
+    eqx.nn.Linear(12, 1, key=key)
+]
 
-    def __init__(self, key: jax.random.PRNGKey):
-        self.weight = jax.random.normal(key, (2, 2))
+x = jax.random.normal(key, (100, 20))
+y = x @ jax.random.normal(key, (20, 1)) + jax.random.normal(key, (100, 1))
+data1D = (x, y)
+data2D = (x.reshape(100, 1, 5, 4), y)
+model1D = Model(FCNN(layers), optax.sgd(1e-3), mse_loss, [mse_loss])
+model2D = Model(FCNN(layersConv), optax.sgd(1e-3), mse_loss, [mse_loss])
 
-    def __call__(self, x):
-        return jnp.dot(x, self.weight)
-
-
-@pytest.fixture
-def simple_model():
-    """Fixture to create a simple model with dummy layers"""
-    key = jax.random.PRNGKey(0)
-    key1, key2 = jax.random.split(key)
-    layers = [
-        DummyLayer(key1),
-        DummyLayer(key2),
-        lambda x: jax.nn.log_softmax(
-            x, axis=-1
-        ),  # Add softmax for proper loss computation
-    ]
-    return Model(layers)
-
-
-@pytest.fixture
-def nn_model():
-    """Fixture to create a model with equinox layers"""
-    key = jax.random.PRNGKey(1)
-    keys = jax.random.split(key, 3)
-
-    layers = [
-        eqx.nn.Linear(784, 128, key=keys[0]),
-        jax.nn.relu,
-        eqx.nn.Linear(128, 64, key=keys[1]),
-        jax.nn.relu,
-        eqx.nn.Linear(64, 10, key=keys[2]),
-    ]
-    return Model(layers)
+# Parameterized variables in global scope
+pytestmark = pytest.mark.parametrize("model, data", [
+    (model1D, data1D),
+    (model2D, data2D),
+])
 
 
-@pytest.fixture
-def dummy_data():
-    """Fixture to create dummy data for testing simple model"""
-    # Create 4 samples with 2 features each
-    x = jnp.array([[1.0, 2.0], [3.0, 4.0], [5.0, 6.0], [7.0, 8.0]])
-    y = jnp.array([0, 1, 0, 1])
-    return x, y
+@pytest.mark.dependency(name="predict")
+def test_fcnn_predict(model, data):
+    x, y = data
+    y_pred = model.predict(x)
+    assert y_pred.shape == y.shape
 
 
-@pytest.fixture
-def nn_data():
-    """Fixture to create dummy data for testing nn model"""
-    batch_size = 4
-    x = jnp.ones((batch_size, 784))  # MNIST-like flattened images
-    y = jnp.array([0, 1, 2, 3])  # Multiple classes
-    return x, y
-
-
-def test_model_initialization(simple_model):
-    """Test if the model initializes correctly"""
-    assert isinstance(simple_model, Model)
-    assert len(simple_model.layers) == 3
-    assert isinstance(simple_model.layers[0], DummyLayer)
-
-
-def test_nn_model_initialization(nn_model):
-    """Test if the nn model initializes correctly"""
-    assert isinstance(nn_model, Model)
-    assert len(nn_model.layers) == 5
-    assert isinstance(nn_model.layers[0], eqx.nn.Linear)
-    assert callable(nn_model.layers[1])  # ReLU function
-    assert isinstance(nn_model.layers[2], eqx.nn.Linear)
-
-
-def test_model_forward_pass(simple_model, dummy_data):
-    """Test if the model's forward pass works"""
-    x, _ = dummy_data
-    output = simple_model(x[0])
-    assert isinstance(output, jax.Array)
-    assert output.shape == (2,)
-
-
-def test_nn_model_forward_pass(nn_model, nn_data):
-    """Test if the nn model's forward pass works"""
-    x, _ = nn_data
-    output = nn_model(x[0])
-    assert isinstance(output, jax.Array)
-    assert output.shape == (10,)  # 10 classes output
-
-
-def test_cross_entropy_loss(simple_model, dummy_data):
-    """Test if loss computation works"""
-    x, y = dummy_data
-    loss = cross_entropy_loss(simple_model, x, y)
-    assert isinstance(loss, jax.Array)
-    assert loss.shape == ()  # scalar
-    assert not jnp.isnan(loss).any()
-
-
-def test_compute_accuracy(nn_model, nn_data):
-    """Test if accuracy computation works"""
-    x, y = nn_data
-    accuracy = compute_accuracy(nn_model, x, y)
-    assert isinstance(accuracy, jax.Array)
-    assert accuracy.shape == ()  # scalar
-    assert 0 <= float(accuracy) <= 1
-    assert not jnp.isnan(accuracy)
-
-
-def test_evaluate(nn_model):
-    """Test if evaluation works on batched data"""
-    # Create batched test data: 2 batches of 4 samples each
-    x_test = jnp.ones((2, 4, 784))  # [num_batches, batch_size, features]
-    y_test = jnp.array([[0, 1, 2, 3], [4, 5, 6, 7]])  # [num_batches, batch_size]
-
-    loss, accuracy = evaluate(nn_model, x_test, y_test)
-    assert isinstance(loss, jax.Array)
-    assert isinstance(accuracy, jax.Array)
-    assert loss.shape == ()  # scalar
-    assert accuracy.shape == ()  # scalar
-    assert not jnp.isnan(loss)
-    assert not jnp.isnan(accuracy)
-    assert 0 <= float(accuracy) <= 1
-
-
-def test_make_step(nn_model, nn_data):
-    """Test if make_step function works correctly"""
-    x, y = nn_data
-    optimizer = optax.adam(learning_rate=0.001)
-    opt_state = optimizer.init(eqx.filter(nn_model, eqx.is_array))
-
-    updated_model, updated_opt_state, loss = make_step(
-        nn_model, opt_state, x, y, optimizer
-    )
-
-    assert isinstance(updated_model, Model)
-    assert isinstance(loss, jax.Array)
+@pytest.mark.dependency(name="evaluate", depends=["predict"])
+def test_fcnn_evaluate(model, data):
+    x, y = data
+    loss, metrics = model.evaluate(x, y)
     assert loss.shape == ()
-    assert not jnp.isnan(loss)
+    assert len(metrics) == 1
 
 
-def test_train(nn_model):
-    """Test if training works"""
-    # Create training data: 2 batches of 4 samples each
-    x_train = jnp.ones((2, 4, 784))
-    y_train = jnp.array([[0, 1, 2, 3], [4, 5, 6, 7]])
-
-    # Create test data
-    x_test = x_train
-    y_test = y_train
-
-    optimizer = optax.adam(learning_rate=0.001)
-
-    trained_model, _ = train(
-        model=nn_model,
-        x_train=x_train,
-        y_train=y_train,
-        x_test=x_test,
-        y_test=y_test,
-        optim=optimizer,
-        num_epochs=2,
-        print_every=1,
-    )
-
-    assert isinstance(trained_model, Model)
-    assert len(trained_model.layers) == len(nn_model.layers)
-
-    # Test if model parameters have been updated
-    for old_layer, new_layer in zip(nn_model.layers, trained_model.layers):
-        if isinstance(old_layer, eqx.nn.Linear):
-            assert not jnp.array_equal(old_layer.weight, new_layer.weight)
-            assert not jnp.array_equal(old_layer.bias, new_layer.bias)
-
-
-def test_invalid_input_shapes(nn_model):
-    """Test if model handles invalid input shapes appropriately"""
-    with pytest.raises(Exception):  # Could be ValueError or JAXException
-        invalid_input = jnp.ones((5,))  # Wrong shape
-        nn_model(invalid_input)
-
-
-def test_input_output_shapes(nn_model, nn_data):
-    """Test input/output shapes throughout the model"""
-    x, y = nn_data
-
-    # Test forward pass shapes
-    output = nn_model(x[0])
-    assert output.shape == (10,)
-
-    # Test loss shape
-    loss = cross_entropy_loss(nn_model, x, y)
-    assert loss.shape == ()
-
-    # Test accuracy shape
-    acc = compute_accuracy(nn_model, x, y)
-    assert acc.shape == ()
-
-    # Test evaluation shapes
-    x_batched = jnp.stack([x, x])
-    y_batched = jnp.stack([y, y])
-    loss, acc = evaluate(nn_model, x_batched, y_batched)
-    assert loss.shape == ()
-    assert acc.shape == ()
+@pytest.mark.dependency(depends=["evaluate"])
+def test_fcnn_fit(model, data):
+    x, y = data
+    loss_initial, _ = model.evaluate(x, y)
+    history = model.fit(x, y, num_epochs=10, batch_size=10)
+    loss_final, _ = model.evaluate(x, y)
+    assert len(history) == 10
+    assert loss_final < loss_initial
