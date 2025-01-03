@@ -23,56 +23,56 @@
 # please contact: contact@scirex.org
 
 """
-    Module: fcnn.py
+    Module: utils.py
 
-    This module implements Fully Connected Neural Networks
-
-    It provides functionality to:
-      - Train Fully Connected Neural Networks
-
-    Classes:
-        FCNN: Implements a Fully Connected Neural Network building up on `base.py`.
+    This module implements utility functions for Neural Networks
 
     Key Features:
-        - Built on top of base class getting all its functionalities
-        - Efficient neural networks implementation using equinox modules
+        - Contains commonly used loss functions and metrics for neural networks
 
     Authors:
         - Lokesh Mohanty (lokeshm@iisc.ac.in)
 
     Version Info:
-        - 03/01/2025: Initial version
+        - 01/01/2025: Initial version
 
 """
+import jax
 import jax.numpy as jnp
-from scirex.core.dl.base import Network
+import optax
 
 
-class FCNN(Network):
-    layers: list
-
+def accuracy(pred_y: jax.Array, y: jax.Array) -> float:
     """
-    Fully Connected Neural Network
+    Compute accuracy
+
+    Args:
+        x: input data
+        y: target labels
+    """
+    return jnp.mean(pred_y == y)
+
+
+def mse_loss(output: jax.Array, y: jax.Array) -> float:
+    """
+    Compute mean squared error loss
+
+    Args:
+        output: output of the model
+        y: target values
+    """
+    return jnp.mean(jnp.square(output - y))
+
+
+def cross_entropy_loss(output: jax.Array, y: jax.Array) -> float:
+    """
+    Compute the cross-entropy loss
+
+    Args:
+        output: output of the model
+        y: Batched target labels
     """
 
-    def __init__(self, layers: list):
-        """
-        Constructor for Fully Connected Neural Network
-
-        Args:
-            layers: List of layers
-        """
-        self.layers = layers
-
-    def __call__(self, x: jnp.ndarray):
-        """
-        Forward pass of the Fully Connected Neural Network
-        Args:
-            x: Input tensor
-
-        Returns:
-            jnp.ndarray: Output tensor
-        """
-        for layer in self.layers:
-            x = layer(x)
-        return x
+    n_classes = output.shape[-1]
+    loss = optax.softmax_cross_entropy(output, jax.nn.one_hot(y, n_classes)).mean()
+    return loss

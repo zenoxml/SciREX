@@ -15,6 +15,7 @@ dist/
 
 # docs build
 docs/_build/
+site/
 
 # add vtk and mesh files
 *.vtk
