@@ -44,6 +44,8 @@ from scirex.core.dl.utils import mse_loss
 
 
 key = jax.random.PRNGKey(0)
+
+
 class Linear(Network):
     weight: jax.Array
     bias: jax.Array
@@ -56,13 +58,16 @@ class Linear(Network):
     def __call__(self, x):
         return self.weight.T @ x + self.bias
 
+
 class Non_Linear(Linear):
     def __call__(self, x):
         return self.weight.T @ jnp.ravel(x) + self.bias
 
+
 class MLP(eqx.nn.MLP):
     def predict(self, x):
         return self.__call__(x)
+
 
 x = jax.random.normal(key, (100, 20))
 y = x @ jax.random.normal(key, (20, 1)) + jax.random.normal(key, (100, 1))
@@ -74,12 +79,10 @@ model2D = Model(Non_Linear(), optax.sgd(1e-3), mse_loss, [mse_loss])
 model_mlp = Model(MLP(20, 1, 2, 2, key=key), optax.sgd(1e-3), mse_loss, [mse_loss])
 
 # Parameterized variables in global scope
-pytestmark = pytest.mark.parametrize("model, data", [
-    (model1D, data1D),
-    (model2D, data2D),
-    (model2D, data3D),
-    (model_mlp, data1D)
-])
+pytestmark = pytest.mark.parametrize(
+    "model, data",
+    [(model1D, data1D), (model2D, data2D), (model2D, data3D), (model_mlp, data1D)],
+)
 
 
 def test_model_predict_single(model, data):
@@ -118,7 +121,9 @@ def test_model_loss_fn(model, data):
     x, y = data
     loss = model._loss_fn(model.net, x, y)
     assert loss.shape == ()
-    assert model.loss_fn(model.net(x[0]), y[0]) == model._loss_fn(model.net, x[:1], y[:1])
+    assert model.loss_fn(model.net(x[0]), y[0]) == model._loss_fn(
+        model.net, x[:1], y[:1]
+    )
 
 
 @pytest.mark.dependency(name="update_step", depends=["loss_fn"])

@@ -36,40 +36,46 @@
 """
 import pytest
 import jax.numpy as jnp
-from scirex.core.dl.utils import (
-    accuracy,
-    mse_loss,
-    cross_entropy_loss
-)
+from scirex.core.dl.utils import accuracy, mse_loss, cross_entropy_loss
 
-@pytest.mark.parametrize("pred_y, y, expected", [
-    (jnp.array([6, 4]), jnp.array([6, 4]), 1.0),
-    (jnp.array([0, 1]), jnp.array([1, 0]), 0.0),
-    (jnp.array([0, 1]), jnp.array([0, 0]), 0.5),
-])
+
+@pytest.mark.parametrize(
+    "pred_y, y, expected",
+    [
+        (jnp.array([6, 4]), jnp.array([6, 4]), 1.0),
+        (jnp.array([0, 1]), jnp.array([1, 0]), 0.0),
+        (jnp.array([0, 1]), jnp.array([0, 0]), 0.5),
+    ],
+)
 def test_accuracy(pred_y, y, expected):
     assert accuracy(pred_y, y) == expected
 
 
-@pytest.mark.parametrize("output, y, expected", [
-    (jnp.array([0.0, 1.0]), jnp.array([1.0, 0.0]), 1.0),
-    (jnp.array([0.0, 1.0]), jnp.array([0.0, 1.0]), 0.0),
-])
+@pytest.mark.parametrize(
+    "output, y, expected",
+    [
+        (jnp.array([0.0, 1.0]), jnp.array([1.0, 0.0]), 1.0),
+        (jnp.array([0.0, 1.0]), jnp.array([0.0, 1.0]), 0.0),
+    ],
+)
 def test_mse_loss(output, y, expected):
     assert mse_loss(output, y) == expected
 
 
-@pytest.mark.parametrize("output, y, expected", [
-    (
-        jnp.array([[0.5, 0.5], [0.5, 0.5]]),
-        jnp.array([0, 1]),
-        pytest.approx(0.693, rel=1e-2)
-    ),
-    (
-        jnp.array([[0.33, 0.33, 0.34], [0.3, 0.6, 0.1]]),
-        jnp.array([0, 1]),
-        pytest.approx(0.977, rel=1e-2)
-    )
-])
+@pytest.mark.parametrize(
+    "output, y, expected",
+    [
+        (
+            jnp.array([[0.5, 0.5], [0.5, 0.5]]),
+            jnp.array([0, 1]),
+            pytest.approx(0.693, rel=1e-2),
+        ),
+        (
+            jnp.array([[0.33, 0.33, 0.34], [0.3, 0.6, 0.1]]),
+            jnp.array([0, 1]),
+            pytest.approx(0.977, rel=1e-2),
+        ),
+    ],
+)
 def test_cross_entropy_loss(output, y, expected):
     assert cross_entropy_loss(output, y) == expected

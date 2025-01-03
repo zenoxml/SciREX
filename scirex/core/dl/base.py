@@ -70,6 +70,7 @@ class Network(eqx.Module):
     [dataclasses](https://docs.python.org/3/library/dataclasses.html)). This defines
     its children as a PyTree.
     """
+
     def __call__(self, x: jnp.ndarray) -> jnp.ndarray:
         """
         Forward pass of the neural network.
@@ -81,7 +82,6 @@ class Network(eqx.Module):
             jnp.ndarray: Output tensor from the network.
         """
         pass
-
 
     def predict(self, x: jnp.ndarray) -> jnp.ndarray:
         """
@@ -110,11 +110,11 @@ class Model:
     history = []
 
     def __init__(
-            self,
-            net: Network,
-            optimizer: optax.GradientTransformation,
-            loss_fn: Callable,
-            metrics: list[Callable],
+        self,
+        net: Network,
+        optimizer: optax.GradientTransformation,
+        loss_fn: Callable,
+        metrics: list[Callable],
     ):
         """
         Initialize the model with network architecture and training parameters.
@@ -130,7 +130,6 @@ class Model:
         self.optimizer = optimizer
         self.metrics = metrics
 
-
     def evaluate(self, x: jnp.ndarray, y: jnp.ndarray):
         """
         Evaluate the model on given data.
@@ -144,13 +143,12 @@ class Model:
         """
         return self._evaluate(self.net, x, y)
 
-
     def fit(
-            self,
-            features: jnp.ndarray,
-            target: jnp.ndarray,
-            num_epochs: int = 1,
-            batch_size: int = 64,
+        self,
+        features: jnp.ndarray,
+        target: jnp.ndarray,
+        num_epochs: int = 1,
+        batch_size: int = 64,
     ):
         """
         Train the model on the provided data.
@@ -179,16 +177,17 @@ class Model:
             print(
                 f"Epoch {epoch+1} | Loss: {loss:.4f} | Val Loss: {val_loss:.4f} | Time: {epoch_time:.2f}s"
             )
-            self.history.append({
-                "loss": loss,
-                "val_loss": val_loss,
-                "val_metrics": val_metrics,
-                "epoch_time": epoch_time,
-            })
+            self.history.append(
+                {
+                    "loss": loss,
+                    "val_loss": val_loss,
+                    "val_metrics": val_metrics,
+                    "epoch_time": epoch_time,
+                }
+            )
 
         self.net = net
         return self.history
-
 
     def predict(self, x: jnp.ndarray):
         """
@@ -221,7 +220,6 @@ class Model:
         pred_y = jax.vmap(net.predict)(x)
         loss = self.loss_fn(output, y)
         return loss, [f(pred_y, y) for f in self.metrics]
-
 
     @eqx.filter_jit
     def _create_batches(self, features, targets, batch_size):
@@ -260,7 +258,6 @@ class Model:
         )
         return (batched_features, batched_targets), validation_data
 
-
     @eqx.filter_jit
     def _epoch_step(self, features, labels, net: Network, opt_state):
         """
@@ -282,21 +279,17 @@ class Model:
         start_time = time.time()
         total_loss = 0.0
         for batch_x, batch_y in tqdm(
-                zip(features, labels),
-                desc="Epochs",
-                total=features.shape[0],
+            zip(features, labels),
+            desc="Epochs",
+            total=features.shape[0],
         ):
             avg_loss, net, opt_state = self._update_step(
-                batch_x,
-                batch_y,
-                net,
-                opt_state
+                batch_x, batch_y, net, opt_state
             )
             total_loss += avg_loss
 
         epoch_time = time.time() - start_time
         return total_loss / features.shape[0], epoch_time, net, opt_state
-
 
     @eqx.filter_jit
     def _update_step(self, features, labels, net: Network, opt_state):
@@ -321,7 +314,6 @@ class Model:
         )
         net = eqx.apply_updates(net, updates)
         return loss / len(features), net, opt_state
-
 
     def _loss_fn(self, net: Network, x: jnp.ndarray, y: jnp.ndarray):
         """

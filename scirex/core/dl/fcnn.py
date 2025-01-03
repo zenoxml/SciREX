@@ -1,4 +1,3 @@
-
 # Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and
 # AiREX Lab, Indian Institute of Science, Bangalore.
 # All rights reserved.
@@ -48,30 +47,32 @@
 import jax.numpy as jnp
 from scirex.core.dl.base import Network
 
+
 class FCNN(Network):
     layers: list
 
-    '''
+    """
     Fully Connected Neural Network
-    '''
+    """
+
     def __init__(self, layers: list):
-        '''
+        """
         Constructor for Fully Connected Neural Network
 
         Args:
             layers: List of layers
-        '''
+        """
         self.layers = layers
 
     def __call__(self, x: jnp.ndarray):
-        '''
+        """
         Forward pass of the Fully Connected Neural Network
         Args:
             x: Input tensor
 
         Returns:
             jnp.ndarray: Output tensor
-        '''
+        """
         for layer in self.layers:
             x = layer(x)
         return x

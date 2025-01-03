@@ -45,16 +45,12 @@ from scirex.core.dl.utils import mse_loss
 
 key = jax.random.PRNGKey(0)
 
-layers = [
-    eqx.nn.Linear(20, 10, key=key),
-    jax.nn.relu,
-    eqx.nn.Linear(10, 1, key=key)
-]
+layers = [eqx.nn.Linear(20, 10, key=key), jax.nn.relu, eqx.nn.Linear(10, 1, key=key)]
 layersConv = [
     eqx.nn.Conv2d(1, 2, 2, key=key),
     eqx.nn.MaxPool2d(2),
     jnp.ravel,
-    eqx.nn.Linear(12, 1, key=key)
+    eqx.nn.Linear(12, 1, key=key),
 ]
 
 x = jax.random.normal(key, (100, 20))
@@ -65,10 +61,13 @@ model1D = Model(FCNN(layers), optax.sgd(1e-3), mse_loss, [mse_loss])
 model2D = Model(FCNN(layersConv), optax.sgd(1e-3), mse_loss, [mse_loss])
 
 # Parameterized variables in global scope
-pytestmark = pytest.mark.parametrize("model, data", [
-    (model1D, data1D),
-    (model2D, data2D),
-])
+pytestmark = pytest.mark.parametrize(
+    "model, data",
+    [
+        (model1D, data1D),
+        (model2D, data2D),
+    ],
+)
 
 
 @pytest.mark.dependency(name="predict")

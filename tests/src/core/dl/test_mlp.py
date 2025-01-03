@@ -50,10 +50,13 @@ model1D = Model(MLP(20, 1), optax.sgd(1e-3), mse_loss, [mse_loss])
 model2D = Model(MLP(20, 1, 4, 2), optax.sgd(1e-3), mse_loss, [mse_loss])
 
 # Parameterized variables in global scope
-pytestmark = pytest.mark.parametrize("model, data", [
-    (model1D, data),
-    (model2D, data),
-])
+pytestmark = pytest.mark.parametrize(
+    "model, data",
+    [
+        (model1D, data),
+        (model2D, data),
+    ],
+)
 
 
 @pytest.mark.dependency(name="predict")

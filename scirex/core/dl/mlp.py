@@ -47,20 +47,23 @@ import jax.numpy as jnp
 from typing import Callable
 from scirex.core.dl.fcnn import FCNN
 
+
 class MLP(FCNN):
-    '''
+    """
     Multi-Layer Perceptron
-    '''
-    def __init__(self,
-                 in_size: int,
-                 out_size: int,
-                 hidden_size: int = 0,
-                 depth: int = 0,
-                 activation: Callable = jax.nn.relu,
-                 final_activation: Callable = lambda x: x,
-                 random_seed: int = 0
-                 ):
-        '''
+    """
+
+    def __init__(
+        self,
+        in_size: int,
+        out_size: int,
+        hidden_size: int = 0,
+        depth: int = 0,
+        activation: Callable = jax.nn.relu,
+        final_activation: Callable = lambda x: x,
+        random_seed: int = 0,
+    ):
+        """
         Constructor for Multi-Layer Perceptron
 
         Args:
@@ -71,20 +74,17 @@ class MLP(FCNN):
             activation: Activation function
             final_activation: Final activation function
             random_seed: Random seed
-        '''
+        """
         key = jax.random.PRNGKey(random_seed)
         if depth == 0:
-            self.layers = [eqx.nn.Linear(in_size, out_size, key=key)];
+            self.layers = [eqx.nn.Linear(in_size, out_size, key=key)]
         else:
             self.layers = [eqx.nn.Linear(in_size, hidden_size, key=key), jax.nn.relu]
-            for _ in range(depth-1):
+            for _ in range(depth - 1):
                 self.layers += [
                     eqx.nn.Linear(hidden_size, hidden_size, key=key),
-                    jax.nn.relu
+                    jax.nn.relu,
                 ]
             self.layers += [eqx.nn.Linear(hidden_size, out_size, key=key)]
 
         self.layers += [final_activation]
-
-
-
