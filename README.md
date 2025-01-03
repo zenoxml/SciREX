@@ -23,7 +23,7 @@ SciREX is an open-source scientific AI and machine learning framework designed f
 ## Core Capabilities
 
 - **Scientific Computing**
-  - Physics-Informed Neural Networks (PINNs)
+  - Physics-Informed Neural Networks ([PINNs](scirex/core/sciml/pinns/README.md), [FastVPINNs](scirex/core/sciml/fastvpinns/README.md)) 
   - Differential Equation Solvers
   - Scientific Data Analysis
 
