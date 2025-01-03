@@ -39,7 +39,7 @@ def test_gmm():
     data = scaler.fit_transform(data)
 
     # Perform GMM clustering
-    gmm = Gmm()
+    gmm = Gmm(3)
     gmm.fit(data)
 
     # Calculate silhouette score

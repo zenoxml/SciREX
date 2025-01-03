@@ -43,7 +43,7 @@ def test_hdbscan():
     hdbscan.fit(data)
 
     # Get number of clusters
-    n_clusters = hdbscan.n_clusters
+    n_clusters = hdbscan.n_clusters_
 
     # Assert that number of clusters is 2
     assert n_clusters == 2
