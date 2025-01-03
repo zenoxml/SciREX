@@ -96,15 +96,3 @@ Size Reduction from Post-Training: ~71.7%
 - NumPy
 
 
-## Tips for Best Results
-1. Always run the base model first before running the compressed version
-2. Make sure your PYTHONPATH is set correctly
-3. Keep track of the original model's performance for comparison
-4. Monitor both accuracy and size reduction to ensure optimal compression
-
-
-## Understanding the Results
-A successful compression should:
-- Maintain accuracy within 1-2% of the original model
-- Significantly reduce model size (50-80% reduction is common)
-- Keep the inference time similar or improved
