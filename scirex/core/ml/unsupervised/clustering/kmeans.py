@@ -27,9 +27,9 @@
 
     This module provides a K-means clustering implementation using scikit-learn's MiniBatchKMeans.
     The Kmeans class inherits from a generic Clustering base class and offers:
-      - Automatic selection of the optimal number of clusters via silhouette or elbow methods
-      - Option for the user to input a custom number of clusters if desired
-
+      - Option for the user to input a custom number of clusters
+      - Option for Automatic selection of the optimal number of clusters via silhouette or elbow methods
+      
     Classes:
         Kmeans: K-Means clustering with automatic parameter selection and optional user override.
 
@@ -66,40 +66,63 @@ from .base import Clustering
 
 class Kmeans(Clustering):
     """
-    K-Means clustering with automatic selection of the optimal number of clusters.
+    K-Means clustering with optional user-defined 'n_clusters' or automatic selection.
 
     Attributes:
-        max_k (int): The maximum number of clusters to consider when scanning for the optimal cluster count.
-        optimal_k (Optional[int]): The chosen number of clusters after fitting.
-        model (Optional[MiniBatchKMeans]): The underlying scikit-learn MiniBatchKMeans model.
-        labels (Optional[np.ndarray]): Cluster labels for each data point after fitting.
-        n_clusters (Optional[int]): The actual number of clusters used by the final fitted model.
+        n_clusters (Optional[int]):
+            If provided, the class will skip automatic selection and use this number of clusters.
+        max_k (int):
+            Maximum number of clusters to consider for automatic selection if n_clusters is None.
+        labels (Optional[np.ndarray]):
+            Cluster labels for each data point after fitting.
+        n_clusters_ (Optional[int]):
+            The actual number of clusters used by the final fitted model.
+        inertia_ (Optional[float]):
+            The final inertia (sum of squared distances to the closest centroid).
+        cluster_centers_ (Optional[np.ndarray]):
+            Coordinates of cluster centers in the final fitted model.
     """
 
-    def __init__(self, max_k: int = 10) -> None:
+    def __init__(
+        self, n_clusters: Optional[int] = None, max_k: Optional[int] = 10
+    ) -> None:
         """
         Initialize the Kmeans clustering class.
 
         Args:
-            max_k (int, optional): Maximum number of clusters to try. Defaults to 10.
+            n_clusters (Optional[int], optional):
+                User-defined number of clusters when provided, the algorithm will ignore automatic selection and directly use 'n_clusters'.
+                Defaults to None.
+            max_k (Optional[int], optional):
+                Maximum number of clusters to try for automatic selection if n_clusters is None.
+                Defaults to 10.
         """
         super().__init__("kmeans")
+        self.n_clusters = n_clusters
         self.max_k = max_k
-        self.optimal_k: Optional[int] = None
-        self.model: Optional[MiniBatchKMeans] = None
+
+        # Attributes populated after fitting
         self.labels: Optional[np.ndarray] = None
-        self.n_clusters: Optional[int] = None
+        self.n_clusters_: Optional[int] = None
+        self.inertia_: Optional[float] = None
+        self.cluster_centers_: Optional[np.ndarray] = None
 
     def _calculate_elbow_scores(self, X: np.ndarray, k_values: range) -> np.ndarray:
         """
-        Calculate inertia scores (in elbow method), then compute a "second derivative" style metric.
+        Calculate inertia scores for each candidate k, then compute a second-derivative-like ratio
+        for the elbow method.
 
         Args:
-            X (np.ndarray): Input data of shape (n_samples, n_features).
-            k_values (range): Range of k values to evaluate, e.g. range(2, max_k+1).
+            X (np.ndarray):
+                Input data of shape (n_samples, n_features).
+            k_values (range):
+                Range of k values to evaluate (e.g., range(2, max_k+1)).
 
         Returns:
-            np.ndarray: A numeric array of elbow scores, where higher indicates a stronger elbow.
+            np.ndarray:
+                An array of "elbow scores" computed from the second derivative of inertia
+                normalized by the first derivative. Higher values indicate a stronger elbow.
+                If there are insufficient points to compute second derivatives, returns an empty array.
         """
         inertias = []
         for k in k_values:
@@ -110,13 +133,17 @@ class Kmeans(Clustering):
             inertias.append(kmeans.inertia_)
 
         inertias = np.array(inertias)
-
-        # First derivative of inertia
         diffs = np.diff(inertias)
+        if len(diffs) < 2:
+            return np.zeros(0)
+
         # Second derivative
         diffs_r = np.diff(diffs)
-        # A ratio capturing second derivative relative to the first derivative
-        elbow_score = diffs_r / np.abs(diffs[1:])
+
+        # Avoid division by zero or extremely small values
+        valid_mask = np.abs(diffs[1:]) > 1e-10
+        elbow_score = np.zeros_like(diffs_r)
+        elbow_score[valid_mask] = diffs_r[valid_mask] / np.abs(diffs[1:][valid_mask])
 
         return elbow_score
 
@@ -126,17 +153,16 @@ class Kmeans(Clustering):
         """
         Calculate silhouette scores for each candidate k in k_values.
 
-        Steps:
-          1. For each k, fit a MiniBatchKMeans and obtain cluster labels.
-          2. Subsample large datasets (up to 1000 points) to speed silhouette calculations.
-          3. Return an array of silhouette scores, one per k.
-
         Args:
-            X (np.ndarray): Input data of shape (n_samples, n_features).
-            k_values (range): Range of k values to evaluate, e.g. range(2, max_k+1).
+            X (np.ndarray):
+                Input data of shape (n_samples, n_features).
+            k_values (range):
+                Range of k values to evaluate (e.g., range(2, max_k+1)).
 
         Returns:
-            np.ndarray: Silhouette scores for each candidate k.
+            np.ndarray:
+                Silhouette scores for each candidate k. A higher silhouette score indicates
+                better separation between clusters.
         """
         silhouette_scores = []
         sample_size = min(1000, X.shape[0])
@@ -148,12 +174,12 @@ class Kmeans(Clustering):
             )
             labels = kmeans.fit_predict(X)
 
-            # If there's only one cluster, silhouette is invalid
+            # Silhouette is undefined for a single cluster
             if len(np.unique(labels)) <= 1:
                 silhouette_scores.append(-1)
                 continue
 
-            # Subsample if the dataset is very large
+            # Subsample to speed computations if dataset is very large
             if X.shape[0] > sample_size:
                 indices = rng.choice(X.shape[0], sample_size, replace=False)
                 X_sample = X[indices]
@@ -169,55 +195,71 @@ class Kmeans(Clustering):
 
     def fit(self, X: np.ndarray) -> None:
         """
-        Fit the K-Means model to the data with automatic cluster selection.
+        Fit the K-Means model to the data. If 'n_clusters' is set by the user, it uses that directly.
+        Otherwise, it performs automatic selection of the optimal number of clusters using both
+        the silhouette and elbow methods.
 
         Steps:
-          1. Define k_values as range(2..max_k).
-          2. Compute silhouette scores and elbow scores across those k_values.
-          3. Determine an optimal k from either method (this example picks elbow).
-          4. Fit a final MiniBatchKMeans with the chosen k, storing labels and cluster count.
+            1. If n_clusters is provided, skip to final model fitting.
+            2. If not, evaluate silhouette and elbow scores across k values in range(2, max_k+1).
+            3. Choose the 'optimal_k' from the elbow method (demonstration choice).
+            4. Fit a final MiniBatchKMeans with 'optimal_k', storing labels, inertia, and cluster centers.
 
         Args:
-            X (np.ndarray): Scaled feature matrix of shape (n_samples, n_features).
+            X (np.ndarray):
+                Scaled feature matrix of shape (n_samples, n_features).
         """
-        k_values = range(2, self.max_k + 1)
+        if self.n_clusters is not None:
+            # User-specified number of clusters
+            self.optimal_k = self.n_clusters
+        else:
+            # Automatic selection
+            k_values = range(2, self.max_k + 1)
+            silhouette_scores = self._calculate_silhouette_scores(X, k_values)
+            elbow_scores = self._calculate_elbow_scores(X, k_values)
 
-        # Evaluate silhouette and elbow
-        silhouette_scores = self._calculate_silhouette_scores(X, k_values)
-        elbow_scores = self._calculate_elbow_scores(X, k_values)
+            # Fallback if we can't compute elbow for some reason
+            if len(k_values) <= 2 or len(elbow_scores) == 0:
+                self.optimal_k = 2
+            else:
+                optimal_k_silhouette = k_values[np.argmax(silhouette_scores)]
+                optimal_k_elbow = k_values[:-2][np.argmax(elbow_scores)]
 
-        # Best k from silhouette = index of maximum silhouette
-        optimal_k_silhouette = k_values[np.argmax(silhouette_scores)]
+                print(f"Optimal k (silhouette) = {optimal_k_silhouette}")
+                print(f"Optimal k (elbow)      = {optimal_k_elbow}")
 
-        # Best k from elbow = index of maximum elbow score
-        # Note: elbow_scores has length (len(k_values) - 2), so we align indexing
-        optimal_k_elbow = k_values[:-2][np.argmax(elbow_scores)]
+                self.optimal_k = optimal_k_elbow
 
-        # Choose whichever approach you'd like; here using elbow by default
-        self.optimal_k = optimal_k_elbow
-        print(f"Optimal k from silhouette: {optimal_k_silhouette}")
-        print(f"Optimal k from elbow method: {self.optimal_k}")
-
+        # Fit final model with chosen k
         self.model = MiniBatchKMeans(
             n_clusters=self.optimal_k, random_state=self.random_state, batch_size=1000
         )
         self.labels = self.model.fit_predict(X)
-        self.n_clusters = len(np.unique(self.labels))
+        self.n_clusters_ = len(np.unique(self.labels))
 
-        print(f"\nKMeans fitted with {self.optimal_k} clusters")
+        self.inertia_ = self.model.inertia_
+        self.cluster_centers_ = self.model.cluster_centers_
+
+        print(f"\nKMeans fitted with {self.optimal_k} clusters.")
 
     def get_model_params(self) -> Dict[str, Any]:
         """
-        Get parameters of the fitted K-Means model.
+        Retrieve key parameters and results from the fitted K-Means model.
 
         Returns:
             Dict[str, Any]:
-                - model_type (str): "kmeans"
-                - max_k (int): The maximum number of clusters originally specified
-                - n_clusters (int): The final number of clusters used
+                - max_k (int): Maximum clusters originally specified for auto-selection
+                - n_clusters (int): The actual number of clusters used in the final model
+                - inertia_ (float): Final within-cluster sum of squares (inertia)
+                - cluster_centers_ (Optional[List[List[float]]]): Cluster centers as a list of lists
         """
         return {
-            "model_type": self.model_type,
             "max_k": self.max_k,
-            "n_clusters": self.n_clusters,
+            "n_clusters": self.n_clusters_,
+            "inertia_": self.inertia_,
+            "cluster_centers_": (
+                self.cluster_centers_.tolist()
+                if self.cluster_centers_ is not None
+                else None
+            ),
         }
