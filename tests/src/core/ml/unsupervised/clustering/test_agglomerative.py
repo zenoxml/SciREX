@@ -39,14 +39,14 @@ def test_agglomerative():
     data = scaler.fit_transform(data)
 
     # Perform Agglomerative clustering
-    agglomerative = Agglomerative()
+    agglomerative = Agglomerative(3)
     agglomerative.fit(data)
 
     # Calculate silhouette score
     labels = agglomerative.labels
     silhouette_score_val = silhouette_score(data, labels, random_state=42)
 
-    assert abs(silhouette_score_val - 0.38969149409053977) < 1.0e-1  # For 3 clusters
+    assert abs(silhouette_score_val - 0.38969149409053977) < 1.0e-2  # For 3 clusters
 
 
 if __name__ == "__main__":
