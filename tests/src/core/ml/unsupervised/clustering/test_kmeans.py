@@ -39,7 +39,7 @@ def test_kmeans():
     data = scaler.fit_transform(data)
 
     # Perform KMeans clustering
-    kmeans = Kmeans(max_k=10)
+    kmeans = Kmeans(2)
     kmeans.fit(data)
 
     # Calculate silhouette score
