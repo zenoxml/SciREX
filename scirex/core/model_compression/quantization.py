@@ -23,7 +23,7 @@
 # For any clarifications or special considerations,
 # please contact <scirex@zenteiq.ai>
 
-# Author: Nithyashree R
+# Author: Nithyashree Ravikumar
 
 # This code defines a Python class QuantizationAwareTraining to enable quantization-aware training (QAT) and post-training quantization for TensorFlow models.
 # It includes methods for model evaluation, TensorFlow Lite conversion, and size measurement of both quantized and post-quantized models.
