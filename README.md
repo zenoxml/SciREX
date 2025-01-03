@@ -72,7 +72,7 @@ Unless required by applicable law or agreed to in writing, software distributed 
 
 We welcome contributions from both the research and industrial communities! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
-## 🤝 Community
+## Community
 
 - <a href="https://discord.gg/NWcCPx22Hq/" target="_blank">Discord</a>
 
