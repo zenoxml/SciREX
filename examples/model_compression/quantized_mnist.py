@@ -25,11 +25,11 @@ initial_size = len(initial_model) / float(2**20)  # Convert to MB
 # Apply quantization-aware training
 print("\nApplying quantization-aware training...")
 qat.apply_quantization_aware_training()
-qat.train_q_aware_model(train_images, train_labels, epochs=10)
+qat.train_q_aware_model(train_images, train_labels, epochs=5)
 
 # Get quantization-aware accuracy
 qat_accuracy = qat.evaluate(test_images, test_labels)[1]
-print(f"\nQuantization-Aware Model Accuracy: {qat_accuracy:.4f}")
+print(f"\nQuantization-Aware Model Accuracy: {qat_accuracy}")  # Removed .4f format
 
 # Get QAT model size
 qat_tflite = qat.convert_to_tflite()
