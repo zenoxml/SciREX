@@ -23,9 +23,9 @@
 # please contact: contact@scirex.org
 
 """
-    Module: test_fcnn.py
+    Module: test_mlp.py
 
-    This module contains unit tests for the Fully Connected Neural Network implementation with the SciREX framework.
+    This module contains unit tests for the Multi-Layer Perceptron implementation with the SciREX framework.
 
     Authors:
         - Lokesh Mohanty (lokeshm@iisc.ac.in)
@@ -36,36 +36,25 @@
 """
 import pytest
 import jax
-import jax.numpy as jnp
-import equinox as eqx
 import optax
-from scirex.core.dl import Model, FCNN
+from scirex.core.dl import Model, MLP
 from scirex.core.dl.utils import mse_loss
 
 
 key = jax.random.PRNGKey(0)
 
-layers = [eqx.nn.Linear(20, 10, key=key), jax.nn.relu, eqx.nn.Linear(10, 1, key=key)]
-layersConv = [
-    eqx.nn.Conv2d(1, 2, 2, key=key),
-    eqx.nn.MaxPool2d(2),
-    jnp.ravel,
-    eqx.nn.Linear(12, 1, key=key),
-]
-
 x = jax.random.normal(key, (100, 20))
 y = x @ jax.random.normal(key, (20, 1)) + jax.random.normal(key, (100, 1))
-data1D = (x, y)
-data2D = (x.reshape(100, 1, 5, 4), y)
-model1D = Model(FCNN(layers), optax.sgd(1e-3), mse_loss, [mse_loss])
-model2D = Model(FCNN(layersConv), optax.sgd(1e-3), mse_loss, [mse_loss])
+data = (x, y)
+model1D = Model(MLP(20, 1), optax.sgd(1e-3), mse_loss, [mse_loss])
+model2D = Model(MLP(20, 1, 4, 2), optax.sgd(1e-3), mse_loss, [mse_loss])
 
 # Parameterized variables in global scope
 pytestmark = pytest.mark.parametrize(
     "model, data",
     [
-        (model1D, data1D),
-        (model2D, data2D),
+        (model1D, data),
+        (model2D, data),
     ],
 )
 
