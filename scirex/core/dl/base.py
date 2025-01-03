@@ -51,6 +51,7 @@ import equinox as eqx
 import optax
 from typing import Callable
 from tqdm import tqdm
+from matplotlib import pyplot as plt
 
 
 class Network(eqx.Module):
@@ -114,7 +115,7 @@ class Model:
         net: Network,
         optimizer: optax.GradientTransformation,
         loss_fn: Callable,
-        metrics: list[Callable],
+        metrics: list[Callable] = [],
     ):
         """
         Initialize the model with network architecture and training parameters.
@@ -169,7 +170,7 @@ class Model:
             features, target, batch_size
         )
 
-        for epoch in range(num_epochs):
+        for epoch in tqdm(range(num_epochs), desc="Epochs", total=num_epochs):
             loss, epoch_time, net, opt_state = self._epoch_step(
                 x_train, y_train, net, opt_state
             )
@@ -200,6 +201,52 @@ class Model:
             jnp.ndarray: Model predictions.
         """
         return jax.vmap(self.net.predict)(jnp.array(x))
+
+    def plot_history(self, file_name: str, figsize=(12, 6)):
+        """
+        Plot training history metrics.
+
+        Args:
+            file_name (str): File name to save the plot.
+
+        Raises:
+            ValueError: If history is empty
+        """
+        if not self.history:
+            raise ValueError("No training history available. Train the model first.")
+
+        fig, ax = plt.subplots(1, 2, figsize=figsize)
+        epochs = range(1, len(self.history) + 1)
+
+        ax[0].plot(
+            epochs,
+            [epoch_data["loss"] for epoch_data in self.history],
+            label="loss",
+            marker="o",
+        )
+        ax[0].plot(
+            epochs,
+            [epoch_data["val_loss"] for epoch_data in self.history],
+            label="val_loss",
+            marker="x",
+        )
+        ax[0].set_xlabel("Epoch")
+        ax[0].set_ylabel("Loss")
+        ax[0].set_title("Loss History")
+        ax[0].legend()
+        ax[0].grid(True)
+
+        if len(self.metrics) > 0:
+            ax[1].plot(
+                epochs, [epoch_data["val_metrics"][0] for epoch_data in self.history]
+            )
+            ax[1].set_xlabel("Epoch")
+            ax[1].set_ylabel(self.metrics[0].__name__)
+            ax[1].set_title("Validation Metrics")
+            ax[1].grid(True)
+
+        fig.tight_layout()
+        plt.savefig(file_name)
 
     @eqx.filter_jit
     def _evaluate(self, net: Network, x: jnp.ndarray, y: jnp.ndarray):
@@ -277,11 +324,7 @@ class Model:
         """
         start_time = time.time()
         total_loss = 0.0
-        for batch_x, batch_y in tqdm(
-            zip(features, labels),
-            desc="Epochs",
-            total=features.shape[0],
-        ):
+        for batch_x, batch_y in zip(features, labels):
             avg_loss, net, opt_state = self._update_step(
                 batch_x, batch_y, net, opt_state
             )
