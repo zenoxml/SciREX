@@ -1,8 +1,6 @@
-import os
 import numpy as np
 import tensorflow as tf
 from scirex.core.model_compression.pruning import ModelPruning
-
 
 # Load MNIST dataset
 (train_images, train_labels), (test_images, test_labels) = (
@@ -13,16 +11,22 @@ from scirex.core.model_compression.pruning import ModelPruning
 train_images = train_images / 255.0
 test_images = test_images / 255.0
 
-# Instantiate the ModelPruning class
-pruner = ModelPruning()
+# Initialize ModelPruning
+model_handler = ModelPruning(
+    input_shape=(28, 28),
+    num_classes=10,
+    epochs=10,
+    batch_size=35,  # This will give ~1688 steps per epoch
+    validation_split=0.1,
+)
 
 # Train the baseline model
-pruner.train_baseline_model(train_images, train_labels)
+model_handler.train_baseline_model(train_images, train_labels)
 
-# Evaluate the baseline model
-baseline_accuracy = pruner.evaluate_baseline(test_images, test_labels)
-print("Baseline test accuracy:", baseline_accuracy)
+# Evaluate baseline model
+baseline_accuracy = model_handler.evaluate_baseline(test_images, test_labels)
+print(f"Baseline test accuracy: {baseline_accuracy}")
 
 # Save the baseline model
-baseline_model_path = pruner.save_baseline_model()
-print("Baseline model saved at:", baseline_model_path)
+model_path = model_handler.save_baseline_model()
+print(f"Baseline model saved at: {model_path}")
