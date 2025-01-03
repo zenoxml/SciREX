@@ -1,5 +1,5 @@
 # Model Compression Using Pruning and Quantization
-This repository demonstrates two popular model compression techniques - Pruning and Quantization - implemented on the MNIST dataset using TensorFlow.
+This repository demonstrates two popular model compression techniques - Pruning and Quantization are implemented on the MNIST dataset using TensorFlow.
 
 ## What is Model Compression?
 
@@ -60,8 +60,8 @@ PYTHONPATH=$(pwd) python3 examples/model_compression/quantized_mnist.py
 ### Pruning Results
 - The baseline model will show its initial accuracy
 - The pruned model will show:
-- Final accuracy (usually close to baseline)
-- Reduction in model size
+  - Final accuracy (usually close to baseline)
+  - Reduction in model size
 
 Typical output looks like:
 ```
