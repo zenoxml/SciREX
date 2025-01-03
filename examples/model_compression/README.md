@@ -94,7 +94,7 @@ Size Reduction from Post-Training: ~71.7%
 ## Dependencies
 - TensorFlow
 - NumPy
-- scirex (custom library for model compression)
+
 
 ## Tips for Best Results
 1. Always run the base model first before running the compressed version
