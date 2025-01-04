@@ -45,12 +45,13 @@
 
 """
 import time
+from tqdm import tqdm
+
 import jax
 import jax.numpy as jnp
 import equinox as eqx
 import optax
 from typing import Callable
-from tqdm import tqdm
 from matplotlib import pyplot as plt
 
 
@@ -166,10 +167,12 @@ class Model:
         net = self.net
         opt_state = self.optimizer.init(eqx.filter(net, eqx.is_array))
         self.history = []
+        print("Creating batches...")
         (x_train, y_train), (x_val, y_val) = self._create_batches(
             features, target, batch_size
         )
 
+        print("Training...")
         for epoch in tqdm(range(num_epochs), desc="Epochs", total=num_epochs):
             loss, epoch_time, net, opt_state = self._epoch_step(
                 x_train, y_train, net, opt_state
@@ -202,6 +205,24 @@ class Model:
         """
         return jax.vmap(self.net.predict)(jnp.array(x))
 
+    def save_net(self, filename: str):
+        """
+        Save the network to a file.
+
+        Args:
+            filename (str): File name to save the network.
+        """
+        eqx.tree_serialise_leaves(filename, self.net)
+
+    def load_net(self, filename: str):
+        """
+        Load the network from a file.
+
+        Args:
+            filename (str): File name to load the network from.
+        """
+        self.net = eqx.tree_deserialise_leaves(filename, self.net)
+
     def plot_history(self, file_name: str, figsize=(12, 6)):
         """
         Plot training history metrics.
@@ -213,7 +234,8 @@ class Model:
             ValueError: If history is empty
         """
         if not self.history:
-            raise ValueError("No training history available. Train the model first.")
+            print("No training history available. Train the model first.")
+            return
 
         fig, ax = plt.subplots(1, 2, figsize=figsize)
         epochs = range(1, len(self.history) + 1)
@@ -267,7 +289,6 @@ class Model:
         loss = self.loss_fn(output, y)
         return loss, [f(pred_y, y) for f in self.metrics]
 
-    @eqx.filter_jit
     def _create_batches(self, features, targets, batch_size):
         """
         Create training batches from features and targets.
@@ -304,7 +325,6 @@ class Model:
         )
         return (batched_features, batched_targets), validation_data
 
-    @eqx.filter_jit
     def _epoch_step(self, features, labels, net: Network, opt_state):
         """
         Perform single epoch with JIT compilation.
