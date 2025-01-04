@@ -45,13 +45,15 @@ import jax.numpy as jnp
 import equinox as eqx
 import optax
 from tensorflow.keras.datasets import mnist
+import os.path
 
 from scirex.core.dl import Model, Network
 from scirex.core.dl.utils import cross_entropy_loss, accuracy
- 
+
 
 key = jax.random.PRNGKey(42)
 key1, key2 = jax.random.split(key)
+
 
 class CNN(Network):
     layers: list
@@ -66,7 +68,7 @@ class CNN(Network):
             jax.nn.relu,
             jnp.ravel,
             eqx.nn.Linear(8 * 4 * 4, 10, key=key2),
-            jax.nn.log_softmax
+            jax.nn.log_softmax,
         ]
 
     def __call__(self, x):
@@ -93,7 +95,13 @@ print("Train Images Shape: ", train_images.shape)
 print("Train Labels Shape: ", train_labels.shape)
 
 model = Model(CNN(), optimizer, cross_entropy_loss, [accuracy])
-history = model.fit(train_images, train_labels, num_epochs, batch_size)
+
+if not os.path.exists("mnist-cnn.dl"):
+    history = model.fit(train_images, train_labels, num_epochs, batch_size)
+    model.save_net("mnist-cnn.dl")
+else:
+    print("Loading the model from mnist-cnn.dl")
+    model.load_net("mnist-cnn.dl")
 
 test_loss, test_acc = model.evaluate(test_images, test_labels)
 print(f"Test Loss: {test_loss:.4f}")
