@@ -95,11 +95,12 @@ input_points[:, 1] = input_points[:, 1] * (i_y_max - i_y_min) + i_y_min
 ## Generate the Boundary Data - Both the input and the output points
 #############################################################################
 
+
 def boundary_data(x, y):
     """
     Function to generate the boundary data for the Poisson 2D problem
     """
-    val =0 
+    val = 0
     return np.ones_like(x) * val
 
 
@@ -107,45 +108,58 @@ i_n_boundary_points_per_edge = i_n_boundary_points // 4
 # top boundary - y = i_y_max
 top_x = np.linspace(i_x_min, i_x_max, i_n_boundary_points_per_edge)
 top_y = np.ones(i_n_boundary_points_per_edge) * i_y_max
-#concatenate the points into 2D array
+# concatenate the points into 2D array
 top_boundary_points = np.vstack((top_x, top_y)).T
 top_boundary_values = boundary_data(top_x, top_y)
 
 # bottom boundary - y = i_y_min
 bottom_x = np.linspace(i_x_min, i_x_max, i_n_boundary_points_per_edge)
 bottom_y = np.ones(i_n_boundary_points_per_edge) * i_y_min
-#concatenate the points into 2D array
+# concatenate the points into 2D array
 bottom_boundary_points = np.vstack((bottom_x, bottom_y)).T
 bottom_boundary_values = boundary_data(bottom_x, bottom_y)
 
 # left boundary - x = i_x_min
 left_x = np.ones(i_n_boundary_points_per_edge) * i_x_min
 left_y = np.linspace(i_y_min, i_y_max, i_n_boundary_points_per_edge)
-#concatenate the points into 2D array
+# concatenate the points into 2D array
 left_boundary_points = np.vstack((left_x, left_y)).T
 left_boundary_values = boundary_data(left_x, left_y)
 
 # right boundary - x = i_x_max
 right_x = np.ones(i_n_boundary_points_per_edge) * i_x_max
 right_y = np.linspace(i_y_min, i_y_max, i_n_boundary_points_per_edge)
-#concatenate the points into 2D array
+# concatenate the points into 2D array
 right_boundary_points = np.vstack((right_x, right_y)).T
 right_boundary_values = boundary_data(right_x, right_y)
 
 # concatenate all the boundary points into a single array
 boundary_points = np.vstack(
-    (top_boundary_points, bottom_boundary_points, left_boundary_points, right_boundary_points)
+    (
+        top_boundary_points,
+        bottom_boundary_points,
+        left_boundary_points,
+        right_boundary_points,
+    )
 )
 boundary_values = np.concatenate(
-    (top_boundary_values, bottom_boundary_values, left_boundary_values, right_boundary_values)
+    (
+        top_boundary_values,
+        bottom_boundary_values,
+        left_boundary_values,
+        right_boundary_values,
+    )
 )
-
 
 
 # Plot the boundary points
 plt.figure(figsize=(6, 6))
-plt.scatter(boundary_points[:, 0], boundary_points[:, 1], s=1, c="r", label="Boundary Points")
-plt.scatter(input_points[:, 0], input_points[:, 1], s=1, c="b", label="Collocation Points")
+plt.scatter(
+    boundary_points[:, 0], boundary_points[:, 1], s=1, c="r", label="Boundary Points"
+)
+plt.scatter(
+    input_points[:, 0], input_points[:, 1], s=1, c="b", label="Collocation Points"
+)
 plt.xlabel("x")
 plt.ylabel("y")
 plt.title("Input and Boundary Points")
@@ -157,6 +171,7 @@ plt.savefig("points.png")
 ## Fill the RHS of the Poisson Equation
 #############################################################################
 
+
 def rhs(x, y):
     """
     Function to generate the right hand side of the Poisson 2D problem
@@ -165,11 +180,11 @@ def rhs(x, y):
     omegaY = 2.0 * np.pi
     f_temp = -2.0 * (omegaX**2) * (np.sin(omegaX * x) * np.sin(omegaY * y))
 
-    return  f_temp
+    return f_temp
+
 
 # For all the collocation points, compute the right hand side
 rhs_values = rhs(input_points[:, 0], input_points[:, 1])
-
 
 
 #############################################################################
@@ -190,6 +205,7 @@ i_bilinear_params_dict = {"eps": tf.constant(1.0, dtype=i_dtype)}
 ## Define the exact solution for the Poisson 2D problem
 #############################################################################
 
+
 def exact_solution(x, y):
     """
     Function to generate the exact solution for the Poisson 2D problem
@@ -199,6 +215,7 @@ def exact_solution(x, y):
     val = -1.0 * np.sin(omegaX * x) * np.sin(omegaY * y)
 
     return val
+
 
 exact_values = exact_solution(test_points[:, 0], test_points[:, 1])
 
@@ -210,14 +227,18 @@ exact_values = exact_solution(test_points[:, 0], test_points[:, 1])
 # Convert the input points, boundary points, boundary values and rhs values into tensors
 input_points = tf.convert_to_tensor(input_points, dtype=tf.float32)
 boundary_points = tf.convert_to_tensor(boundary_points, dtype=tf.float32)
-boundary_values = tf.reshape(tf.convert_to_tensor(boundary_values, dtype=tf.float32), (-1, 1))
+boundary_values = tf.reshape(
+    tf.convert_to_tensor(boundary_values, dtype=tf.float32), (-1, 1)
+)
 rhs_values = tf.reshape(tf.convert_to_tensor(rhs_values, dtype=tf.float32), (-1, 1))
 test_points = tf.convert_to_tensor(test_points, dtype=tf.float32)
 
 # convert input points into numpy array and plot
 input_points_np = input_points.numpy()
 plt.figure(figsize=(6, 6))
-plt.scatter(input_points_np[:, 0], input_points_np[:, 1], s=1, c="b", label="Collocation Points")
+plt.scatter(
+    input_points_np[:, 0], input_points_np[:, 1], s=1, c="b", label="Collocation Points"
+)
 plt.xlabel("x")
 plt.savefig("input_points.png")
 
@@ -239,7 +260,7 @@ model = DenseModel(
         boundary_points,
         boundary_values,
     ],
-    force_function_values= rhs_values,
+    force_function_values=rhs_values,
     tensor_dtype=i_dtype,
     activation=i_activation,
 )
@@ -265,7 +286,10 @@ for epoch in tqdm(range(i_num_epochs)):
         l_inf_error = np.max(np.abs(error))
         pde_loss = loss["loss_pde"]
         boundary_loss = loss["loss_dirichlet"]
-        print(f"Epoch: {epoch}, Loss: {loss['loss'] :.4e}, L2 Error: {np.sqrt(np.mean(error**2)):.4e}, L_inf Error: {l_inf_error:.4e}" , f"PDE Loss: {pde_loss:.4e}, Boundary Loss: {boundary_loss:.4e}")
+        print(
+            f"Epoch: {epoch}, Loss: {loss['loss'] :.4e}, L2 Error: {np.sqrt(np.mean(error**2)):.4e}, L_inf Error: {l_inf_error:.4e}",
+            f"PDE Loss: {pde_loss:.4e}, Boundary Loss: {boundary_loss:.4e}",
+        )
 
 
 # Get predicted values from the model

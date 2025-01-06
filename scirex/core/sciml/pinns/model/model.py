@@ -152,7 +152,6 @@ class DenseModel(tf.keras.Model):
         self.dirichlet_input = copy.deepcopy(input_tensors_list[1])
         self.dirichlet_actual = copy.deepcopy(input_tensors_list[2])
 
-
         self.force_matrix = self.force_function_values
 
         print(f"{'-'*74}")
@@ -203,7 +202,7 @@ class DenseModel(tf.keras.Model):
             kernel_initializer = tf.keras.initializers.GlorotUniform(seed=42)
             tf.print(f"Adding Dense Layer with {self.layer_dims[dim + 1]} units")
             self.layer_list.append(
-               TensorflowDense.create_layer(
+                TensorflowDense.create_layer(
                     units=self.layer_dims[dim + 1],
                     activation="tanh",
                     dtype=tf.float32,
@@ -255,7 +254,6 @@ class DenseModel(tf.keras.Model):
 
         return x
 
-
     @tf.function
     def train_step(self, beta=10, bilinear_params_dict=None) -> dict:
         with tf.GradientTape(persistent=True) as tape:
@@ -263,12 +261,12 @@ class DenseModel(tf.keras.Model):
             predicted_values_dirichlet = self(self.dirichlet_input, training=True)
 
             total_loss = 0.0
-            
+
             with tf.GradientTape(persistent=True) as tape1:
                 tape1.watch(self.input_tensor)
 
                 predicted_values = self(self.input_tensor, training=True)
-                    
+
                 gradients = tape1.gradient(predicted_values, self.input_tensor)
 
                 grad_x = gradients[:, 0:1]
