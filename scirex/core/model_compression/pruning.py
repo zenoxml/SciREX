@@ -1,5 +1,5 @@
-# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and
-# AiREX Lab, Indian Institute of Science, Bangalore.
+# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and AiREX Lab,
+# Indian Institute of Science, Bangalore.
 # All rights reserved.
 #
 # This file is part of SciREX
@@ -7,26 +7,28 @@
 # developed jointly by Zenteiq Aitech Innovations and AiREX Lab
 # under the guidance of Prof. Sashikumaar Ganesan.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# SciREX is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# SciREX is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# You should have received a copy of the GNU Affero General Public License
+# along with SciREX. If not, see <https://www.gnu.org/licenses/>.
 #
 # For any clarifications or special considerations,
-# please contact: contact@scirex.org
+# please contact <scirex@zenteiq.ai>
+
+# Author: Nithyashree Ravikumar
 
 
-# Author: Nithyashree R
+# Implementation of model compression using prune_low_magnitude with PolynomialDecay schedule from 50% to 80% sparsity.
+# ModelPruning class builds a CNN with Conv2D and Dense layers, provides methods for training and evaluating both baseline and pruned models.
 
-# This class performs pruning on a given model using TensorFlow Model Optimization, trains it, and evaluates both the baseline and pruned models.
-# It also exports the pruned model in Keras and TFLite formats and provides methods for calculating the gzipped model size.
 
 import tempfile
 import os
@@ -52,7 +54,7 @@ class ModelPruning:
         input_shape=(28, 28),
         num_classes=10,
         epochs=10,
-        batch_size=128,
+        batch_size=35,  # Changed default batch_size to get ~1688 steps
         validation_split=0.1,
     ):
         """
@@ -62,9 +64,9 @@ class ModelPruning:
         :type input_shape: tuple
         :param num_classes: Number of output classes.
         :type num_classes: int
-        :param epochs: Number of epochs to train the pruned model. Default is 2.
+        :param epochs: Number of epochs to train the pruned model. Default is 10.
         :type epochs: int
-        :param batch_size: Size of the training batch. Default is 128.
+        :param batch_size: Size of the training batch. Default is 35.
         :type batch_size: int
         :param validation_split: Fraction of training data to be used for validation. Default is 0.1.
         :type validation_split: float
@@ -113,7 +115,8 @@ class ModelPruning:
         self.model.fit(
             train_images,
             train_labels,
-            epochs=10,
+            batch_size=self.batch_size,  # Added batch_size parameter
+            epochs=self.epochs,
             validation_split=self.validation_split,
         )
 
@@ -139,7 +142,7 @@ class ModelPruning:
         :rtype: str
         """
         keras_file = tempfile.mktemp(".keras")
-        self.model.save(keras_file, save_format="keras")  # Use the .keras format
+        self.model.save(keras_file, save_format="keras")
         return keras_file
 
     def apply_pruning(self):
@@ -155,10 +158,10 @@ class ModelPruning:
         validation_split = self.validation_split
 
         # Ensure the model is built before accessing input_shape
-        self.model.build((None, *self.input_shape))  # Build the model
-        num_images = self.model.input_shape[1] * (
+        self.model.build((None, *self.input_shape))
+        num_images = 60000 * (
             1 - validation_split
-        )  # Use 1 instead of 0 for axis
+        )  # Fixed number of training images for MNIST
 
         end_step = np.ceil(num_images / batch_size).astype(np.int32) * epochs
 
