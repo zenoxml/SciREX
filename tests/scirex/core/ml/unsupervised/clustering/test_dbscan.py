@@ -3,7 +3,9 @@
 # All rights reserved.
 #
 # This file is part of SciREX
-# (Scientific Research and Engineering eXcellence Platform).
+# (Scientific Research and Engineering eXcellence Platform),
+# developed jointly by Zenteiq Aitech Innovations and AiREX Lab
+# under the guidance of Prof. Sashikumaar Ganesan.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,35 +21,38 @@
 #
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
+
 # Author : Naren Vohra
-# Added test to check GMM clustering algorithm on benchmark dataset.
+# Added test to check DBSCAN clustering algorithm on benchmark dataset.
 # The dataset is taken from "Thrun, Ultsch, 2020, Clustering benchmark
 # datasets exploiting the fundamental clustering problems, Data in Brief".
 
 import pytest
 import numpy as np
 from sklearn.preprocessing import StandardScaler
-from scirex.core.ml.unsupervised.clustering.gmm import Gmm
+from scirex.core.ml.unsupervised.clustering.dbscan import Dbscan
 from sklearn.metrics import silhouette_score
 
 
-def test_gmm():
+def test_dbscan():
     # Load and scale the data
-    data = np.loadtxt("tests/support_files/engytime.txt")
+    data = np.loadtxt("tests/support_files/chainlink.txt")
 
     scaler = StandardScaler()
     data = scaler.fit_transform(data)
 
-    # Perform GMM clustering
-    gmm = Gmm(3)
-    gmm.fit(data)
+    # Perform DBSCAN clustering
+    dbscan = Dbscan(0.1617, 10)
+    dbscan.fit(data)
 
     # Calculate silhouette score
-    labels = gmm.labels
+    labels = dbscan.labels
     silhouette_score_val = silhouette_score(data, labels, random_state=42)
 
-    assert abs(silhouette_score_val - 0.42403213221116537) < 1.0e-2  # For 3 clusters
+    assert (
+        abs(silhouette_score_val - 0.3301836619003867) < 1.0e-12
+    )  # For 24 clusters found using eps = 0.1617 and min samples = 10
 
 
 if __name__ == "__main__":
-    test_gmm()
+    test_dbscan()

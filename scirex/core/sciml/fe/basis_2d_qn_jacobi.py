@@ -3,7 +3,9 @@
 # All rights reserved.
 #
 # This file is part of SciREX
-# (Scientific Research and Engineering eXcellence Platform).
+# (Scientific Research and Engineering eXcellence Platform),
+# developed jointly by Zenteiq Aitech Innovations and AiREX Lab
+# under the guidance of Prof. Sashikumaar Ganesan.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,6 +21,7 @@
 #
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
+
 """
 
     Module: basis_2d_QN_Jacobi.py
