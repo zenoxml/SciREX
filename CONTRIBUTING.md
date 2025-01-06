@@ -91,7 +91,7 @@ git checkout -b feature/<descriptive-name>
 ```
 4. Install dependencies:
 ```bash
-pip install -e ".[dev,test]"
+pip install -e
 ```
 
 #### Development Workflow
@@ -104,7 +104,8 @@ pip install -e ".[dev,test]"
 pytest tests/
 ```
 5. Run black formatter: 
-```bash black .
+```bash 
+black filename
 ```
 6. Create a pull request
 
