@@ -22,31 +22,45 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 
-import os
+"""
+   Example Script: quantization_base_mnist.py
+   
+   This script demonstrates quantization-aware training on the MNIST dataset. It gives the performance of the baseline model.
+
+   This example includes:
+       - Training baseline model on MNIST dataset
+       - Evaluating model accuracy before QAT
+       
+
+   Authors:
+       - Nithyashree R (nithyashreer@iisc.ac.in)
+
+   Version Info:
+       - 06/01/2024: Initial version
+"""
+
 import numpy as np
 import tensorflow as tf
-from scirex.core.model_compression.pruning import ModelPruning
-
+from scirex.core.model_compression.quantization import QuantizationAwareTraining
 
 # Load MNIST dataset
 (train_images, train_labels), (test_images, test_labels) = (
     tf.keras.datasets.mnist.load_data()
 )
 
-# Normalize the input images
+# Normalize the data
 train_images = train_images / 255.0
 test_images = test_images / 255.0
 
-# Instantiate the ModelPruning class
-pruner = ModelPruning()
+# Initialize QAT with model architecture
+qat = QuantizationAwareTraining(input_shape=(28, 28), num_classes=10)
 
-# Train the baseline model
-pruner.train_baseline_model(train_images, train_labels)
+# Train base model
+print("Training base model...")
+qat.train(train_images, train_labels, epochs=10)
 
-# Evaluate the baseline model
-baseline_accuracy = pruner.evaluate_baseline(test_images, test_labels)
-print("Baseline test accuracy:", baseline_accuracy)
-
-# Save the baseline model
-baseline_model_path = pruner.save_baseline_model()
-print("Baseline model saved at:", baseline_model_path)
+# Evaluate base model directly
+baseline_accuracy = qat.model.evaluate(test_images, test_labels, verbose=0)[
+    1
+]  # Gets accuracy
+print(f"\nBaseline Model Accuracy: {baseline_accuracy:.4f}")

@@ -21,24 +21,20 @@
 #
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
-
 """
-    Example Script: pruned_mnist.py
-    
-    This script demonstrates the application of model pruning on the MNIST dataset using TensorFlow 
-    Model Optimization Toolkit. The pruning process reduces model size while maintaining accuracy.
+   Example Script: mnist_pruning_baseline.py
+   This script establishes a baseline model for pruning experiments using the MNIST dataset 
+   through TensorFlow Model Optimization Toolkit.
 
-    This example includes:
-        - Loading and preprocessing MNIST dataset
-        - Implementing model pruning for compression
-        - Training and evaluating pruned models
-        
+   This example includes:
+       - Training baseline model on MNIST dataset
+       - Performance evaluation metrics
 
-    Authors:
-        - Nithyashree R (nithyashreer@iisc.ac.in)
+   Authors:
+       - Nithyashree R (nithyashreer@iisc.ac.in)
 
-    Version Info:
-        - 06/01/2024: Initial version
+   Version Info:
+       - 06/01/2024: Initial version
 """
 
 import numpy as np
@@ -54,21 +50,22 @@ from scirex.core.model_compression.pruning import ModelPruning
 train_images = train_images / 255.0
 test_images = test_images / 255.0
 
-# Initialize ModelPruning using the same configuration as baseline
+# Initialize ModelPruning
 model_handler = ModelPruning(
     input_shape=(28, 28),
     num_classes=10,
     epochs=10,
-    batch_size=35,  # This will give ~1688 steps per epoch
+    batch_size=35,
     validation_split=0.1,
 )
 
-# Apply pruning to the model
-pruned_model = model_handler.apply_pruning()
+# Train the baseline model
+model_handler.train_baseline_model(train_images, train_labels)
 
-# Train the pruned model
-model_handler.train_pruned_model(train_images, train_labels)
+# Evaluate baseline model
+baseline_accuracy = model_handler.evaluate_baseline(test_images, test_labels)
+print(f"Baseline test accuracy: {baseline_accuracy}")
 
-# Evaluate the pruned model
-pruned_accuracy = model_handler.evaluate_pruned_model(test_images, test_labels)
-print(f"Pruned Model Accuracy: {pruned_accuracy}")
+# Save the baseline model
+model_path = model_handler.save_baseline_model()
+print(f"Baseline model saved at: {model_path}")

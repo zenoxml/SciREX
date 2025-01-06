@@ -22,11 +22,27 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 
+"""
+Example Script: pruning.py
 
-# Author: Nithyashree R
+    This script implements model compression using TensorFlow Model Optimization Toolkit's pruning capabilities 
+    on neural network architectures. It demonstrates a reusable implementation for applying and evaluating 
+    model pruning with polynomial decay schedule.
 
-# This class performs pruning on a given model using TensorFlow Model Optimization, trains it, and evaluates both the baseline and pruned models.
-# It also exports the pruned model in Keras and TFLite formats and provides methods for calculating the gzipped model size.
+    This example includes:
+        - Implementation of a reusable ModelPruning class for model compression
+        - Building and training baseline CNN models
+        - Applying progressive pruning from 50% to 80% sparsity
+        - Training and evaluation workflows for both baseline and pruned models
+        
+        
+     Authors: 
+     - Nithyashree R (nithyashreer@iisc.ac.in)
+
+    Version Info:
+        - 06/01/2024: Initial version
+        
+"""
 
 import tempfile
 import os
@@ -52,7 +68,7 @@ class ModelPruning:
         input_shape=(28, 28),
         num_classes=10,
         epochs=10,
-        batch_size=128,
+        batch_size=35,  # Changed default batch_size to get ~1688 steps
         validation_split=0.1,
     ):
         """
@@ -62,9 +78,9 @@ class ModelPruning:
         :type input_shape: tuple
         :param num_classes: Number of output classes.
         :type num_classes: int
-        :param epochs: Number of epochs to train the pruned model. Default is 2.
+        :param epochs: Number of epochs to train the pruned model. Default is 10.
         :type epochs: int
-        :param batch_size: Size of the training batch. Default is 128.
+        :param batch_size: Size of the training batch. Default is 35.
         :type batch_size: int
         :param validation_split: Fraction of training data to be used for validation. Default is 0.1.
         :type validation_split: float
@@ -113,7 +129,8 @@ class ModelPruning:
         self.model.fit(
             train_images,
             train_labels,
-            epochs=10,
+            batch_size=self.batch_size,  # Added batch_size parameter
+            epochs=self.epochs,
             validation_split=self.validation_split,
         )
 
@@ -139,7 +156,7 @@ class ModelPruning:
         :rtype: str
         """
         keras_file = tempfile.mktemp(".keras")
-        self.model.save(keras_file, save_format="keras")  # Use the .keras format
+        self.model.save(keras_file, save_format="keras")
         return keras_file
 
     def apply_pruning(self):
@@ -155,10 +172,10 @@ class ModelPruning:
         validation_split = self.validation_split
 
         # Ensure the model is built before accessing input_shape
-        self.model.build((None, *self.input_shape))  # Build the model
-        num_images = self.model.input_shape[1] * (
+        self.model.build((None, *self.input_shape))
+        num_images = 60000 * (
             1 - validation_split
-        )  # Use 1 instead of 0 for axis
+        )  # Fixed number of training images for MNIST
 
         end_step = np.ceil(num_images / batch_size).astype(np.int32) * epochs
 
