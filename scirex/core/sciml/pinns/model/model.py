@@ -69,8 +69,6 @@ class DenseModel(tf.keras.Model):
             - use_lr_scheduler: Whether to use learning rate decay
             - decay_steps: Steps between learning rate updates
             - decay_rate: Factor for learning rate decay
-        params_dict: Model parameters including:
-            - n_cells: Number of cells in the domain
         loss_function: Custom loss function for PDE residuals
         input_tensors_list: List containing:
             [0]: input_tensor - Main computation points
@@ -85,7 +83,6 @@ class DenseModel(tf.keras.Model):
         >>> model = DenseModel(
         ...     layer_dims=[2, 64, 64, 1],
         ...     learning_rate_dict={'initial_learning_rate': 0.001},
-        ...     params_dict={'n_cells': 100},
         ...     loss_function=custom_loss,
         ...     tensor_dtype=tf.float32
         ... )
@@ -100,10 +97,9 @@ class DenseModel(tf.keras.Model):
         self,
         layer_dims: list,
         learning_rate_dict: dict,
-        params_dict: dict,
         loss_function,
         input_tensors_list: list,
-        force_function_list: list,
+        force_function_values,
         tensor_dtype,
         use_attention=False,
         activation="tanh",
@@ -119,14 +115,13 @@ class DenseModel(tf.keras.Model):
                 - use_lr_scheduler: Whether to use learning rate decay
                 - decay_steps: Steps between learning rate updates
                 - decay_rate: Factor for learning rate decay
-            params_dict (dict): Model parameters including:
-                - n_cells: Number of cells in the domain
+
             loss_function: Custom loss function for PDE residuals
             input_tensors_list: List containing:
                 [0]: input_tensor - Main computation points
                 [1]: dirichlet_input - Boundary points
                 [2]: dirichlet_actual - Boundary values
-            force_function_list: List containing:
+            force_function_values: Tensor containing:
                 - forcing_function: Forcing function values
             tensor_dtype: TensorFlow data type for computations
             use_attention (bool): Whether to use attention mechanism, defaults to False.
@@ -150,16 +145,15 @@ class DenseModel(tf.keras.Model):
         if not isinstance(self.tensor_dtype, tf.DType):
             raise TypeError("The given dtype is not a valid tensorflow dtype")
 
-        self.force_function_list = force_function_list
+        self.force_function_values = force_function_values
 
         self.input_tensors_list = input_tensors_list
         self.input_tensor = copy.deepcopy(input_tensors_list[0])
         self.dirichlet_input = copy.deepcopy(input_tensors_list[1])
         self.dirichlet_actual = copy.deepcopy(input_tensors_list[2])
 
-        self.params_dict = params_dict
 
-        self.force_matrix = self.force_function_list
+        self.force_matrix = self.force_function_values
 
         print(f"{'-'*74}")
         print(f"| {'PARAMETER':<25} | {'SHAPE':<25} |")
@@ -177,8 +171,6 @@ class DenseModel(tf.keras.Model):
             f"| {'dirichlet_actual':<25} | {str(self.dirichlet_actual.shape):<25} | {self.dirichlet_actual.dtype}"
         )
         print(f"{'-'*74}")
-
-        self.n_cells = params_dict["n_cells"]
 
         ## ----------------------------------------------------------------- ##
         ## ---------- LEARNING RATE AND OPTIMISER FOR THE MODEL ------------ ##
@@ -207,12 +199,15 @@ class DenseModel(tf.keras.Model):
 
         # Build dense layers based on the input list
         for dim in range(len(self.layer_dims) - 2):
+            # Try Xavier initialization with a smaller scale
+            kernel_initializer = tf.keras.initializers.GlorotUniform(seed=42)
+            tf.print(f"Adding Dense Layer with {self.layer_dims[dim + 1]} units")
             self.layer_list.append(
-                TensorflowDense.create_layer(
-                    units=self.layer_dims[dim],
-                    activation=self.activation,
-                    dtype=self.tensor_dtype,
-                    kernel_initializer="glorot_uniform",
+               TensorflowDense.create_layer(
+                    units=self.layer_dims[dim + 1],
+                    activation="tanh",
+                    dtype=tf.float32,
+                    kernel_initializer=kernel_initializer,
                     bias_initializer="zeros",
                 )
             )
@@ -222,15 +217,11 @@ class DenseModel(tf.keras.Model):
             TensorflowDense.create_layer(
                 units=self.layer_dims[-1],
                 activation=None,
-                dtype=self.tensor_dtype,
+                dtype=tf.float32,
                 kernel_initializer="glorot_uniform",
                 bias_initializer="zeros",
             )
         )
-
-        # Add attention layer if required
-        if self.use_attention:
-            self.attention_layer = layers.Attention()
 
         # Compile the model
         self.compile(optimizer=self.optimizer)
@@ -264,103 +255,52 @@ class DenseModel(tf.keras.Model):
 
         return x
 
-    def get_config(self) -> dict:
-        """
-        Get the configuration of the model.
-
-        Returns:
-            dict: The configuration of the model.
-        """
-        # Get the base configuration
-        base_config = super().get_config()
-
-        # Add the non-serializable arguments to the configuration
-        base_config.update(
-            {
-                "learning_rate_dict": self.learning_rate_dict,
-                "loss_function": self.loss_function,
-                "input_tensors_list": self.input_tensors_list,
-                "force_function_list": self.force_function_list,
-                "params_dict": self.params_dict,
-                "use_attention": self.use_attention,
-                "activation": self.activation,
-                "hessian": self.hessian,
-                "layer_dims": self.layer_dims,
-                "tensor_dtype": self.tensor_dtype,
-            }
-        )
-
-        return base_config
 
     @tf.function
     def train_step(self, beta=10, bilinear_params_dict=None) -> dict:
-        """
-        The train step method for the model.
-
-        Args:
-            beta (int): The weight for the boundary loss, defaults to 10.
-            bilinear_params_dict (dict): The bilinear parameters dictionary, defaults to None.
-
-        Returns:
-            dict: The loss values for the model.
-        """
-
         with tf.GradientTape(persistent=True) as tape:
-            # Predict the values for dirichlet boundary conditions
-            predicted_values_dirichlet = self(self.dirichlet_input)
+            # Predict boundary values
+            predicted_values_dirichlet = self(self.dirichlet_input, training=True)
 
-            # initialize total loss as a tensor with shape (1,) and value 0.0
-            total_pde_loss = 0.0
-
+            total_loss = 0.0
+            
             with tf.GradientTape(persistent=True) as tape1:
-                # tape gradient
                 tape1.watch(self.input_tensor)
 
-                with tf.GradientTape(persistent=True) as tape2:
-                    tape2.watch(self.input_tensor)
-                    # Compute the predicted values from the model
-                    # Compute the predicted values from the model
-                    predicted_values = self(self.input_tensor)
+                predicted_values = self(self.input_tensor, training=True)
+                    
+                gradients = tape1.gradient(predicted_values, self.input_tensor)
 
-                    # compute the gradients of the predicted values wrt the input which is (x, y)
-                    gradients = tape2.gradient(predicted_values, self.input_tensor)
-                    pred_grad_x = gradients[:, 0]
-                    pred_grad_y = gradients[:, 1]
+                grad_x = gradients[:, 0:1]
+                grad_y = gradients[:, 1:2]
 
-                tape1.watch(gradients)
-
-            # Compute the second order derivatives
-            second_order_derivatives = tape1.gradient(gradients, self.input_tensor)
-            pred_grad_xx = second_order_derivatives[:, 0]
-            pred_grad_yy = second_order_derivatives[:, 1]
+            # Compute Laplacian
+            pred_grad_xx = tape1.gradient(grad_x, self.input_tensor)[:, 0:1]
+            pred_grad_yy = tape1.gradient(grad_y, self.input_tensor)[:, 1:2]
 
             pde_residual = self.loss_function(
                 pred_nn=predicted_values,
-                pred_grad_x_nn=pred_grad_x,
-                pred_grad_y_nn=pred_grad_y,
+                pred_grad_x_nn=grad_x,
+                pred_grad_y_nn=grad_y,
                 pred_grad_xx_nn=pred_grad_xx,
                 pred_grad_yy_nn=pred_grad_yy,
                 forcing_function=self.force_matrix,
                 bilinear_params=bilinear_params_dict,
             )
 
-            # Compute the total loss for the PDE
-            total_pde_loss = total_pde_loss + pde_residual
-
-            # print shapes of the predicted values and the actual values
+            # Boundary conditions
             boundary_loss = tf.reduce_mean(
-                tf.square(predicted_values_dirichlet - self.dirichlet_actual), axis=0
+                tf.square(predicted_values_dirichlet - self.dirichlet_actual)
             )
 
-            # Compute Total Loss
-            total_loss = total_pde_loss + beta * boundary_loss
+            total_loss = pde_residual + beta * boundary_loss
 
         trainable_vars = self.trainable_variables
         self.gradients = tape.gradient(total_loss, trainable_vars)
         self.optimizer.apply_gradients(zip(self.gradients, trainable_vars))
 
         return {
-            "loss_pde": total_pde_loss,
+            "loss_pde": pde_residual,
             "loss_dirichlet": boundary_loss,
             "loss": total_loss,
         }
