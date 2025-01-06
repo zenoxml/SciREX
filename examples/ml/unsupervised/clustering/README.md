@@ -6,16 +6,26 @@ Author : Dev Sahoo (debajyotis@iisc.ac.in)
 
 ## Features
 
-- Automatic parameter selection for all clustering algorithms
+- Flexible parameter selection:
+  - Automatic parameter optimization
+  - User-defined parameter input
+  - Hybrid approaches available
 - Built-in visualization function through parent class (base.py)
-- Comprehensive metrics calculation (Silhouette, Calinski-Harabasz, Davies-Bouldin scores)
+- Comprehensive metrics calculation
 - Support for multiple clustering algorithms
+- Access to model attributes and parameters
 
 ## Overview
 
-- **Filek**: `example_kmeans.py`
+- **File**: `example_kmeans.py`
 - **Models**:**KMeans** (shown in the example)
-- You can also import and use:
+
+**Import the models using:**
+
+- **KMeans**
+  ```python
+  from scirex.core.ml.unsupervised.clustering.kmeans import Kmeans
+  ```
 - **DBSCAN**
   ```python
   from scirex.core.ml.unsupervised.clustering.dbscan import Dbscan
@@ -37,13 +47,17 @@ Author : Dev Sahoo (debajyotis@iisc.ac.in)
   from scirex.core.ml.unsupervised.clustering.agglomerative import Agglomerative
   ```
 
-All these clustering models share the same **automatic parameter choosing** functionality. For example, **KMeans** can automatically determine the optimal number of clusters (`k`) by using:
+### Parameter Selection Option
+
+All clustering models support both **automatic parameter choosing** and **user-defined** parameters.
+
+For example, **KMeans** can automatically determine the optimal number of clusters (`k`) by using:
 
 1. **Silhouette Score**
 2. **Elbow Method**
 3. **Custom user-defined `k`**
 
-Similar approaches are applied in other models (e.g., DBSCAN auto-selecting `eps` or **Agglomerative** identifying the optimal number of clusters).
+Similar approaches are applied in other models (e.g., **DBSCAN** auto-selecting `eps` or **Agglomerative** for identifying the optimal number of clusters).
 
 ## Key Files and Imports
 
@@ -80,16 +94,16 @@ X_moons, _ = make_moons(n_samples=1000, noise=0.05, random_state=42)
 X_moons = StandardScaler().fit_transform(X_moons)
 ```
 
-### The `run` Function
+### The `run_clustering` Function
 
-- The script/notebook defines a helper function `run(model, X, dataset_name)`.
+- The script/notebook defines a helper function `run_clustering(model, X, dataset_name)`.
 - This function calls `model.run(data=X)`, which handles:
   1. **Fitting** the model (KMeans in this example).
   2. **Calculating** standard clustering metrics: Silhouette Score, Calinski-Harabasz Score, Davies-Bouldin Score, and timing.
   3. **Plotting** the resulting clusters by calling the `.plots(...)` method (inherited from a base class in `base.py`). The plot is saved as a PNG file and then displayed.
 
 ```python
-def run(model, X, dataset_name: str):
+def run_clustering(model, X, dataset_name: str):
     """
     Run clustering model and display results.
 
@@ -121,8 +135,12 @@ def main():
 
 ```python
 # Instantiate two separate KMeans models
+
+# Let the model determine optimal k
 kmeans_blobs = Kmeans(max_k=10)
-kmeans_moons = Kmeans(max_k=10)
+
+# Specify number of clusters directly
+kmeans_moons = Kmeans(n_clusters=4,max_k=10)
 
 # Run on blobs
 run(kmeans_blobs, X_blobs, "blobs")
@@ -134,12 +152,37 @@ run(kmeans_moons, X_moons, "moons")
 ### Example outputes
 
 ```python
-KMeans fitted with 3 clusters
+#For blobs dataset
+Optimal k (silhouette) = 4
+Optimal k (elbow)      = 3
+
+KMeans fitted with 3 clusters.
 
 --- KMEANS on blobs dataset ---
-Silhouette Score: 0.738
-Calinski-Harabasz: 3479.989
-Davies-Bouldin: 0.376
-Time taken: 8.933s
-Number of clusters: 3
+Silhouette Score:      0.738
+Calinski-Harabasz:     3479.989
+Davies-Bouldin:        0.376
+Number of clusters:    3
+
+#For moons dataset
+KMeans fitted with 4 clusters.
+
+--- KMEANS on moons dataset ---
+Silhouette Score:      0.429
+Calinski-Harabasz:     1230.080
+Davies-Bouldin:        0.900
+Number of clusters:    4
+```
+
+### Accessible Model Attributes
+
+```python
+# Core Attributes
+kmeans_blobs.n_clusters_       # Final number of clusters used
+kmeans_blobs.labels         # Cluster assignments for each point
+kmeans_blobs.cluster_centers_ # Coordinates of cluster centers
+kmeans_blobs.inertia_        # Sum of squared distances to centroids
+
+# Get all parameters at once
+kmeans_blobs.get_model_params()
 ```
