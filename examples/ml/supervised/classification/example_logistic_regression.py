@@ -77,4 +77,4 @@ for metric, value in results.items():
     print(f"{metric}: {value}")
 
 # Plot the confusion matrix
-logistic_model.plot(y_test, logistic_model.predict(X_test))
+logistic_model.plot(X_test, y_test)

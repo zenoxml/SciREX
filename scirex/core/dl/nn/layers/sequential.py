@@ -23,56 +23,34 @@
 # please contact: contact@scirex.org
 
 """
-    Module: utils.py
+    Module: sequential.py
 
-    This module implements utility functions for Neural Networks
-
-    Key Features:
-        - Contains commonly used loss functions and metrics for neural networks
+    This module implements sequential layers for Neural Networks
 
     Authors:
         - Lokesh Mohanty (lokeshm@iisc.ac.in)
 
     Version Info:
-        - 01/01/2025: Initial version
+        - 06/01/2025: Initial version
 
 """
 import jax
-import jax.numpy as jnp
-import optax
+import equinox as eqx
 
 
-def accuracy(pred_y: jax.Array, y: jax.Array) -> float:
+class Sequential(eqx.nn.Sequential):
     """
-    Compute accuracy
-
-    Args:
-        x: input data
-        y: target labels
-    """
-    return jnp.mean(pred_y == y)
-
-
-def mse_loss(output: jax.Array, y: jax.Array) -> float:
-    """
-    Compute mean squared error loss
-
-    Args:
-        output: output of the model
-        y: target values
-    """
-    return jnp.mean(jnp.square(output - y))
-
-
-def cross_entropy_loss(output: jax.Array, y: jax.Array) -> float:
-    """
-    Compute the cross-entropy loss
-
-    Args:
-        output: output of the model
-        y: Batched target labels
+    Implements a Sequential layer, which is a stack of layers
     """
 
-    n_classes = output.shape[-1]
-    loss = optax.softmax_cross_entropy(output, jax.nn.one_hot(y, n_classes)).mean()
-    return loss
+
+class Lambda(eqx.nn.Lambda):
+    """
+    Implements a Lambda layer (which wraps a callable for use with Sequential)
+    """
+
+
+class StatefulLayer(eqx.nn.StatefulLayer):
+    """
+    Implements a StatefulLayer
+    """
