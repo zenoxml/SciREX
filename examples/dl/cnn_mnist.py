@@ -48,10 +48,11 @@ from tensorflow.keras.datasets import mnist
 
 from scirex.core.dl import Model, Network
 from scirex.core.dl.utils import cross_entropy_loss, accuracy
- 
+
 
 key = jax.random.PRNGKey(42)
 key1, key2 = jax.random.split(key)
+
 
 class CNN(Network):
     layers: list
@@ -66,7 +67,7 @@ class CNN(Network):
             jax.nn.relu,
             jnp.ravel,
             eqx.nn.Linear(8 * 4 * 4, 10, key=key2),
-            jax.nn.log_softmax
+            jax.nn.log_softmax,
         ]
 
     def __call__(self, x):
