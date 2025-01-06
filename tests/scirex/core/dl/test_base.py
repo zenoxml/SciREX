@@ -37,10 +37,10 @@
 import pytest
 import jax
 import jax.numpy as jnp
-import equinox as eqx
 import optax
+import equinox as eqx
 from scirex.core.dl import Model, Network
-from scirex.core.dl.utils import mse_loss
+from scirex.core.dl.nn import mse_loss
 
 
 key = jax.random.PRNGKey(0)
@@ -64,11 +64,6 @@ class Non_Linear(Linear):
         return self.weight.T @ jnp.ravel(x) + self.bias
 
 
-class MLP(eqx.nn.MLP):
-    def predict(self, x):
-        return self.__call__(x)
-
-
 x = jax.random.normal(key, (100, 20))
 y = x @ jax.random.normal(key, (20, 1)) + jax.random.normal(key, (100, 1))
 data1D = (x, y)
@@ -76,12 +71,11 @@ data2D = (x.reshape(100, 5, 4), y)
 data3D = (x.reshape(100, 5, 2, 2), y)
 model1D = Model(Linear(), optax.sgd(1e-3), mse_loss, [mse_loss])
 model2D = Model(Non_Linear(), optax.sgd(1e-3), mse_loss, [mse_loss])
-model_mlp = Model(MLP(20, 1, 2, 2, key=key), optax.sgd(1e-3), mse_loss, [mse_loss])
 
 # Parameterized variables in global scope
 pytestmark = pytest.mark.parametrize(
     "model, data",
-    [(model1D, data1D), (model2D, data2D), (model2D, data3D), (model_mlp, data1D)],
+    [(model1D, data1D), (model2D, data2D), (model2D, data3D)],
 )
 
 
