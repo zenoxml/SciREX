@@ -23,10 +23,27 @@
 # For any clarifications or special considerations,
 # please contact <scirex@zenteiq.ai>
 
-# Author: Nithyashree Ravikumar
+"""
+   Example Script: quantization.py
+   
+   This script implements model optimization using TensorFlow Model Optimization Toolkit's quantization
+   capabilities on neural network architectures. It demonstrates an implementation for applying
+   and evaluating both quantization-aware training and post-training quantization.
+   
+   This example includes:
+       - Implementation of QuantizationAwareTraining class
+       - Building and training baseline CNN models
+       - Applying quantization-aware training with TensorFlow
+       - Training and evaluation workflows for both models
+       - Converting models to TFLite format with optimization
+       - Implementing post-training quantization for model compression
 
-# This code defines a Python class QuantizationAwareTraining to enable quantization-aware training (QAT) and post-training quantization for TensorFlow models.
-# It includes methods for model evaluation, TensorFlow Lite conversion, and size measurement of both quantized and post-quantized models.
+   Authors:
+       - Nithyashree R (nithyashreer@iisc.ac.in)
+
+   Version Info:
+       - 06/01/2024: Initial version
+"""
 
 import os
 import numpy as np
