@@ -23,20 +23,21 @@
 # please contact: contact@scirex.org
 
 """
-    Module: test_utils.py
+    Module: test_nn.py
 
-    This module contains unit tests for the `utils.py` file in the Deep Learning framework.
+    This module contains unit tests for the custom functions in `nn` folder in the Deep Learning framework.
 
     Authors:
         - Lokesh Mohanty (lokeshm@iisc.ac.in)
 
     Version Info:
         - 01/01/2025: Initial version
+        - 06/01/2025: Renamed file and imports
 
 """
 import pytest
 import jax.numpy as jnp
-from scirex.core.dl.utils import accuracy, mse_loss, cross_entropy_loss
+from scirex.core.dl.nn import accuracy, mse_loss, cross_entropy_loss
 
 
 @pytest.mark.parametrize(

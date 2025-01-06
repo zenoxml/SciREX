@@ -83,7 +83,6 @@ class Network(eqx.Module):
         Returns:
             jnp.ndarray: Output tensor from the network.
         """
-        pass
 
     def predict(self, x: jnp.ndarray) -> jnp.ndarray:
         """
