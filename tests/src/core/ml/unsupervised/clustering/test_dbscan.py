@@ -39,7 +39,7 @@ def test_dbscan():
     data = scaler.fit_transform(data)
 
     # Perform DBSCAN clustering
-    dbscan = Dbscan()
+    dbscan = Dbscan(0.1617, 10)
     dbscan.fit(data)
 
     # Calculate silhouette score

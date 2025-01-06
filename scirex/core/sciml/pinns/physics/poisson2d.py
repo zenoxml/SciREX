@@ -84,11 +84,13 @@ def pde_loss_poisson2d(
 
     pde_diffusion_y = pred_grad_yy_nn
 
-    pde_diffusion = -1.0 * bilinear_params["eps"] * (pde_diffusion_x + pde_diffusion_y)
+    pde_diffusion = -1.0 * (pde_diffusion_x + pde_diffusion_y)
+
+    # tf.print("Shape of pde_diffusion", pde_diffusion.shape)
 
     residual = pde_diffusion - forcing_function
 
     # Perform Reduce mean along the axis 0
-    pde_residual = tf.reduce_mean(tf.square(residual), axis=0)
+    pde_residual = tf.reduce_mean(tf.square(residual))
 
     return pde_residual

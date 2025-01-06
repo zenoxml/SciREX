@@ -25,7 +25,7 @@
 """
     Example Script: cnn-mnist.py
 
-    This script demonstrates how to use the fully connected neural network implementation from the SciREX library to perform classification on the MNIST dataset.
+    This script demonstrates how to use the neural network implementation from the SciREX library to perform classification on the MNIST dataset.
 
     This example includes:
         - Loading the MNIST dataset using tensorflow.keras.datasets
@@ -33,162 +33,70 @@
         - Training Convolutional Neural Networks
         - Evaluating and visualizing the results
 
-    Dependencies:
-        - jax (for automatic differentiation and jit compilation)
-        - equinox (for neural network modules)
-        - optax (for optimization)
-        - tensorflow.keras.datasets (for dataset)
-        - matplotlib (for visualization)
-        - scirex.core.dl.fcnn
-
     Authors:
         - Lokesh Mohanty (lokeshm@iisc.ac.in)
 
     Version Info:
-        - 30/Dec/2024: Initial version
+        - 04/01/2024: Initial version
 
 """
-
 import jax
 import jax.numpy as jnp
 import equinox as eqx
 import optax
 from tensorflow.keras.datasets import mnist
-import time
-from typing import Tuple, Dict
-import matplotlib.pyplot as plt
 
-from scirex.core.dl.fcnn import (
-    Model,
-    evaluate,
-    train,
-)
- 
-
-def load_mnist(batch_size: int) -> Tuple[Tuple, Tuple]:
-    """
-    Load and preprocess MNIST dataset
-    Returns:
-        ((train_images, train_labels), (test_images, test_labels))
-        each split into batches
-    """
-    # Load MNIST
-    (train_images, train_labels), (test_images, test_labels) = mnist.load_data()
-
-    # Create training data
-    train_images = jnp.array(train_images)[..., None]  # Add channel dimension
-    train_images = train_images.astype(jnp.float32) / 255.0
-    train_labels = jnp.array(train_labels, dtype=jnp.int32)
-
-    # Create test data
-    test_images = jnp.array(test_images)[..., None]
-    test_images = test_images.astype(jnp.float32) / 255.0
-    test_labels = jnp.array(test_labels, dtype=jnp.int32)
-
-    def create_batches(images, labels):
-        # Calculate number of complete batches
-        num_complete_batches = len(images) // batch_size
-
-        # Reshape into batches
-        batched_images = images[: num_complete_batches * batch_size].reshape(
-            (num_complete_batches, batch_size, *images.shape[1:])
-        )
-        batched_labels = labels[: num_complete_batches * batch_size].reshape(
-            (num_complete_batches, batch_size)
-        )
-
-        return batched_images, batched_labels
-
-    return create_batches(train_images, train_labels), create_batches(
-        test_images, test_labels
-    )
+from scirex.core.dl import Model, Network
+from scirex.core.dl.utils import cross_entropy_loss, accuracy
 
 
-def plot_training_history(history: Dict, model_type: str):
-    """Plot training metrics"""
-    plt.figure(figsize=(12, 4))
-
-    # Plot loss
-    plt.subplot(1, 2, 1)
-    plt.plot(history["train_loss"], label="Train Loss")
-    plt.plot(history["test_loss"], label="Test Loss")
-    plt.title(f"{model_type} Loss")
-    plt.xlabel("Epoch")
-    plt.ylabel("Loss")
-    plt.legend()
-
-    # Plot accuracy
-    plt.subplot(1, 2, 2)
-    plt.plot(history["train_accuracy"], label="Train Accuracy")
-    plt.plot(history["test_accuracy"], label="Test Accuracy")
-    plt.title(f"{model_type} Accuracy")
-    plt.xlabel("Epoch")
-    plt.ylabel("Accuracy")
-    plt.legend()
-
-    plt.tight_layout()
-    plt.savefig("cnn-mnist.png")
+key = jax.random.PRNGKey(42)
+key1, key2 = jax.random.split(key)
 
 
-if __name__ == "__main__":
-    # Set random seed
-    key = jax.random.PRNGKey(42)
-    key1, key2 = jax.random.split(key)
+class CNN(Network):
+    layers: list
 
-    # Hyperparameters
-    batch_size = 128
-    learning_rate = 0.001
-    num_epochs = 10
+    def __init__(self):
+        self.layers = [
+            eqx.nn.Conv2d(1, 4, kernel_size=4, key=key1),
+            eqx.nn.MaxPool2d(2, 2),
+            jax.nn.relu,
+            eqx.nn.Conv2d(4, 8, kernel_size=4, key=key1),
+            eqx.nn.MaxPool2d(2, 2),
+            jax.nn.relu,
+            jnp.ravel,
+            eqx.nn.Linear(8 * 4 * 4, 10, key=key2),
+            jax.nn.log_softmax,
+        ]
 
-    print("Loading MNIST dataset...")
-    (train_images, train_labels), (test_images, test_labels) = load_mnist(batch_size)
+    def __call__(self, x):
+        for layer in self.layers:
+            x = layer(x)
+        return x
 
-    # Create optimizer
-    optimizer = optax.chain(
-        optax.clip_by_global_norm(1.0), optax.adam(learning_rate)  # Gradient clipping
-    )
+    def predict(self, x):
+        return jnp.argmax(self(x), axis=-1)
 
-    # Train CNN
-    print(f"\nTraining CNN...")
-    print(f"Epochs: {num_epochs}")
-    print(f"Batch size: {batch_size}")
-    print(f"Learning rate: {learning_rate}")
-    print(f"Training batches per epoch: {len(train_images)}")
-    print(f"Test batches per epoch: {len(test_images)}")
-    keys = jax.random.split(key, 4)
-    layers = [
-        lambda x: x.T
-        # fmt: off
-        eqx.nn.Conv2d(in_channels=1, out_channels=32, kernel_size=3, key=keys[0]),
-        jax.nn.relu,
-        eqx.nn.Conv2d(in_channels=32, out_channels=64, kernel_size=3, key=keys[1]),
-        jax.nn.relu,
-        eqx.nn.Conv2d(in_channels=64, out_channels=64, kernel_size=3, key=keys[2]),
-        jax.nn.relu,
-        # Flatten 
-        lambda x: x.reshape(-1),
-        eqx.nn.Linear(64 * 22 * 22, 10, key=keys[3]),
-        # fmt: on
-    ]
-    trained_model, history = train(
-        model=Model(layers),
-        x_train=train_images,
-        y_train=train_labels,
-        x_test=test_images,
-        y_test=test_labels,
-        optim=optimizer,
-        num_epochs=num_epochs,
-        print_every=100,
-    )
 
-    # Final evaluation
-    print("\nFinal Results:")
-    print("-" * 50)
+batch_size = 10
+learning_rate = 0.001
+num_epochs = 10
+optimizer = optax.adam(learning_rate)
 
-    # CNN results
-    test_loss, test_acc = evaluate(trained_model, test_images, test_labels)
-    print(f"CNN Test Loss: {test_loss:.4f}")
-    print(f"CNN Test Accuracy: {test_acc:.4f}")
+(train_images, train_labels), (test_images, test_labels) = mnist.load_data()
 
-    # Plot training history
-    plot_training_history(history, "CNN")
+train_images = train_images[:1000].reshape(-1, 1, 28, 28) / 255.0
+test_images = test_images[:1000].reshape(-1, 1, 28, 28) / 255.0
+train_labels = train_labels[:1000]
+test_labels = test_labels[:1000]
+print("Train Images Shape: ", train_images.shape)
+print("Train Labels Shape: ", train_labels.shape)
+
+model = Model(CNN(), optimizer, cross_entropy_loss, [accuracy])
+history = model.fit(train_images, train_labels, num_epochs, batch_size)
+
+test_loss, test_acc = model.evaluate(test_images, test_labels)
+print(f"Test Loss: {test_loss:.4f}")
+print(f"Test Accuracy: {test_acc[0]:.4f}")
+model.plot_history("mnist-cnn.png")

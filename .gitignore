@@ -15,6 +15,7 @@ dist/
 
 # docs build
 docs/_build/
+site/
 
 # add vtk and mesh files
 *.vtk
@@ -74,6 +75,9 @@ pyvenv.cfg
 
 # Any png files within the examples directory
 examples/**/*.png
+
+# All png in the root directory
+*.png
 
 # remove all folders which has output in their name
 output/
