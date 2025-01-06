@@ -22,10 +22,22 @@
 #
 # For any clarifications or special considerations,
 # please contact <scirex@zenteiq.ai>
-# Author: Nithyashree Ravikumar
-#
-# This code implements model pruning on the MNIST dataset using TensorFlow.
-# It loads and normalizes the MNIST data, trains a baseline model, and saves it for further experiments.
+
+"""
+   Example Script: mnist_pruning_baseline.py
+   This script establishes a baseline model for pruning experiments using the MNIST dataset 
+   through TensorFlow Model Optimization Toolkit.
+
+   This example includes:
+       - Training baseline model on MNIST dataset
+       - Performance evaluation metrics
+
+   Authors:
+       - Nithyashree R (nithyashreer@iisc.ac.in)
+
+   Version Info:
+       - 06/01/2024: Initial version
+"""
 
 import numpy as np
 import tensorflow as tf
