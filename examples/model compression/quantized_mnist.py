@@ -22,10 +22,24 @@
 #
 # For any clarifications or special considerations,
 # please contact <scirex@zenteiq.ai>
-# Author: Nithyashree Ravikumar
 
-# This code trains a model on the MNIST dataset, applies quantization-aware training (QAT), and evaluates its accuracy.
-# It also compares the model sizes before and after applying QAT and post-training quantization.
+"""
+   Example Script: quantized_mnist.py
+   
+   This script demonstrates model quantization techniques on the MNIST dataset. Compares accuracy of different quantization approaches.
+
+
+   This example includes:
+       - Applying quantization-aware training (QAT)
+       - Implementing post-training quantization 
+       - Comparing model sizes and accuracies
+
+   Authors:
+       - Nithyashree R (nithyashreer@iisc.ac.in)
+
+   Version Info:
+       - 06/01/2024: Initial version
+"""
 
 
 import numpy as np
