@@ -22,10 +22,25 @@
 #
 # For any clarifications or special considerations,
 # please contact <scirex@zenteiq.ai>
-# Author: Nithyashree Ravikumar
 
-# This implementation uses ModelPruning to compress an MNIST dataset through pruning.
-# The process involves loading and normalizing MNIST data, pruning the model , and evaluating the model on its accuracy.
+"""
+    Example Script: pruned_mnist.py
+    
+    This script demonstrates the application of model pruning on the MNIST dataset using TensorFlow 
+    Model Optimization Toolkit. The pruning process reduces model size while maintaining accuracy.
+
+    This example includes:
+        - Loading and preprocessing MNIST dataset
+        - Implementing model pruning for compression
+        - Training and evaluating pruned models
+        
+
+    Authors:
+        - Nithyashree R (nithyashreer@iisc.ac.in)
+
+    Version Info:
+        - 06/01/2024: Initial version
+"""
 
 import numpy as np
 import tensorflow as tf
