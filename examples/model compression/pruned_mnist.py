@@ -1,5 +1,5 @@
-# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and
-# AiREX Lab, Indian Institute of Science, Bangalore.
+# Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and AiREX Lab,
+# Indian Institute of Science, Bangalore.
 # All rights reserved.
 #
 # This file is part of SciREX
@@ -7,20 +7,25 @@
 # developed jointly by Zenteiq Aitech Innovations and AiREX Lab
 # under the guidance of Prof. Sashikumaar Ganesan.
 #
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
+# SciREX is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
 #
-#     http://www.apache.org/licenses/LICENSE-2.0
+# SciREX is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Affero General Public License for more details.
 #
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
+# You should have received a copy of the GNU Affero General Public License
+# along with SciREX. If not, see <https://www.gnu.org/licenses/>.
 #
 # For any clarifications or special considerations,
-# please contact: contact@scirex.org
+# please contact <scirex@zenteiq.ai>
+# Author: Nithyashree Ravikumar
+
+# This implementation uses ModelPruning to compress an MNIST dataset through pruning.
+# The process involves loading and normalizing MNIST data, pruning the model , and evaluating the model on its accuracy.
 
 import numpy as np
 import tensorflow as tf
@@ -31,21 +36,25 @@ from scirex.core.model_compression.pruning import ModelPruning
     tf.keras.datasets.mnist.load_data()
 )
 
-# Normalize the input images and add the extra dimension (channel)
+# Normalize the input images
 train_images = train_images / 255.0
 test_images = test_images / 255.0
-train_images = np.expand_dims(train_images, axis=-1)  # Shape (60000, 28, 28, 1)
-test_images = np.expand_dims(test_images, axis=-1)  # Shape (10000, 28, 28, 1)
 
-# Instantiate the ModelPruning class with default arguments
-pruner = ModelPruning()
+# Initialize ModelPruning using the same configuration as baseline
+model_handler = ModelPruning(
+    input_shape=(28, 28),
+    num_classes=10,
+    epochs=10,
+    batch_size=35,  # This will give ~1688 steps per epoch
+    validation_split=0.1,
+)
 
 # Apply pruning to the model
-pruned_model = pruner.apply_pruning()
+pruned_model = model_handler.apply_pruning()
 
 # Train the pruned model
-pruner.train_pruned_model(train_images, train_labels)
+model_handler.train_pruned_model(train_images, train_labels)
 
 # Evaluate the pruned model
-pruned_accuracy = pruner.evaluate_pruned_model(test_images, test_labels)
-print(f"Pruned Model Accuracy: {pruned_accuracy * 100:.2f}%")
+pruned_accuracy = model_handler.evaluate_pruned_model(test_images, test_labels)
+print(f"Pruned Model Accuracy: {pruned_accuracy}")
