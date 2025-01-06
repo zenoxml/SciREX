@@ -23,12 +23,27 @@
 # For any clarifications or special considerations,
 # please contact <scirex@zenteiq.ai>
 
-# Author: Nithyashree Ravikumar
+"""
+Example Script: pruning.py
 
+    This script implements model compression using TensorFlow Model Optimization Toolkit's pruning capabilities 
+    on neural network architectures. It demonstrates a reusable implementation for applying and evaluating 
+    model pruning with polynomial decay schedule.
 
-# Implementation of model compression using prune_low_magnitude with PolynomialDecay schedule from 50% to 80% sparsity.
-# ModelPruning class builds a CNN with Conv2D and Dense layers, provides methods for training and evaluating both baseline and pruned models.
+    This example includes:
+        - Implementation of a reusable ModelPruning class for model compression
+        - Building and training baseline CNN models
+        - Applying progressive pruning from 50% to 80% sparsity
+        - Training and evaluation workflows for both baseline and pruned models
+        
+        
+     Authors: 
+     - Nithyashree R (nithyashreer@iisc.ac.in)
 
+    Version Info:
+        - 06/01/2024: Initial version
+        
+"""
 
 import tempfile
 import os
