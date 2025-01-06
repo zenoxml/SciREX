@@ -22,11 +22,23 @@
 #
 # For any clarifications or special considerations,
 # please contact <scirex@zenteiq.ai>
-# Author: Nithyashree Ravikumar
 
+"""
+   Example Script: quantization_base_mnist.py
+   
+   This script demonstrates quantization-aware training on the MNIST dataset. It gives the performance of the baseline model.
 
-# This code trains a base model on the MNIST dataset and evaluates its accuracy before applying quantization-aware training (QAT).
-# It then prints the baseline model accuracy.
+   This example includes:
+       - Training baseline model on MNIST dataset
+       - Evaluating model accuracy before QAT
+       
+
+   Authors:
+       - Nithyashree R (nithyashreer@iisc.ac.in)
+
+   Version Info:
+       - 06/01/2024: Initial version
+"""
 
 import numpy as np
 import tensorflow as tf
