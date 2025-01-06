@@ -31,8 +31,8 @@ import pytest
 
 def test_copyright():
     """Test if all Python files have the required copyright header."""
-    # Get root directory path
-    root_dir = Path(__file__).parent.parent
+    # Get root directory path (current directory from where script is run)
+    root_dir = Path.cwd()
 
     # Get copyright header content
     try:
