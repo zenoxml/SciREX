@@ -121,8 +121,8 @@ def main():
     X_moons = StandardScaler().fit_transform(X_moons)
 
     # Initialize KMeans models
-    kmeans_blobs = Kmeans(max_k=10)
-    kmeans_moons = Kmeans(max_k=10)
+    kmeans_blobs = Kmeans(max_k=10)  # auto-select best k
+    kmeans_moons = Kmeans(n_clusters=4, max_k=10)  # user-defined 4 clusters
 
     # Run clustering on both datasets
     run_clustering(kmeans_blobs, X_blobs, "blobs")
