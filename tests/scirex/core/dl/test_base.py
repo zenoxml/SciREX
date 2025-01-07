@@ -146,3 +146,29 @@ def test_model_fit(model, data):
     loss_final, _ = model.evaluate(x, y)
     assert len(history) == 10
     assert loss_final < loss_initial
+
+
+def test_model_save_load_net(model, data):
+    x, y = data
+    y_pred = model.predict(x)
+    model.save_net("test_model.net")
+    model.load_net("test_model.net")
+    y_pred_loaded = model.predict(x)
+    assert jnp.allclose(y_pred, y_pred_loaded)
+
+
+def test_model_update_net(model, data):
+    class TestNet(Network):
+        weight: list
+
+        def __init__(self, weight):
+            self.weight = weight
+
+        def __call__(self, x):
+            return self.weight @ x
+
+    weight, x = jnp.asarray([2.0]), jnp.asarray([[1.0]])
+    model = Model(TestNet(weight), optax.sgd(1e-3), mse_loss)
+    pred = model.predict(x)
+    model.update_net(weight=2 * weight)
+    assert model.predict(x) == 2 * pred

@@ -46,9 +46,11 @@
 """
 import time
 from tqdm import tqdm
+from dataclasses import replace
 
 import jax
 import jax.numpy as jnp
+from jaxtyping import PyTree
 import equinox as eqx
 import optax
 from typing import Callable
@@ -221,6 +223,16 @@ class Model:
             filename (str): File name to load the network from.
         """
         self.net = eqx.tree_deserialise_leaves(filename, self.net)
+
+    def update_net(self, **updates: dict[str, PyTree]):
+        """
+        Update the content of the network.
+
+        Args:
+            ** (key-word args): key-value pairs to replace, the keys have to be from the
+            args of __init__ of the network
+        """
+        self.net = replace(self.net, **updates)
 
     def plot_history(self, file_name: str, figsize=(12, 6)):
         """
