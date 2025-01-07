@@ -30,9 +30,10 @@ from sklearn.preprocessing import StandardScaler
 from scirex.core.ml.unsupervised.clustering.hdbscan import Hdbscan
 from sklearn.metrics import silhouette_score
 
+
 def test_hdbscan():
     # Load and scale the data
-    data = np.loadtxt("tests/support_files/chainlink.txt")     
+    data = np.loadtxt("tests/support_files/chainlink.txt")
 
     scaler = StandardScaler()
     data = scaler.fit_transform(data)
@@ -49,9 +50,10 @@ def test_hdbscan():
 
     # Calculate Silhouette score
     labels = hdbscan.labels
-    silhouette_score_val = silhouette_score(data, labels, random_state = 42)
-    
-    assert abs(silhouette_score_val - 0.15363442914939499) < 1.e-2 # For 2 clusters
+    silhouette_score_val = silhouette_score(data, labels, random_state=42)
+
+    assert abs(silhouette_score_val - 0.15363442914939499) < 1.0e-2  # For 2 clusters
+
 
 if __name__ == "__main__":
     test_hdbscan()

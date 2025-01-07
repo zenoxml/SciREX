@@ -103,7 +103,10 @@ pip install -e ".[dev,test]"
 ```bash
 pytest tests/
 ```
-5. Submit a pull request
+5. Run black formatter: 
+```bash black .
+```
+6. Create a pull request
 
 ### Documentation
 

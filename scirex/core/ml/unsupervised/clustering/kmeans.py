@@ -44,8 +44,9 @@ References:
     - https://rapids.ai/
 
 Authors:
-    - PALAKURTHI RAJA KARTHIK (kraja@iisc.ac.in)
-    - Debajyoti Sahoo (debajyotis@iisc.ac.in)
+    - Palakurthi Raja Karthik (kraja@iisc.ac.in)
+    - Debajyoti Sahoo (debajyotis@iisc.ac.in, initial version for KMeans)
+    - Additional references & contributions from the SciREX development team
 
 Version Info:
     - 30/Dec/2024: CPU & GPU versions, supporting SciREX base structure

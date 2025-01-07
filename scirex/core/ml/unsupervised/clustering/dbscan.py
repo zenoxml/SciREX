@@ -45,7 +45,8 @@ Dependencies:
 
 Authors:
     - Palakurthi Raja Karthik (kraja@iisc.ac.in)
-    - Debajyoti Sahoo (debajyotis@iisc.ac.in)
+    - Debajyoti Sahoo (debajyotis@iisc.ac.in, initial version for KMeans)
+    - Additional references & contributions from the SciREX development team
 
 Version Info:
     - 30/Dec/2024: Hardware Optimized version with both CPU & GPU approaches
