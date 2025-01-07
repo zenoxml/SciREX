@@ -24,7 +24,7 @@ Lets consider the 2D Poisson equation as an example. The Poisson
 equation is given by
 
 $$
-\nabla^2 u = f
+-\nabla^2 u = f
 $$
 
 where $u$ is the solution, $f$ is the source term and $\nabla^2$ is the

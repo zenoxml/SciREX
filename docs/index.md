@@ -1,87 +1,108 @@
-# Welcome to SciREX 🚀
+# SciREX: Scientific Research and Engineering eXcellence
 
-**SciREX** is a revolutionary scientific computing framework that bridges the gap between traditional machine learning and advanced scientific computing. Developed by Airex Lab, it empowers researchers and engineers to solve complex scientific problems with state-of-the-art machine learning techniques.
-
-![SciREX Logo](assets/scirex-logo.svg)
-
-##  Scientific Machine Learning 
-
-At the heart of SciREX lies our advanced Scientific Machine Learning (SciML) capabilities. We're pioneering the fusion of physical knowledge with machine learning to create more accurate, efficient, and interpretable models.
-
-### Featured SciML Components
-#### FastVPINNs
-
- - **Finite Elements (FE)**
-
- - **Physics Modules**
-
- - **Model**
-
- - **Geometry**
-
-## Traditional Machine Learning Suite
-
-While we excel in SciML, we maintain comprehensive support for traditional machine learning approaches:
-
-### Clustering & Classification
-- Hierarchical clustering
-- Spectral methods
-- Deep learning
-- Classification
-- Ensemble methods
-
+SciREX is an open-source scientific AI and machine learning framework designed for researchers and engineers. Jointly developed by Zenteiq Aitech Innovations Private Limited and the AiREX (AI for Research and Engineering eXcellence) Lab at Indian Institute of Science, Bangalore, SciREX bridges the gap between theoretical research and practical implementation while maintaining mathematical rigor and computational efficiency.
 
 ##  Key Features
 
-- **High Performance**: Optimized implementations for both CPU and GPU
-- **Scalability**: From  experiments to HPC 
+- **Research-First Design**: Built specifically for scientific computing and research workflows
+- **Mathematical Foundations**: Strong emphasis on mathematical correctness and theoretical foundations
+- **Hardware Optimization**: Efficient implementation with GPU acceleration support
+- **Reproducible Research**: Built-in experiment tracking and result reproduction capabilities
+- **Scientific Visualization**: Publication-ready plotting and visualization tools
+- **Industrial Integration**: Enterprise-ready solutions backed by Zenteiq's industrial expertise
 
-##  Getting Started
+##  Core Capabilities
 
-```bash
-pip install scirex
+- **Scientific Computing**
+  - Physics-Informed Neural Networks (PINNs)
+  - Differential Equation Solvers
+  - Scientific Data Analysis
+
+- **Machine Learning**
+  - Classical ML Algorithms
+  - Deep Learning Models
+  - Custom Loss Functions
+  - Advanced Optimizers
+
+- **Research Tools**
+  - Experiment Management
+  - Result Visualization
+  - Benchmark Datasets
+  - Performance Metrics
+
+
+##  Getting started
+- Clone the SciREX repo
+```sh
+mkdir scirex
+cd scirex
+git clone https://github.com/zenoxml/SciREX.git 
+``` 
+- Create a virtual environment
+```sh
+python3 -m venv .
+source bin/activate
 ```
-
-```python
-import scirex as sx
-
-# Initializel
-model = sx.models
+- Install dependencies using:
+```sh
+pip install -e .
 ```
+- This completes the installation. Check out the examples for usage 
+##  Documentation
 
-##  Documentation Structure
+Visit our [documentation](https://scirex.org/docs)
+ for:
 
-- **Tutorials/**
-  - QuickStart Guide
-  - ML Tutorial
-  - FastVPINNs Examples
-- **API Reference/**
-  - Core API
-  - Physics Modules
-  - ML Algorithms
+- Getting Started Guide
 
+- API Reference
 
-## 🤝 Community & Support
+- Mathematical Background
 
-Join our growing community of scientists, researchers, and engineers who are pushing the boundaries of scientific computing:
+- Tutorials and Examples
 
-- [GitHub Repository](https://github.com/zenoxml/SciREX/tree/main)
+- Contribution Guidelines
 
-##  Citation
+##  License
 
-If you use SciREX in your research, please cite:
+Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and AiREX Lab, Indian Institute of Science, Bangalore.
+All rights reserved.
 
-```bibtex
-@software{scirex2025,
-  title={SciREX},
-  author={Airex Lab},
-  year={2025},
-  url={https://github.com/zenoxml/SciREX/tree/main}
-}
-```
+## Software License
 
----
+SciREX is licensed under the Apache License, Version 2.0 (the "License"). You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
+
+## Intellectual Property
+
+### Copyright Holders
+- <a href="https://zenteiq.ai/" target="_blank">Zenteiq Aitech Innovations Private Limited</a>
+- <a href="https://airexlab.cds.iisc.ac.in/" target="_blank">The AiREX Lab at IISc Bangalore</a>
+
+### Components and Libraries
+- The core SciREX framework and its original components are copyright of the above holders
+- Third-party libraries and dependencies are subject to their respective licenses
+- Mathematical algorithms and scientific methods implemented may be subject to their own patents or licenses
+
+##  Contributing
+
+We welcome contributions from both the research and industrial communities! Please see our Contributing Guidelinesfor details.
+
+##  Community
+
+- <a href="https://discord.gg/b2xw8xaZsu" target="_blank">Discord</a>
+
+##  Official Partners
+
+- [**ARTPARK**](https://artpark.in) (AI & Robotics Technology Park) at IISc
+- In discussion with NVIDIA and other technology companies
+
+##  Acknowledgments
+
+SciREX is developed and maintained through the collaborative efforts of Zenteiq Aitech Innovations and the AiREX Lab at IISc Bangalore. We thank all contributors from both industry and academia for their valuable input and support in advancing scientific computing.
+
 
 <div align="center">
-  <i>Powered by Airex Lab (IISc) - Aritifical Intelligence Research Exellence Lab</i>
+  <i>Powered by  Zenteiq Aitech Innovations Private Limited and Airex Lab (IISc) - Aritifical Intelligence Research Engineering Exellence Lab</i>
 </div>

@@ -9,9 +9,9 @@
 
 </div>
 
-SciREX is an open-source scientific computing and machine learning framework designed for researchers and engineers. Jointly developed by Zenteiq Aitech Innovations Private Limited and the AiREX (AI for Research and Engineering eXcellence) Lab at Indian Institute of Science, Bangalore, SciREX bridges the gap between theoretical research and practical implementation while maintaining mathematical rigor and computational efficiency.
+SciREX is an open-source scientific AI and machine learning framework designed for researchers and engineers. Jointly developed by Zenteiq Aitech Innovations Private Limited and the AiREX (AI for Research and Engineering eXcellence) Lab at Indian Institute of Science, Bangalore, SciREX bridges the gap between theoretical research and practical implementation while maintaining mathematical rigor and computational efficiency.
 
-## 🔬 Key Features
+## Key Features
 
 - **Research-First Design**: Built specifically for scientific computing and research workflows
 - **Mathematical Foundations**: Strong emphasis on mathematical correctness and theoretical foundations
@@ -20,10 +20,10 @@ SciREX is an open-source scientific computing and machine learning framework des
 - **Scientific Visualization**: Publication-ready plotting and visualization tools
 - **Industrial Integration**: Enterprise-ready solutions backed by Zenteiq's industrial expertise
 
-## 🚀 Core Capabilities
+## Core Capabilities
 
 - **Scientific Computing**
-  - Physics-Informed Neural Networks (PINNs)
+  - Physics-Informed Neural Networks ([PINNs](scirex/core/sciml/pinns/README.md), [FastVPINNs](scirex/core/sciml/fastvpinns/README.md)) 
   - Differential Equation Solvers
   - Scientific Data Analysis
 
@@ -39,14 +39,14 @@ SciREX is an open-source scientific computing and machine learning framework des
   - Benchmark Datasets
   - Performance Metrics
 
-## 📖 Documentation
+## Documentation
 
-Visit our [documentation](https://scirex-airexlab.netlify.app) for:
+Visit our [documentation](https://scirex.org/docs/) for:
 - Getting Started Guide
 - Tutorials and Examples
 - Contribution Guidelines
 
-## 📄 License
+## License
 
 Copyright (c) 2024 Zenteiq Aitech Innovations Private Limited and AiREX Lab, Indian Institute of Science, Bangalore.
 All rights reserved.
@@ -68,34 +68,19 @@ Unless required by applicable law or agreed to in writing, software distributed 
 - Third-party libraries and dependencies are subject to their respective licenses
 - Mathematical algorithms and scientific methods implemented may be subject to their own patents or licenses
 
-## ✨ Contributing
+## Contributing
 
 We welcome contributions from both the research and industrial communities! Please see our [Contributing Guidelines](CONTRIBUTING.md) for details.
 
-## 📚 Citation
-
-If you use SciREX in your research, please cite:
-
-```bibtex
-@software{scirex2024,
-  title = {SciREX: Scientific Research and Engineering eXcellence},
-  author = {{Zenteiq Aitech Innovations} and {AiREX Lab}},
-  year = {2024},
-  url = {https://scirex.org},
-  version = {1.0.0},
-  doi = {10.xxxx/xxxxx}
-}
-```
-
-## 🤝 Community
+## Community
 
 - <a href="https://discord.gg/NWcCPx22Hq/" target="_blank">Discord</a>
 
-## 🤝 Official Partners
+## Official Partners
 
 - [**ARTPARK**](https://artpark.in) (AI & Robotics Technology Park) at IISc
 - In discussion with NVIDIA and other technology companies
 
-## 🌟 Acknowledgments
+## Acknowledgments
 
 SciREX is developed and maintained through the collaborative efforts of Zenteiq Aitech Innovations and the AiREX Lab at IISc Bangalore. We thank all contributors from both industry and academia for their valuable input and support in advancing scientific computing.
