@@ -78,6 +78,7 @@ decoderLayers = [
     nn.Linear(64, 128, key=keys[1]),  # Second dense layer
     nn.relu,  # Activation
     nn.Linear(128, 784, key=keys[2]),  # Output layer (28*28=784)
+    nn.sigmoid,
     lambda x: x.reshape(-1, 28, 28),  # Reshape to image dimensions
 ]
 
