@@ -149,7 +149,7 @@ run(kmeans_blobs, X_blobs, "blobs")
 run(kmeans_moons, X_moons, "moons")
 ```
 
-### Example outputes
+### Example Outputs
 
 ```python
 #For blobs dataset
