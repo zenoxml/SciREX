@@ -1,4 +1,6 @@
 site_name: .
+site_name: .
+
 theme:
   name: material
   features:
@@ -13,20 +15,12 @@ theme:
     - content.code.copy
   language: en
   palette:
-    - scheme: default
-      toggle:
-        icon: material/toggle-switch-off-outline 
-        name: Switch to dark mode
-      primary: teal
-      accent: purple 
-    - scheme: slate 
-      toggle:
-        icon: material/toggle-switch
-        name: Switch to light mode    
-      primary: teal
-      accent: lime
+    scheme: slate   # Enforces dark mode
+    primary: teal
+    accent: light-blue
+  logo: assets/image.png
+  favicon: assets/favicon.ico
 
-    
   logo: assets/image.png
 
 
@@ -53,8 +47,25 @@ nav:
                   - Dbscan: api/core/ml/unsupervised/clustering/dbscan.md
                   - Optics: api/core/ml/unsupervised/clustering/optics.md
       - Deep Learning: 
+          - NN :
+            - activation: api/core/dl/nn/activation.md
+            - loss: api/core/dl/nn/loss.md
+            - metrics: api/core/dl/nn/metrics.md
+            - others: api/core/dl/nn/others.md
+          - Layer :
+            - attention : api/core/dl/layer/attention.md
+            - convolution : api/core/dl/layer/convolution.md
+            - dropout : api/core/dl/layer/dropout.md
+            - embeddings : api/core/dl/layer/embeddings.md
+            - linear : api/core/dl/layer/linear.md
+            - normalisation : api/core/dl/layer/normalisation.md
+            - pooling : api/core/dl/layer/pooling.md
+            - recurrent : api/core/dl/layer/recurrent.md
+            - sequential : api/core/dl/layer/sequential.md
           - tensorflow_wrapper: api/core/dl/tensorflow_wrapper.md
           - fcnn: api/core/dl/fcnn.md
+          - base: api/core/dl/base.md
+          - MLP: api/core/dl/mlp.md
       - SciML:
           - PINNS:
             - Model:
@@ -103,13 +114,27 @@ nav:
               - cd2d: api/core/sciml/fastvpinns/physics/cd2d.md
               - helmholtz2d: api/core/sciml/fastvpinns/physics/helmholtz2d.md
               - poisson2d:  api/core/sciml/fastvpinns/physics/poisson2d.md
-              - poissson2d Inverse :   api/core/sciml/fastvpinns/physics/poisson_2d_inverse.md          
-          - Super Resolution:      
-              - Super Resolution: api/core/sciml/superresolution.md
+              - poissson2d Inverse :   api/core/sciml/fastvpinns/physics/poisson_2d_inverse.md 
       - Model compression:
           - pruning: api/core/model_compression/pruning.md
           - quantization: api/core/model_compression/quantization.md
   - Examples:
+        - ML:
+          - superivised :
+             - classification:
+               - example logistic regresssion: api/core/examples/ml/supervised/classification/example_logistic_regression.md
+               - example naive bayes: api/core/examples/ml/supervised/classification/example_naive_bayes.md
+          - unsupervised :
+             - clustering:
+               - example Kmeans: api/core/examples/ml/unsupervised/clustering/example_naive_bayes.md
+        - DL:
+          - cnn_mnist : api/core/examples/dl/cnn_mnist.md
+          - vae_mnist : api/core/examples/dl/vae_mnist.md
+        - Model compression:
+          - pruned base mnist: api/core/examples/model compression/pruned_base_mnist.md
+          - pruned mnist: api/core/examples/model compression/pruned_mnist.md
+          - quantized base mnist: api/core/examples/model compression/quantized_base_mnist.md
+          - quantized mnist: api/core/examples/model compression/quantized_mnist.md
         - Sciml:
           - Fastvpinns:
              - example helmhotlz2d: api/core/examples/sciml/fastvpinns/example_helmholtz2d.md
@@ -119,6 +144,8 @@ nav:
              - example_burgers: api/core/examples/sciml/fno/example_burgers.md 
              - example_heat: api/core/examples/sciml/fno/example_heat.md 
              - example_wave: api/core/examples/sciml/fno/example_wave.md 
+          - PINNs   :
+             - example_poisson2d: api/core/examples/sciml/pinns/forwardproblems/example_poisson2d.md
   - Contribution:
           - contribution: api/core/Contribution/contribution.md         
 markdown_extensions:
@@ -150,7 +177,7 @@ plugins:
               
   - search:
       lang: en
-      #separator: "[\s\-]+"
+      #separator: "[/s/-]+"
 
 extra_css:
   - assets/custom.css  # Custom vibrant colors
