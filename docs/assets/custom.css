@@ -1,32 +1,41 @@
-/* Make Site Name Invisible (Black Text) */
-.md-header__inner .md-header__title {
-    font-size: 0.1rem !important; /* Reduce the size of the dot */
-    color: #000000 !important; /* Set the color to black */
-    visibility: visible !important; /* Ensure the dot remains visible */
-}
-
-/* If Header Background is Not Black */
-.md-header {
-    background-color: #000000 !important; /* Ensure the header matches the dot */
-}
-
-/* General Background Styling with Vertical Binary Pattern */
+/* ===================== */
+/* Global Dark Theme Styling */
+/* ===================== */
 body {
-    background: url('../assets/binary-bg.png') repeat-y center center;
-    background-size: cover;
-    background-attachment: fixed;
-    background-color: #0d0d16; /* Fallback dark color */
-    color: #ffffff; /* Text color for readability */
-    font-family: 'Roboto', sans-serif;
+    background: url('../assets/binary-bg.png') repeat-y center center !important;
+    background-size: cover !important;
+    background-attachment: fixed !important;
+    background-color: #0d0d16 !important; /* Dark fallback */
+    color: #ffffff !important;
+    font-family: 'Roboto', sans-serif !important;
 }
 
+/* ===================== */
 /* Header Styling */
+/* ===================== */
 .md-header {
-    background: rgba(0, 0, 0, 0.2); /* Slight transparency */
-    border-bottom: 1px solid #2b2b2b;
+    background: rgba(0, 0, 0, 0.9) !important; /* Dark Header */
+    border-bottom: 1px solid #2b2b2b !important;
 }
 
-/* Navigation Bar */
+.md-header__title {
+    color: #020202 !important;
+}
+
+/* Logo Styling */
+.md-header__button.md-logo img {
+    max-height: 80px !important;
+    cursor: pointer !important;
+}
+
+/* ===================== */
+/* Sidebar Styling */
+/* ===================== */
+.md-sidebar {
+    background: rgba(13, 13, 22, 0.95) !important; /* Dark Sidebar */
+    color: #ffffff !important;
+}
+
 .md-nav__link {
     color: #ffffff !important;
 }
@@ -35,64 +44,47 @@ body {
     color: #00aaff !important;
 }
 
-/* Hide Dark/Light Mode Toggle */
-.md-header__button[title="Switch to dark mode"],
-.md-header__button[title="Switch to light mode"] {
-    display: none !important;
+/* Active Sidebar Item */
+.md-nav__link--active {
+    background: rgba(0, 0, 0, 0.3) !important;
+    color: #00aaff !important;
 }
 
-/* Sidebar Styling */
-.md-sidebar {
-    background: rgba(13, 13, 22, 0.9); /* Slight transparency */
-    color: #ffffff;
-}
-
+/* ===================== */
 /* Main Content Styling */
+/* ===================== */
 .md-content {
-    background: rgba(13, 13, 22, 0.95); /* Slight transparency */
-    color: #ffffff;
+    background: rgba(13, 13, 22, 0.95) !important; /* Dark Content */
+    color: #ffffff !important;
     border-radius: 5px;
     padding: 20px;
 }
 
-/* Code Blocks Styling */
+/* Code Blocks */
 code {
-    background: #1e1e2e;
-    color: #00ffcc;
+    background: #1e1e2e !important;
+    color: #00ffcc !important;
 }
 
-/* Links Styling */
-a {
-    color: #00aaff;
-    text-decoration: none;
+/* Inline Code */
+.md-typeset code {
+    background: #1e1e2e !important;
+    color: #00ffcc !important;
 }
 
-a:hover {
-    text-decoration: underline;
+/* Admonitions and Alerts */
+.md-typeset .admonition {
+    background: rgba(20, 20, 30, 0.95) !important;
+    color: #ffffff !important;
+    border: 1px solid #2b2b2b !important;
 }
 
-/* Dropdown Menu Styling */
-.md-nav__item--nested > .md-nav__link {
-    background: transparent !important;
-    box-shadow: none !important;
-    outline: none !important;
-}
-
-.md-nav__item--nested > .md-nav__link:hover {
-    background: rgba(0, 0, 0, 0.2) !important;
-}
-
-/* Active Dropdown Item */
-.md-nav__link--active {
-    background: transparent !important;
-    box-shadow: none !important;
-    outline: none !important;
-}
-
-/* Adjust Search Bar Colors */
+/* ===================== */
+/* Search Bar Styling */
+/* ===================== */
 .md-search__form {
     background: #1a1a2e !important;
-    border: 1px solid #2b2b2b;
+    border: 1px solid #2b2b2b !important;
 }
 
 .md-search__input {
@@ -100,27 +92,111 @@ a:hover {
     color: #ffffff !important;
 }
 
+/* ===================== */
+/* Buttons and Alerts */
+/* ===================== */
+.md-button {
+    background: #00aaff !important;
+    color: #ffffff !important;
+    border: none !important;
+}
+
+.md-button:hover {
+    background: #0088cc !important;
+}
+
 /* Active Tab Highlight */
 .md-tabs__link--active {
     color: #00aaff !important;
     border-bottom: 2px solid #00aaff !important;
-    background: transparent !important;
+}
+
+/* ===================== */
+/* Remove Any Remaining White Areas */
+/* ===================== */
+.md-typeset .highlight,
+.md-typeset .highlight pre {
+    background: #1e1e2e !important;
+    color: #00ffcc !important;
+}
+
+/* Remove Dark/Light Toggle */
+.md-header__button[title="Switch to light mode"],
+.md-header__button[title="Switch to dark mode"] {
+    display: none !important;
+}
+
+/* ===================== */
+/* General Text Colors */
+/* ===================== */
+
+/* Change vibrant green to subtle white/grey for code and highlighted text */
+code,
+.md-typeset code,
+.md-typeset .highlight code {
+    background: #1e1e2e !important;
+    color: #cccccc !important; /* Plain grey text */
+}
+
+/* Adjust Inline Code Color */
+.md-typeset code {
+    color: #cccccc !important; /* Subtle grey for inline code */
+}
+
+/* Adjust Links in Code Blocks */
+.md-typeset a,
+.md-typeset .highlight .na {
+    color: #cccccc !important;
+    text-decoration: none;
+}
+
+.md-typeset a:hover,
+.md-typeset .highlight .na:hover {
+    text-decoration: underline;
+}
+
+/* ===================== */
+/* Remove White Shade Around Active Navigation Item */
+/* ===================== */
+
+.md-nav__item--nested > .md-nav__link,
+.md-nav__item--nested > .md-nav__link:hover,
+.md-nav__link--active {
+    background: transparent !important; /* Remove bright white shade */
     box-shadow: none !important;
     outline: none !important;
 }
 
+/* Remove Shade on Docs Title */
+.md-tabs__link--active,
 .md-tabs__link:focus,
 .md-tabs__link:hover {
     background: transparent !important;
     box-shadow: none !important;
     outline: none !important;
-}/* Make the logo clickable */
-.md-header__button.md-logo {
-    pointer-events: auto;
+    color: #ffffff !important; /* Keep text white */
 }
 
-/* Adjust the logo container to ensure the click works */
-.md-header__button.md-logo img {
-    cursor: pointer;
+/* ===================== */
+/* Sidebar and Active Nav Item Adjustments */
+/* ===================== */
+
+.md-nav__link--active {
+    background: transparent !important; /* Remove highlight */
+    color: #ffffff !important; /* White text for active item */
+}
+
+/* ===================== */
+/* Highlight Adjustments for Code Syntax */
+/* ===================== */
+.highlight .o,
+.highlight .p,
+.highlight .k {
+    color: #cccccc !important; /* Adjust operators and keywords to subtle grey */
+}
+
+.highlight .n,
+.highlight .s {
+    color: #cccccc !important; /* Adjust normal text in code blocks */
 }
 
