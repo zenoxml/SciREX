@@ -51,7 +51,7 @@ from os import path
 import jax
 import jax.numpy as jnp
 import optax
-import numpy as np
+
 from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report
 import matplotlib.pyplot as plt
 from tensorflow.keras.datasets import mnist
