@@ -51,6 +51,9 @@ from os import path
 import jax
 import jax.numpy as jnp
 import optax
+import numpy as np
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay, classification_report
+import matplotlib.pyplot as plt
 from tensorflow.keras.datasets import mnist
 
 from scirex.core.dl import Model, Network
@@ -148,3 +151,18 @@ print(f"Test Accuracy: {test_acc[0]:.4f}")
 
 # Save training history plot
 model.plot_history("mnist-cnn.png")
+
+#Confusion Matrix
+pred_labels=model.predict(test_images)
+# Display confusion matrix
+classes=[0,1,2,3,4,5,6,7,8,9]
+disp = ConfusionMatrixDisplay(
+    confusion_matrix(test_labels,pred_labels),
+    display_labels=classes
+    )
+disp.plot(cmap=plt.cm.Blues)
+plt.title('Confusion Matrix')
+plt.show()
+
+#classification_report
+print("\n\nReport: \n", classification_report(test_labels,pred_labels))
