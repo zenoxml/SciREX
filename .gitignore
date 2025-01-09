@@ -31,7 +31,7 @@ examples/**/output/
 examples/**/output_*
 examples/**/__pycache__/
 
-output/*
+output/
 
 
 # pytest 
