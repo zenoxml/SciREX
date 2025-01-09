@@ -29,6 +29,7 @@ import optax
 import matplotlib.pyplot as plt
 import scipy
 import os
+import requests
 
 from tqdm.autonotebook import tqdm
 
@@ -36,6 +37,22 @@ from scirex.core.sciml.fno.models.fno import FNO1d
 
 # Load the data
 # !wget https://ssd.mathworks.com/supportfiles/nnet/data/burgers1d/burgers_data_R10.mat -P data/fno
+print("Downloading data")
+os.makedirs("data/fno", exist_ok=True)
+url = "https://ssd.mathworks.com/supportfiles/nnet/data/burgers1d/burgers_data_R10.mat"
+response = requests.get(url, stream=True)
+total_size = int(response.headers.get('content-length', 0))
+block_size = 1024  # 1 Kibibyte
+t = tqdm(total=total_size, unit='iB', unit_scale=True)
+ 
+with open("data/fno/burgers_data_R10.mat", "wb") as f:
+    for data in response.iter_content(block_size):
+        t.update(len(data))
+        f.write(data)
+t.close()
+if total_size != 0 and t.n != total_size:
+    print("ERROR, something went wrong")
+
 data = scipy.io.loadmat("data/fno/burgers_data_R10.mat")
 
 a, u = data["a"], data["u"]
