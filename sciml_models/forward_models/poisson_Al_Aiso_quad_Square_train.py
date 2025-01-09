@@ -1,5 +1,3 @@
-
-
 """
 Example script for solving a 2D Poisson equation using FastvPINNs.
 
@@ -64,9 +62,7 @@ def left_boundary(x, y):
     This function will return the boundary value for given component of a boundary
     """
     val = 0.0
-    return np.cos(x)*np.sin(y**2 + x)
-
-
+    return np.cos(x) * np.sin(y**2 + x)
 
 
 def right_boundary(x, y):
@@ -74,9 +70,7 @@ def right_boundary(x, y):
     This function will return the boundary value for given component of a boundary
     """
     val = 0.0
-    return np.cos(x)*np.sin(y**2 + x)
-
-
+    return np.cos(x) * np.sin(y**2 + x)
 
 
 def top_boundary(x, y):
@@ -84,9 +78,7 @@ def top_boundary(x, y):
     This function will return the boundary value for given component of a boundary
     """
     val = 0.0
-    return np.cos(x)*np.sin(y**2 + x)
-
-
+    return np.cos(x) * np.sin(y**2 + x)
 
 
 def bottom_boundary(x, y):
@@ -94,7 +86,7 @@ def bottom_boundary(x, y):
     This function will return the boundary value for given component of a boundary
     """
     val = 0.0
-    return np.cos(x)*np.sin(y**2 + x)
+    return np.cos(x) * np.sin(y**2 + x)
 
 
 def rhs(x, y):
@@ -105,7 +97,14 @@ def rhs(x, y):
     omegaY = 2.0 * np.pi
     f_temp = -2.0 * (omegaX**2) * (np.sin(omegaX * x) * np.sin(omegaY * y))
 
-    return 4*y**2*(2*x - 3*y**2)*np.sin(x + y**2)*np.cos(x) + 12*y**2*np.cos(x)*np.cos(x + y**2) + 2*(-2*x + 3*y**2)*np.cos(x)*np.cos(x + y**2) + 2*(2*x - 3*y**2)*np.sin(2*x + y**2) + 2*np.sin(x)*np.sin(x + y**2) - 2*np.cos(x)*np.cos(x + y**2)
+    return (
+        4 * y**2 * (2 * x - 3 * y**2) * np.sin(x + y**2) * np.cos(x)
+        + 12 * y**2 * np.cos(x) * np.cos(x + y**2)
+        + 2 * (-2 * x + 3 * y**2) * np.cos(x) * np.cos(x + y**2)
+        + 2 * (2 * x - 3 * y**2) * np.sin(2 * x + y**2)
+        + 2 * np.sin(x) * np.sin(x + y**2)
+        - 2 * np.cos(x) * np.cos(x + y**2)
+    )
 
 
 def exact_solution(x, y):
@@ -119,8 +118,7 @@ def exact_solution(x, y):
     omegaY = 2.0 * np.pi
     val = -1.0 * np.sin(omegaX * x) * np.sin(omegaY * y)
 
-    return np.cos(x)*np.sin(y**2 + x)
-
+    return np.cos(x) * np.sin(y**2 + x)
 
 
 def get_boundary_function_dict():
@@ -142,11 +140,11 @@ def get_bound_cond_dict():
     return {1000: "dirichlet", 1001: "dirichlet", 1002: "dirichlet", 1003: "dirichlet"}
 
 
-def get_bilinear_params_dict(x,y):
+def get_bilinear_params_dict(x, y):
     """
     This function will return a dictionary of bilinear parameters
     """
-    eps = 2*x - 3*(y*y)
+    eps = 2 * x - 3 * (y * y)
 
     return {"eps": eps}
 
@@ -209,7 +207,9 @@ params_dict = {}
 params_dict["n_cells"] = fespace.n_cells
 
 from scirex.core.sciml.fastvpinns.model.model_anisotropic import DenseModelAnisotropic
-from scirex.core.sciml.fastvpinns.physics.poisson2d_anisotropic import pde_loss_poisson_anisotropic
+from scirex.core.sciml.fastvpinns.physics.poisson2d_anisotropic import (
+    pde_loss_poisson_anisotropic,
+)
 
 params_dict = {}
 params_dict["n_cells"] = fespace.n_cells
@@ -220,11 +220,15 @@ train_dirichlet_input, train_dirichlet_output = datahandler.get_dirichlet_input(
 # get bilinear parameters
 # this function will obtain the values of the bilinear parameters from the model
 # and convert them into tensors of desired dtype
-bilinear_params_dict = get_bilinear_params_dict(datahandler.x_pde_list[:,0:1], datahandler.x_pde_list[:,1:2])
+bilinear_params_dict = get_bilinear_params_dict(
+    datahandler.x_pde_list[:, 0:1], datahandler.x_pde_list[:, 1:2]
+)
 
 # convert all the tensors to the desired dtype
 for key in bilinear_params_dict.keys():
-    bilinear_params_dict[key] = tf.convert_to_tensor(bilinear_params_dict[key], dtype=i_dtype)
+    bilinear_params_dict[key] = tf.convert_to_tensor(
+        bilinear_params_dict[key], dtype=i_dtype
+    )
 
 model = DenseModelAnisotropic(
     layer_dims=[2, 30, 30, 30, 1],
@@ -272,7 +276,9 @@ for epoch in tqdm(range(i_num_epochs)):
         l2_error = np.sqrt(np.mean(error**2))
         l1_error = np.mean(np.abs(error))
         l_inf_error = np.max(np.abs(error))
-        print(f"loss: {loss['loss']}, l2 Error: {l2_error}. l1 Error: {l1_error} linf : {l_inf_error}")
+        print(
+            f"loss: {loss['loss']}, l2 Error: {l2_error}. l1 Error: {l1_error} linf : {l_inf_error}"
+        )
 
 
 # Get predicted values from the model
@@ -282,10 +288,10 @@ y_pred = y_pred.reshape(-1)
 # compute the error
 error = np.abs(y_exact - y_pred)
 
-## Figure Plots. 
+## Figure Plots.
 
 # Assuming 'folder' is already defined and concatenated with 'model'
-output_folder = folder / 'results'
+output_folder = folder / "results"
 
 # Create the output folder if it doesn't exist
 output_folder.mkdir(parents=True, exist_ok=True)
@@ -298,7 +304,7 @@ plt.xlabel("Epochs")
 plt.ylabel("Loss")
 plt.yscale("log")
 plt.tight_layout()
-plt.savefig(str(output_folder / 'loss_plot.png'))
+plt.savefig(str(output_folder / "loss_plot.png"))
 plt.close()  # Close the figure to free memory
 
 # 2. Exact Solution Contour Plot
@@ -309,7 +315,7 @@ plt.xlabel("x")
 plt.ylabel("y")
 cbar = plt.colorbar(contour_exact)
 plt.tight_layout()
-plt.savefig(str(output_folder / 'exact_solution.png'))
+plt.savefig(str(output_folder / "exact_solution.png"))
 plt.close()
 
 # 3. Predicted Solution Contour Plot
@@ -320,7 +326,7 @@ plt.xlabel("x")
 plt.ylabel("y")
 cbar = plt.colorbar(contour_pred)
 plt.tight_layout()
-plt.savefig(str(output_folder / 'predicted_solution.png'))
+plt.savefig(str(output_folder / "predicted_solution.png"))
 plt.close()
 
 # 4. Error Contour Plot
@@ -331,7 +337,7 @@ plt.xlabel("x")
 plt.ylabel("y")
 cbar = plt.colorbar(contour_error)
 plt.tight_layout()
-plt.savefig(str(output_folder / 'error_plot.png'))
+plt.savefig(str(output_folder / "error_plot.png"))
 plt.close()
 
 
@@ -358,34 +364,49 @@ print(error_df)
 
 
 # Create the output folder with subfolder 'model'
-output_folder = folder / 'model'
-output_folder.mkdir(parents=True, exist_ok=True)  # Create the directory if it doesn't exist
+output_folder = folder / "model"
+output_folder.mkdir(
+    parents=True, exist_ok=True
+)  # Create the directory if it doesn't exist
 
 # Full path to save weights with a proper filename (e.g., 'model_weights.h5')
-weights_file_path = output_folder / 'model_poisson_al_aiso_quad_square_weights.h5'
+weights_file_path = output_folder / "model_poisson_al_aiso_quad_square_weights.h5"
 
-# save the model weights to the folder 
-model.save_weights(str(weights_file_path))  # Save the model in the SavedModel 
+# save the model weights to the folder
+model.save_weights(str(weights_file_path))  # Save the model in the SavedModel
 
 from tensorflow.keras import layers, models
 
 
-layer_dims = [2,30,30,30,1]
+layer_dims = [2, 30, 30, 30, 1]
 
 # Create a Sequential model
 model = models.Sequential()
 
 # Add the hidden layers (except the last layer, which will have no activation)
 for dim in layer_dims[1:-1]:
-    model.add(layers.Dense(units=dim, activation='tanh', kernel_initializer='glorot_uniform', bias_initializer='zeros'))
+    model.add(
+        layers.Dense(
+            units=dim,
+            activation="tanh",
+            kernel_initializer="glorot_uniform",
+            bias_initializer="zeros",
+        )
+    )
 
 # Add the output layer with no activation function
-model.add(layers.Dense(units=layer_dims[-1], activation=None, kernel_initializer='glorot_uniform', bias_initializer='zeros'))
-
+model.add(
+    layers.Dense(
+        units=layer_dims[-1],
+        activation=None,
+        kernel_initializer="glorot_uniform",
+        bias_initializer="zeros",
+    )
+)
 
 
 # Compile the model
-model.compile(optimizer=tf.keras.optimizers.Adam(), loss='mean_squared_error')
+model.compile(optimizer=tf.keras.optimizers.Adam(), loss="mean_squared_error")
 
 # Build the model with input shape of (None, 2) (which is equivalent to (?, 2))
 model.build(input_shape=(None, 2))
@@ -427,7 +448,7 @@ print(error_df)
 
 
 # Assuming 'folder' is already defined and concatenated with 'model'
-output_folder = folder / 'results_inference'
+output_folder = folder / "results_inference"
 
 # Create the output folder if it doesn't exist
 output_folder.mkdir(parents=True, exist_ok=True)
@@ -440,7 +461,7 @@ plt.xlabel("Epochs")
 plt.ylabel("Loss")
 plt.yscale("log")
 plt.tight_layout()
-plt.savefig(str(output_folder / 'loss_plot.png'))
+plt.savefig(str(output_folder / "loss_plot.png"))
 plt.close()  # Close the figure to free memory
 
 # 2. Exact Solution Contour Plot
@@ -451,7 +472,7 @@ plt.xlabel("x")
 plt.ylabel("y")
 cbar = plt.colorbar(contour_exact)
 plt.tight_layout()
-plt.savefig(str(output_folder / 'exact_solution.png'))
+plt.savefig(str(output_folder / "exact_solution.png"))
 plt.close()
 
 # 3. Predicted Solution Contour Plot
@@ -462,7 +483,7 @@ plt.xlabel("x")
 plt.ylabel("y")
 cbar = plt.colorbar(contour_pred)
 plt.tight_layout()
-plt.savefig(str(output_folder / 'predicted_solution.png'))
+plt.savefig(str(output_folder / "predicted_solution.png"))
 plt.close()
 
 # 4. Error Contour Plot
@@ -473,5 +494,5 @@ plt.xlabel("x")
 plt.ylabel("y")
 cbar = plt.colorbar(contour_error)
 plt.tight_layout()
-plt.savefig(str(output_folder / 'error_plot.png'))
+plt.savefig(str(output_folder / "error_plot.png"))
 plt.close()

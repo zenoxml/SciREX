@@ -1,5 +1,3 @@
-
-
 """
 Example script for solving a 2D Poisson equation using FastvPINNs.
 
@@ -67,8 +65,9 @@ def circle_boundary(x, y):
     """
     This function will return the value of the boundary at a given point
     """
-    
+
     return x**2 + y**2
+
 
 def get_boundary_function_dict():
     """
@@ -76,11 +75,13 @@ def get_boundary_function_dict():
     """
     return {1000: circle_boundary}
 
+
 def get_bound_cond_dict():
     """
     This function will return a dictionary of boundary conditions
     """
     return {1000: "dirichlet"}
+
 
 def exact_solution(x, y):
     """
@@ -91,13 +92,13 @@ def exact_solution(x, y):
 
     return x**2 + y**2
 
+
 def rhs(x, y):
     """
     This function will return the value of the rhs at a given point
     """
-    epsilon = 97.1 # based on material property of aluminium
+    epsilon = 97.1  # based on material property of aluminium
     return -4.0 * epsilon
-        
 
 
 def get_bilinear_params_dict():
@@ -227,7 +228,9 @@ for epoch in tqdm(range(i_num_epochs)):
         l2_error = np.sqrt(np.mean(error**2))
         l1_error = np.mean(np.abs(error))
         l_inf_error = np.max(np.abs(error))
-        print(f"loss: {loss['loss']}, l2 Error: {l2_error}. l1 Error: {l1_error} linf : {l_inf_error}")
+        print(
+            f"loss: {loss['loss']}, l2 Error: {l2_error}. l1 Error: {l1_error} linf : {l_inf_error}"
+        )
 
 
 # Get predicted values from the model
@@ -237,10 +240,10 @@ y_pred = y_pred.reshape(-1)
 # compute the error
 error = np.abs(y_exact - y_pred)
 
-## Figure Plots. 
+## Figure Plots.
 
 # Assuming 'folder' is already defined and concatenated with 'model'
-output_folder = folder / 'results'
+output_folder = folder / "results"
 
 # Create the output folder if it doesn't exist
 output_folder.mkdir(parents=True, exist_ok=True)
@@ -253,7 +256,7 @@ plt.xlabel("Epochs")
 plt.ylabel("Loss")
 plt.yscale("log")
 plt.tight_layout()
-plt.savefig(str(output_folder / 'loss_plot.png'))
+plt.savefig(str(output_folder / "loss_plot.png"))
 plt.close()  # Close the figure to free memory
 
 # 2. Exact Solution Contour Plot
@@ -264,7 +267,7 @@ plt.xlabel("x")
 plt.ylabel("y")
 cbar = plt.colorbar(contour_exact)
 plt.tight_layout()
-plt.savefig(str(output_folder / 'exact_solution.png'))
+plt.savefig(str(output_folder / "exact_solution.png"))
 plt.close()
 
 # 3. Predicted Solution Contour Plot
@@ -275,7 +278,7 @@ plt.xlabel("x")
 plt.ylabel("y")
 cbar = plt.colorbar(contour_pred)
 plt.tight_layout()
-plt.savefig(str(output_folder / 'predicted_solution.png'))
+plt.savefig(str(output_folder / "predicted_solution.png"))
 plt.close()
 
 # 4. Error Contour Plot
@@ -286,7 +289,7 @@ plt.xlabel("x")
 plt.ylabel("y")
 cbar = plt.colorbar(contour_error)
 plt.tight_layout()
-plt.savefig(str(output_folder / 'error_plot.png'))
+plt.savefig(str(output_folder / "error_plot.png"))
 plt.close()
 
 
@@ -313,34 +316,49 @@ print(error_df)
 
 
 # Create the output folder with subfolder 'model'
-output_folder = folder / 'model'
-output_folder.mkdir(parents=True, exist_ok=True)  # Create the directory if it doesn't exist
+output_folder = folder / "model"
+output_folder.mkdir(
+    parents=True, exist_ok=True
+)  # Create the directory if it doesn't exist
 
 # Full path to save weights with a proper filename (e.g., 'model_weights.h5')
-weights_file_path = output_folder / 'model_poisson_al_iso_circle_weights.h5'
+weights_file_path = output_folder / "model_poisson_al_iso_circle_weights.h5"
 
-# save the model weights to the folder 
-model.save_weights(str(weights_file_path))  # Save the model in the SavedModel 
+# save the model weights to the folder
+model.save_weights(str(weights_file_path))  # Save the model in the SavedModel
 
 from tensorflow.keras import layers, models
 
 
-layer_dims = [2,30,30,30,1]
+layer_dims = [2, 30, 30, 30, 1]
 
 # Create a Sequential model
 model = models.Sequential()
 
 # Add the hidden layers (except the last layer, which will have no activation)
 for dim in layer_dims[1:-1]:
-    model.add(layers.Dense(units=dim, activation='tanh', kernel_initializer='glorot_uniform', bias_initializer='zeros'))
+    model.add(
+        layers.Dense(
+            units=dim,
+            activation="tanh",
+            kernel_initializer="glorot_uniform",
+            bias_initializer="zeros",
+        )
+    )
 
 # Add the output layer with no activation function
-model.add(layers.Dense(units=layer_dims[-1], activation=None, kernel_initializer='glorot_uniform', bias_initializer='zeros'))
-
+model.add(
+    layers.Dense(
+        units=layer_dims[-1],
+        activation=None,
+        kernel_initializer="glorot_uniform",
+        bias_initializer="zeros",
+    )
+)
 
 
 # Compile the model
-model.compile(optimizer=tf.keras.optimizers.Adam(), loss='mean_squared_error')
+model.compile(optimizer=tf.keras.optimizers.Adam(), loss="mean_squared_error")
 
 # Build the model with input shape of (None, 2) (which is equivalent to (?, 2))
 model.build(input_shape=(None, 2))
@@ -382,7 +400,7 @@ print(error_df)
 
 
 # Assuming 'folder' is already defined and concatenated with 'model'
-output_folder = folder / 'results_inference'
+output_folder = folder / "results_inference"
 
 # Create the output folder if it doesn't exist
 output_folder.mkdir(parents=True, exist_ok=True)
@@ -395,7 +413,7 @@ plt.xlabel("Epochs")
 plt.ylabel("Loss")
 plt.yscale("log")
 plt.tight_layout()
-plt.savefig(str(output_folder / 'loss_plot.png'))
+plt.savefig(str(output_folder / "loss_plot.png"))
 plt.close()  # Close the figure to free memory
 
 # 2. Exact Solution Contour Plot
@@ -406,7 +424,7 @@ plt.xlabel("x")
 plt.ylabel("y")
 cbar = plt.colorbar(contour_exact)
 plt.tight_layout()
-plt.savefig(str(output_folder / 'exact_solution.png'))
+plt.savefig(str(output_folder / "exact_solution.png"))
 plt.close()
 
 # 3. Predicted Solution Contour Plot
@@ -417,7 +435,7 @@ plt.xlabel("x")
 plt.ylabel("y")
 cbar = plt.colorbar(contour_pred)
 plt.tight_layout()
-plt.savefig(str(output_folder / 'predicted_solution.png'))
+plt.savefig(str(output_folder / "predicted_solution.png"))
 plt.close()
 
 # 4. Error Contour Plot
@@ -428,5 +446,5 @@ plt.xlabel("x")
 plt.ylabel("y")
 cbar = plt.colorbar(contour_error)
 plt.tight_layout()
-plt.savefig(str(output_folder / 'error_plot.png'))
+plt.savefig(str(output_folder / "error_plot.png"))
 plt.close()
