@@ -20,7 +20,6 @@ from tqdm import tqdm
 from scirex.core.sciml.geometry.geometry_2d import Geometry_2D
 from scirex.core.sciml.fe.fespace2d import Fespace2D
 from scirex.core.sciml.fastvpinns.data.datahandler2d import DataHandler2D
-
 i_mesh_type = "quadrilateral"  # "quadrilateral"
 i_mesh_generation_method = "internal"  # "internal" or "external"
 i_x_min = -1  # minimum x value
@@ -147,7 +146,6 @@ def get_bilinear_params_dict():
 
     return {"eps": eps}
 
-
 ## CREATE OUTPUT FOLDER
 # use pathlib to create the folder,if it does not exist
 folder = Path(i_output_path)
@@ -250,117 +248,6 @@ test_points = domain.get_test_points()
 print(f"[bold]Number of Test Points = [/bold] {test_points.shape[0]}")
 y_exact = exact_solution(test_points[:, 0], test_points[:, 1])
 
-for epoch in tqdm(range(i_num_epochs)):
-    # Train the model
-    batch_start_time = time.time()
-    loss = model.train_step(beta=i_beta, bilinear_params_dict=bilinear_params_dict)
-    elapsed = time.time() - batch_start_time
-
-    # print(elapsed)
-    time_array.append(elapsed)
-
-    loss_array.append(loss["loss"])
-
-    if (epoch + 1) % 1000 == 0:
-        y_test_pred = model(test_points).numpy().reshape(-1)
-        error = y_test_pred - y_exact
-        l2_error = np.sqrt(np.mean(error**2))
-        l1_error = np.mean(np.abs(error))
-        l_inf_error = np.max(np.abs(error))
-        print(f"loss: {loss['loss']}, l2 Error: {l2_error}. l1 Error: {l1_error} linf : {l_inf_error}")
-
-
-# Get predicted values from the model
-y_pred = model(test_points).numpy()
-y_pred = y_pred.reshape(-1)
-
-# compute the error
-error = np.abs(y_exact - y_pred)
-
-## Figure Plots. 
-
-# Assuming 'folder' is already defined and concatenated with 'model'
-output_folder = folder / 'results'
-
-# Create the output folder if it doesn't exist
-output_folder.mkdir(parents=True, exist_ok=True)
-
-# 1. Loss Plot
-plt.figure(figsize=(6.4, 4.8), dpi=300)
-plt.plot(loss_array)
-plt.title("Loss Plot")
-plt.xlabel("Epochs")
-plt.ylabel("Loss")
-plt.yscale("log")
-plt.tight_layout()
-plt.savefig(str(output_folder / 'loss_plot.png'))
-plt.close()  # Close the figure to free memory
-
-# 2. Exact Solution Contour Plot
-plt.figure(figsize=(6.4, 4.8), dpi=300)
-contour_exact = plt.tricontourf(test_points[:, 0], test_points[:, 1], y_exact, 100)
-plt.title("Exact Solution")
-plt.xlabel("x")
-plt.ylabel("y")
-cbar = plt.colorbar(contour_exact)
-plt.tight_layout()
-plt.savefig(str(output_folder / 'exact_solution.png'))
-plt.close()
-
-# 3. Predicted Solution Contour Plot
-plt.figure(figsize=(6.4, 4.8), dpi=300)
-contour_pred = plt.tricontourf(test_points[:, 0], test_points[:, 1], y_pred, 100)
-plt.title("Predicted Solution")
-plt.xlabel("x")
-plt.ylabel("y")
-cbar = plt.colorbar(contour_pred)
-plt.tight_layout()
-plt.savefig(str(output_folder / 'predicted_solution.png'))
-plt.close()
-
-# 4. Error Contour Plot
-plt.figure(figsize=(6.4, 4.8), dpi=300)
-contour_error = plt.tricontourf(test_points[:, 0], test_points[:, 1], error, 100)
-plt.title("Error")
-plt.xlabel("x")
-plt.ylabel("y")
-cbar = plt.colorbar(contour_error)
-plt.tight_layout()
-plt.savefig(str(output_folder / 'error_plot.png'))
-plt.close()
-
-
-# print error statistics
-l2_error = np.sqrt(np.mean(error**2))
-l1_error = np.mean(np.abs(error))
-l_inf_error = np.max(np.abs(error))
-rel_l2_error = l2_error / np.sqrt(np.mean(y_exact**2))
-rel_l1_error = l1_error / np.mean(np.abs(y_exact))
-rel_l_inf_error = l_inf_error / np.max(np.abs(y_exact))
-
-# print the error statistics in a formatted table
-error_df = pd.DataFrame(
-    {
-        "L2 Error": [l2_error],
-        "L1 Error": [l1_error],
-        "L_inf Error": [l_inf_error],
-        "Relative L2 Error": [rel_l2_error],
-        "Relative L1 Error": [rel_l1_error],
-        "Relative L_inf Error": [rel_l_inf_error],
-    }
-)
-print(error_df)
-
-
-# Create the output folder with subfolder 'model'
-output_folder = folder / 'model'
-output_folder.mkdir(parents=True, exist_ok=True)  # Create the directory if it doesn't exist
-
-# Full path to save weights with a proper filename (e.g., 'model_weights.h5')
-weights_file_path = output_folder / 'model_poisson_cu_iso_square_weights.h5'
-
-# save the model weights to the folder 
-model.save_weights(str(weights_file_path))  # Save the model in the SavedModel 
 
 from tensorflow.keras import layers, models
 
@@ -389,14 +276,16 @@ model.build(input_shape=(None, 2))
 model.summary()
 
 
-# load the saved weights to the model
-# Create the output folder with subfolder 'model'
-model.load_weights(str(weights_file_path))
+# Load the model
+output_folder = folder / 'model' / "model_poisson_cu_iso_square_weights.h5"
+model.load_weights(str(output_folder))
 
 # Predict the solution
 pred_solution = model(test_points).numpy().reshape(-1)
 
 error = pred_solution - y_exact
+
+y_pred = pred_solution
 
 # print errors
 # print error statistics
@@ -427,6 +316,8 @@ output_folder = folder / 'results_inference'
 # Create the output folder if it doesn't exist
 output_folder.mkdir(parents=True, exist_ok=True)
 
+import numpy as np
+
 # 1. Loss Plot
 plt.figure(figsize=(6.4, 4.8), dpi=300)
 plt.plot(loss_array)
@@ -437,6 +328,9 @@ plt.yscale("log")
 plt.tight_layout()
 plt.savefig(str(output_folder / 'loss_plot.png'))
 plt.close()  # Close the figure to free memory
+
+# Save the loss_array as a CSV file
+np.savetxt(str(output_folder / 'loss_array.csv'), loss_array, delimiter=",")
 
 # 2. Exact Solution Contour Plot
 plt.figure(figsize=(6.4, 4.8), dpi=300)
@@ -449,6 +343,9 @@ plt.tight_layout()
 plt.savefig(str(output_folder / 'exact_solution.png'))
 plt.close()
 
+# Save the exact solution array as a CSV file
+np.savetxt(str(output_folder / 'y_exact.csv'), y_exact, delimiter=",")
+
 # 3. Predicted Solution Contour Plot
 plt.figure(figsize=(6.4, 4.8), dpi=300)
 contour_pred = plt.tricontourf(test_points[:, 0], test_points[:, 1], y_pred, 100)
@@ -460,6 +357,9 @@ plt.tight_layout()
 plt.savefig(str(output_folder / 'predicted_solution.png'))
 plt.close()
 
+# Save the predicted solution array as a CSV file
+np.savetxt(str(output_folder / 'y_pred.csv'), y_pred, delimiter=",")
+
 # 4. Error Contour Plot
 plt.figure(figsize=(6.4, 4.8), dpi=300)
 contour_error = plt.tricontourf(test_points[:, 0], test_points[:, 1], error, 100)
@@ -470,3 +370,6 @@ cbar = plt.colorbar(contour_error)
 plt.tight_layout()
 plt.savefig(str(output_folder / 'error_plot.png'))
 plt.close()
+
+# Save the error array as a CSV file
+np.savetxt(str(output_folder / 'error.csv'), error, delimiter=",")
