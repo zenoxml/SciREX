@@ -1,5 +1,3 @@
-
-
 """
 Example script for solving a 2D Poisson equation using FastvPINNs.
 
@@ -67,14 +65,12 @@ def left_boundary(x, y):
     return np.sin(x**2 + y**2)
 
 
-
 def right_boundary(x, y):
     """
     This function will return the boundary value for given component of a boundary
     """
     val = 0.0
     return np.sin(x**2 + y**2)
-
 
 
 def top_boundary(x, y):
@@ -85,14 +81,12 @@ def top_boundary(x, y):
     return np.sin(x**2 + y**2)
 
 
-
 def bottom_boundary(x, y):
     """
     This function will return the boundary value for given component of a boundary
     """
     val = 0.0
     return np.sin(x**2 + y**2)
-
 
 
 def rhs(x, y):
@@ -103,7 +97,11 @@ def rhs(x, y):
     omegaY = 2.0 * np.pi
     f_temp = -2.0 * (omegaX**2) * (np.sin(omegaX * x) * np.sin(omegaY * y))
 
-    return 388.4*x**2*np.sin(x**2 + y**2) + 388.4*y**2*np.sin(x**2 + y**2) - 388.4*np.cos(x**2 + y**2)
+    return (
+        388.4 * x**2 * np.sin(x**2 + y**2)
+        + 388.4 * y**2 * np.sin(x**2 + y**2)
+        - 388.4 * np.cos(x**2 + y**2)
+    )
 
 
 def exact_solution(x, y):
@@ -254,22 +252,35 @@ y_exact = exact_solution(test_points[:, 0], test_points[:, 1])
 from tensorflow.keras import layers, models
 
 
-layer_dims = [2,30,30,30,1]
+layer_dims = [2, 30, 30, 30, 1]
 
 # Create a Sequential model
 model = models.Sequential()
 
 # Add the hidden layers (except the last layer, which will have no activation)
 for dim in layer_dims[1:-1]:
-    model.add(layers.Dense(units=dim, activation='tanh', kernel_initializer='glorot_uniform', bias_initializer='zeros'))
+    model.add(
+        layers.Dense(
+            units=dim,
+            activation="tanh",
+            kernel_initializer="glorot_uniform",
+            bias_initializer="zeros",
+        )
+    )
 
 # Add the output layer with no activation function
-model.add(layers.Dense(units=layer_dims[-1], activation=None, kernel_initializer='glorot_uniform', bias_initializer='zeros'))
-
+model.add(
+    layers.Dense(
+        units=layer_dims[-1],
+        activation=None,
+        kernel_initializer="glorot_uniform",
+        bias_initializer="zeros",
+    )
+)
 
 
 # Compile the model
-model.compile(optimizer=tf.keras.optimizers.Adam(), loss='mean_squared_error')
+model.compile(optimizer=tf.keras.optimizers.Adam(), loss="mean_squared_error")
 
 # Build the model with input shape of (None, 2) (which is equivalent to (?, 2))
 model.build(input_shape=(None, 2))
@@ -313,7 +324,7 @@ print(error_df)
 
 
 # Assuming 'folder' is already defined and concatenated with 'model'
-output_folder = folder / 'results_inference'
+output_folder = folder / "results_inference"
 
 # Create the output folder if it doesn't exist
 output_folder.mkdir(parents=True, exist_ok=True)
@@ -328,11 +339,11 @@ plt.xlabel("Epochs")
 plt.ylabel("Loss")
 plt.yscale("log")
 plt.tight_layout()
-plt.savefig(str(output_folder / 'loss_plot.png'))
+plt.savefig(str(output_folder / "loss_plot.png"))
 plt.close()  # Close the figure to free memory
 
 # Save the loss_array as a CSV file
-np.savetxt(str(output_folder / 'loss_array.csv'), loss_array, delimiter=",")
+np.savetxt(str(output_folder / "loss_array.csv"), loss_array, delimiter=",")
 
 # 2. Exact Solution Contour Plot
 plt.figure(figsize=(6.4, 4.8), dpi=300)
@@ -342,11 +353,11 @@ plt.xlabel("x")
 plt.ylabel("y")
 cbar = plt.colorbar(contour_exact)
 plt.tight_layout()
-plt.savefig(str(output_folder / 'exact_solution.png'))
+plt.savefig(str(output_folder / "exact_solution.png"))
 plt.close()
 
 # Save the exact solution array as a CSV file
-np.savetxt(str(output_folder / 'y_exact.csv'), y_exact, delimiter=",")
+np.savetxt(str(output_folder / "y_exact.csv"), y_exact, delimiter=",")
 
 # 3. Predicted Solution Contour Plot
 plt.figure(figsize=(6.4, 4.8), dpi=300)
@@ -356,11 +367,11 @@ plt.xlabel("x")
 plt.ylabel("y")
 cbar = plt.colorbar(contour_pred)
 plt.tight_layout()
-plt.savefig(str(output_folder / 'predicted_solution.png'))
+plt.savefig(str(output_folder / "predicted_solution.png"))
 plt.close()
 
 # Save the predicted solution array as a CSV file
-np.savetxt(str(output_folder / 'y_pred.csv'), y_pred, delimiter=",")
+np.savetxt(str(output_folder / "y_pred.csv"), y_pred, delimiter=",")
 
 # 4. Error Contour Plot
 plt.figure(figsize=(6.4, 4.8), dpi=300)
@@ -370,8 +381,8 @@ plt.xlabel("x")
 plt.ylabel("y")
 cbar = plt.colorbar(contour_error)
 plt.tight_layout()
-plt.savefig(str(output_folder / 'error_plot.png'))
+plt.savefig(str(output_folder / "error_plot.png"))
 plt.close()
 
 # Save the error array as a CSV file
-np.savetxt(str(output_folder / 'error.csv'), error, delimiter=",")
+np.savetxt(str(output_folder / "error.csv"), error, delimiter=",")

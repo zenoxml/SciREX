@@ -29,7 +29,7 @@ i_x_min = -1  # minimum x value
 i_x_max = 1  # maximum x value
 i_y_min = -1  # minimum y value
 i_y_max = 1  # maximum y value
-i_output_path = "output/poisson_Al_Iso_Circle_train"  # Output path
+i_output_path = "output/poisson_Cu_Iso_Circle_train"  # Output path
 
 i_exact_solution_generatinon = True  # Generate exact solution
 
@@ -38,9 +38,9 @@ i_n_test_points_x = 100  # Number of test points in the x direction
 i_n_test_points_y = 100  # Number of test points in the y direction
 
 # fe Variables
-i_fe_order = 6  # Order of the finite element space
+i_fe_order = 5  # Order of the finite element space
 i_fe_type = "legendre"
-i_quad_order = 12  # 10 points in 1D, so 100 points in 2D for one cell
+i_quad_order = 6  # 10 points in 1D, so 100 points in 2D for one cell
 i_quad_type = "gauss-jacobi"
 
 # Neural Network Variables
@@ -57,7 +57,7 @@ i_activation = "tanh"
 i_beta = 10  # Boundary Loss Penalty ( Adds more weight to the boundary loss)
 
 # Epochs
-i_num_epochs = 1200
+i_num_epochs = 8000
 
 
 ## Setting up boundary conditions
@@ -66,7 +66,7 @@ def circle_boundary(x, y):
     This function will return the value of the boundary at a given point
     """
 
-    return x**2 + y**2
+    return 3 * (x**2) - 2 * (y**2) + np.cos(5 * x)
 
 
 def get_boundary_function_dict():
@@ -90,7 +90,7 @@ def exact_solution(x, y):
     # If the exact Solution does not have an analytical expression, leave the value as 0(zero)
     # it can be set using `np.ones_like(x) * 0.0` and then ignore the errors and the error plots generated.
 
-    return x**2 + y**2
+    return 3 * (x**2) - 2 * (y**2) + np.cos(5 * x)
 
 
 def rhs(x, y):
@@ -98,7 +98,7 @@ def rhs(x, y):
     This function will return the value of the rhs at a given point
     """
     epsilon = 97.1  # based on material property of aluminium
-    return -4.0 * epsilon
+    return 2427.5 * np.cos(5 * x) - 194.2
 
 
 def get_bilinear_params_dict():
@@ -322,7 +322,7 @@ output_folder.mkdir(
 )  # Create the directory if it doesn't exist
 
 # Full path to save weights with a proper filename (e.g., 'model_weights.h5')
-weights_file_path = output_folder / "model_poisson_al_iso_circle_weights.h5"
+weights_file_path = output_folder / "model_poisson_cu_iso_circle_weights.h5"
 
 # save the model weights to the folder
 model.save_weights(str(weights_file_path))  # Save the model in the SavedModel

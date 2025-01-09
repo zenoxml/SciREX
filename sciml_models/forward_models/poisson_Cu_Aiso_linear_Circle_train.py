@@ -1,7 +1,7 @@
 """
 Example script for solving a 2D Poisson equation using FastvPINNs.
 
-Author: Divij Ghose (https://divijghose.github.io/)
+Author: Thivin Anandh (https://thivinanandh.github.io/)
 
 """
 
@@ -29,7 +29,7 @@ i_x_min = -1  # minimum x value
 i_x_max = 1  # maximum x value
 i_y_min = -1  # minimum y value
 i_y_max = 1  # maximum y value
-i_output_path = "output/poisson_Al_Iso_Circle_train"  # Output path
+i_output_path = "output/poisson_Cu_Aiso_Linear_Circle_train"  # Output path
 
 i_exact_solution_generatinon = True  # Generate exact solution
 
@@ -38,9 +38,9 @@ i_n_test_points_x = 100  # Number of test points in the x direction
 i_n_test_points_y = 100  # Number of test points in the y direction
 
 # fe Variables
-i_fe_order = 6  # Order of the finite element space
+i_fe_order = 3  # Order of the finite element space
 i_fe_type = "legendre"
-i_quad_order = 12  # 10 points in 1D, so 100 points in 2D for one cell
+i_quad_order = 4  # 10 points in 1D, so 100 points in 2D for one cell
 i_quad_type = "gauss-jacobi"
 
 # Neural Network Variables
@@ -57,30 +57,51 @@ i_activation = "tanh"
 i_beta = 10  # Boundary Loss Penalty ( Adds more weight to the boundary loss)
 
 # Epochs
-i_num_epochs = 1200
+i_num_epochs = 6000
 
 
 ## Setting up boundary conditions
-def circle_boundary(x, y):
+def left_boundary(x, y):
     """
-    This function will return the value of the boundary at a given point
+    This function will return the boundary value for given component of a boundary
     """
-
-    return x**2 + y**2
-
-
-def get_boundary_function_dict():
-    """
-    This function will return a dictionary of boundary functions
-    """
-    return {1000: circle_boundary}
+    val = 0.0
+    return 3 * (x**2) + 2 * (y**2) - np.sin(5 * y)
 
 
-def get_bound_cond_dict():
+def right_boundary(x, y):
     """
-    This function will return a dictionary of boundary conditions
+    This function will return the boundary value for given component of a boundary
     """
-    return {1000: "dirichlet"}
+    val = 0.0
+    return 3 * (x**2) + 2 * (y**2) - np.sin(5 * y)
+
+
+def top_boundary(x, y):
+    """
+    This function will return the boundary value for given component of a boundary
+    """
+    val = 0.0
+    return 3 * (x**2) + 2 * (y**2) - np.sin(5 * y)
+
+
+def bottom_boundary(x, y):
+    """
+    This function will return the boundary value for given component of a boundary
+    """
+    val = 0.0
+    return 3 * (x**2) + 2 * (y**2) - np.sin(5 * y)
+
+
+def rhs(x, y):
+    """
+    This function will return the value of the rhs at a given point
+    """
+    omegaX = 2.0 * np.pi
+    omegaY = 2.0 * np.pi
+    f_temp = -2.0 * (omegaX**2) * (np.sin(omegaX * x) * np.sin(omegaY * y))
+
+    return 12 * x - 20 * y + (x - 2 * y) * (25 * np.sin(5 * y) + 4) + 10 * np.cos(5 * y)
 
 
 def exact_solution(x, y):
@@ -90,22 +111,37 @@ def exact_solution(x, y):
     # If the exact Solution does not have an analytical expression, leave the value as 0(zero)
     # it can be set using `np.ones_like(x) * 0.0` and then ignore the errors and the error plots generated.
 
-    return x**2 + y**2
+    omegaX = 2.0 * np.pi
+    omegaY = 2.0 * np.pi
+    val = -1.0 * np.sin(omegaX * x) * np.sin(omegaY * y)
+
+    return 3 * (x**2) + 2 * (y**2) - np.sin(5 * y)
 
 
-def rhs(x, y):
+def get_boundary_function_dict():
     """
-    This function will return the value of the rhs at a given point
+    This function will return a dictionary of boundary functions
     """
-    epsilon = 97.1  # based on material property of aluminium
-    return -4.0 * epsilon
+    return {
+        1000: bottom_boundary,
+        1001: right_boundary,
+        1002: top_boundary,
+        1003: left_boundary,
+    }
 
 
-def get_bilinear_params_dict():
+def get_bound_cond_dict():
+    """
+    This function will return a dictionary of boundary conditions
+    """
+    return {1000: "dirichlet", 1001: "dirichlet", 1002: "dirichlet", 1003: "dirichlet"}
+
+
+def get_bilinear_params_dict(x, y):
     """
     This function will return a dictionary of bilinear parameters
     """
-    eps = 97.1
+    eps = 2 * y - x
 
     return {"eps": eps}
 
@@ -166,8 +202,10 @@ datahandler = DataHandler2D(fespace, domain, dtype=i_dtype)
 params_dict = {}
 params_dict["n_cells"] = fespace.n_cells
 
-from scirex.core.sciml.fastvpinns.model.model import DenseModel
-from scirex.core.sciml.fastvpinns.physics.poisson2d import pde_loss_poisson
+from scirex.core.sciml.fastvpinns.model.model_anisotropic import DenseModelAnisotropic
+from scirex.core.sciml.fastvpinns.physics.poisson2d_anisotropic import (
+    pde_loss_poisson_anisotropic,
+)
 
 params_dict = {}
 params_dict["n_cells"] = fespace.n_cells
@@ -178,15 +216,21 @@ train_dirichlet_input, train_dirichlet_output = datahandler.get_dirichlet_input(
 # get bilinear parameters
 # this function will obtain the values of the bilinear parameters from the model
 # and convert them into tensors of desired dtype
-bilinear_params_dict = datahandler.get_bilinear_params_dict_as_tensors(
-    get_bilinear_params_dict
+bilinear_params_dict = get_bilinear_params_dict(
+    datahandler.x_pde_list[:, 0:1], datahandler.x_pde_list[:, 1:2]
 )
 
-model = DenseModel(
+# convert all the tensors to the desired dtype
+for key in bilinear_params_dict.keys():
+    bilinear_params_dict[key] = tf.convert_to_tensor(
+        bilinear_params_dict[key], dtype=i_dtype
+    )
+
+model = DenseModelAnisotropic(
     layer_dims=[2, 30, 30, 30, 1],
     learning_rate_dict=i_learning_rate_dict,
     params_dict=params_dict,
-    loss_function=pde_loss_poisson,
+    loss_function=pde_loss_poisson_anisotropic,
     input_tensors_list=[
         datahandler.x_pde_list,
         train_dirichlet_input,
@@ -322,7 +366,7 @@ output_folder.mkdir(
 )  # Create the directory if it doesn't exist
 
 # Full path to save weights with a proper filename (e.g., 'model_weights.h5')
-weights_file_path = output_folder / "model_poisson_al_iso_circle_weights.h5"
+weights_file_path = output_folder / "model_poisson_cu_aiso_linear_circle_weights.h5"
 
 # save the model weights to the folder
 model.save_weights(str(weights_file_path))  # Save the model in the SavedModel
