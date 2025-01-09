@@ -30,7 +30,7 @@ i_y_max = 1  # maximum y value
 i_n_cells_x = 6  # Number of cells in the x direction
 i_n_cells_y = 6  # Number of cells in the y direction
 i_n_boundary_points = 500  # Number of points on the boundary
-i_output_path = "output/poisson_Cu_Iso_Square_train"  # Output path
+i_output_path = "output/poisson_Al_Aiso_Linear_Square_train"  # Output path
 
 i_n_test_points_x = 100  # Number of test points in the x direction
 i_n_test_points_y = 100  # Number of test points in the y direction
@@ -55,7 +55,7 @@ i_activation = "tanh"
 i_beta = 10  # Boundary Loss Penalty ( Adds more weight to the boundary loss)
 
 # Epochs
-i_num_epochs = 20000
+i_num_epochs = 10000
 
 
 ## Setting up boundary conditions
@@ -64,7 +64,8 @@ def left_boundary(x, y):
     This function will return the boundary value for given component of a boundary
     """
     val = 0.0
-    return np.sin(2*x**2 + y**2)
+    return np.cos(x**2 + y)*np.sin(y)
+
 
 
 
@@ -73,7 +74,8 @@ def right_boundary(x, y):
     This function will return the boundary value for given component of a boundary
     """
     val = 0.0
-    return np.sin(2*x**2 + y**2)
+    return np.cos(x**2 + y)*np.sin(y)
+
 
 
 
@@ -82,7 +84,8 @@ def top_boundary(x, y):
     This function will return the boundary value for given component of a boundary
     """
     val = 0.0
-    return np.sin(2*x**2 + y**2)
+    return np.cos(x**2 + y)*np.sin(y)
+
 
 
 
@@ -91,8 +94,7 @@ def bottom_boundary(x, y):
     This function will return the boundary value for given component of a boundary
     """
     val = 0.0
-    return np.sin(2*x**2 + y**2)
-
+    return np.cos(x**2 + y)*np.sin(y)
 
 
 def rhs(x, y):
@@ -103,7 +105,9 @@ def rhs(x, y):
     omegaY = 2.0 * np.pi
     f_temp = -2.0 * (omegaX**2) * (np.sin(omegaX * x) * np.sin(omegaY * y))
 
-    return 1864.0*x**2*np.sin(2*x**2 + y**2) + 466.0*y**2*np.sin(2*x**2 + y**2) - 699.0*np.cos(2*x**2 + y**2)
+    return (4*x + 2*y)*((2*x**2*np.cos(x**2 + y) + np.sin(x**2 + y))*np.sin(y) + np.sin(y)*np.cos(x**2 + y) + np.sin(x**2 + y)*np.cos(y))
+
+
 
 def exact_solution(x, y):
     """
@@ -116,7 +120,7 @@ def exact_solution(x, y):
     omegaY = 2.0 * np.pi
     val = -1.0 * np.sin(omegaX * x) * np.sin(omegaY * y)
 
-    return np.sin(2*x**2 + y**2)
+    return np.cos(x**2 + y)*np.sin(y)
 
 
 def get_boundary_function_dict():
@@ -138,11 +142,11 @@ def get_bound_cond_dict():
     return {1000: "dirichlet", 1001: "dirichlet", 1002: "dirichlet", 1003: "dirichlet"}
 
 
-def get_bilinear_params_dict():
+def get_bilinear_params_dict(x,y):
     """
     This function will return a dictionary of bilinear parameters
     """
-    eps = 97.1
+    eps = 2 * x + y
 
     return {"eps": eps}
 
@@ -204,8 +208,8 @@ datahandler = DataHandler2D(fespace, domain, dtype=i_dtype)
 params_dict = {}
 params_dict["n_cells"] = fespace.n_cells
 
-from scirex.core.sciml.fastvpinns.model.model import DenseModel
-from scirex.core.sciml.fastvpinns.physics.poisson2d import pde_loss_poisson
+from scirex.core.sciml.fastvpinns.model.model_anisotropic import DenseModelAnisotropic
+from scirex.core.sciml.fastvpinns.physics.poisson2d_anisotropic import pde_loss_poisson_anisotropic
 
 params_dict = {}
 params_dict["n_cells"] = fespace.n_cells
@@ -216,15 +220,17 @@ train_dirichlet_input, train_dirichlet_output = datahandler.get_dirichlet_input(
 # get bilinear parameters
 # this function will obtain the values of the bilinear parameters from the model
 # and convert them into tensors of desired dtype
-bilinear_params_dict = datahandler.get_bilinear_params_dict_as_tensors(
-    get_bilinear_params_dict
-)
+bilinear_params_dict = get_bilinear_params_dict(datahandler.x_pde_list[:,0:1], datahandler.x_pde_list[:,1:2])
 
-model = DenseModel(
+# convert all the tensors to the desired dtype
+for key in bilinear_params_dict.keys():
+    bilinear_params_dict[key] = tf.convert_to_tensor(bilinear_params_dict[key], dtype=i_dtype)
+
+model = DenseModelAnisotropic(
     layer_dims=[2, 30, 30, 30, 1],
     learning_rate_dict=i_learning_rate_dict,
     params_dict=params_dict,
-    loss_function=pde_loss_poisson,
+    loss_function=pde_loss_poisson_anisotropic,
     input_tensors_list=[
         datahandler.x_pde_list,
         train_dirichlet_input,
@@ -278,7 +284,7 @@ model.summary()
 
 
 # Load the model
-output_folder = folder / 'model' / "model_poisson_cu_iso_square_weights.h5"
+output_folder = folder / 'model' / "model_poisson_al_aiso_linear_square_weights.h5"
 model.load_weights(str(output_folder))
 
 # Predict the solution
