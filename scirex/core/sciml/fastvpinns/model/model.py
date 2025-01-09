@@ -243,7 +243,7 @@ class DenseModel(tf.keras.Model):
         for dim in range(len(self.layer_dims) - 2):
             self.layer_list.append(
                 TensorflowDense.create_layer(
-                    units=self.layer_dims[dim],
+                    units=self.layer_dims[dim +1],
                     activation=self.activation,
                     dtype=self.tensor_dtype,
                     kernel_initializer="glorot_uniform",
@@ -308,24 +308,25 @@ class DenseModel(tf.keras.Model):
         # Get the base configuration
         base_config = super().get_config()
 
-        # Add the non-serializable arguments to the configuration
+        # Add the non-serializable arguments to the configuration (exclude non-serializables)
         base_config.update(
             {
                 "learning_rate_dict": self.learning_rate_dict,
-                "loss_function": self.loss_function,
-                "input_tensors_list": self.input_tensors_list,
-                "orig_factor_matrices": self.orig_factor_matrices,
-                "force_function_list": self.force_function_list,
+                "loss_function": None,  # Do not serialize the function itself, handle differently
+                "input_tensors_list": None,  # Do not serialize tensors
+                "orig_factor_matrices":  self.orig_factor_matrices,  # Store shapes instead
+                "force_function_list": None,  # Force functions cannot be serialized, store necessary info
                 "params_dict": self.params_dict,
                 "use_attention": self.use_attention,
                 "activation": self.activation,
                 "hessian": self.hessian,
                 "layer_dims": self.layer_dims,
-                "tensor_dtype": self.tensor_dtype,
+                "tensor_dtype": self.tensor_dtype.name,  # Store dtype as a string
             }
         )
 
         return base_config
+
 
     @tf.function
     def train_step(
