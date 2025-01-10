@@ -402,7 +402,9 @@ class DenseModel_Inverse(tf.keras.Model):
             # tf.print("Total PDE Loss Shape : ", total_pde_loss.shape)
 
             # Compute Total Loss
-            total_loss = total_pde_loss + beta * boundary_loss + beta_sensor * sensor_loss
+            total_loss = (
+                total_pde_loss + beta * boundary_loss + beta_sensor * sensor_loss
+            )
 
         trainable_vars = self.trainable_variables
         self.gradients = tape.gradient(total_loss, trainable_vars)
