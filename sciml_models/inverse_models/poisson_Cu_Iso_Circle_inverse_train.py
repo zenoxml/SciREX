@@ -72,7 +72,6 @@ def circle_boundary(x, y):
     """
     This function will return the boundary value for given component of a boundary
     """
-    a = 0.3
     val = np.exp(-1.0 * (x**2 + y**2) / A) * (EPS / 100)
     return val
 
