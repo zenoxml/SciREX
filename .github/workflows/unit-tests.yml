@@ -42,7 +42,7 @@ jobs:
     - name: Install dependencies
       run: |
         python3 -m pip install --upgrade pip
-        pip install -e .
+        pip install -e .[all]
 
     - name: Run unit tests
       run: |
