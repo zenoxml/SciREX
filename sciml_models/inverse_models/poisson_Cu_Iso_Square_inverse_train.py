@@ -247,6 +247,7 @@ points, sensor_values = datahandler.get_sensor_data(
     exact_solution, i_n_sensor_points, i_mesh_generation_method
 )
 
+
 inverse_params_dict = datahandler.get_inverse_params(get_inverse_params_actual_dict)
 
 model = DenseModel_Inverse(
