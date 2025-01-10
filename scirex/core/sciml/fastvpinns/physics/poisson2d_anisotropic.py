@@ -91,13 +91,17 @@ def pde_loss_poisson_anisotropic(
         computing the variational residual.
     """
     # ∫du/dx. dv/dx dΩ
-    pde_diffusion_x = tf.transpose(tf.linalg.matvec(test_grad_x_mat, bilinear_params["eps"]*pred_grad_x_nn))
+    pde_diffusion_x = tf.transpose(
+        tf.linalg.matvec(test_grad_x_mat, bilinear_params["eps"] * pred_grad_x_nn)
+    )
 
     # ∫du/dy. dv/dy dΩ
-    pde_diffusion_y = tf.transpose(tf.linalg.matvec(test_grad_y_mat, bilinear_params["eps"]*pred_grad_y_nn))
+    pde_diffusion_y = tf.transpose(
+        tf.linalg.matvec(test_grad_y_mat, bilinear_params["eps"] * pred_grad_y_nn)
+    )
 
     # eps * ∫ (du/dx. dv/dx + du/dy. dv/dy) dΩ
-    pde_diffusion =(pde_diffusion_x + pde_diffusion_y)
+    pde_diffusion = pde_diffusion_x + pde_diffusion_y
 
     residual_matrix = pde_diffusion - forcing_function
 

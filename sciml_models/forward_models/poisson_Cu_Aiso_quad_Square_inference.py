@@ -63,11 +63,13 @@ def left_boundary(x, y):
     """
     return (x - y) * np.cos(8 * x * y) * 0.6
 
+
 def right_boundary(x, y):
     """
     This function will return the boundary value for the right boundary
     """
     return (x - y) * np.cos(8 * x * y) * 0.6
+
 
 def top_boundary(x, y):
     """
@@ -75,11 +77,13 @@ def top_boundary(x, y):
     """
     return (x - y) * np.cos(8 * x * y) * 0.6
 
+
 def bottom_boundary(x, y):
     """
     This function will return the boundary value for the bottom boundary
     """
     return (x - y) * np.cos(8 * x * y) * 0.6
+
 
 def rhs(x, y):
     """
@@ -87,11 +91,13 @@ def rhs(x, y):
     """
     return x * x - 3 * y + 2
 
+
 def exact_solution(x, y):
     """
     This function will return the exact solution at a given point
     """
     return (x - y) * np.cos(8 * x * y) * 0.6
+
 
 # Boundary function and condition dictionaries
 def get_boundary_function_dict():
@@ -105,11 +111,13 @@ def get_boundary_function_dict():
         1003: left_boundary,
     }
 
+
 def get_bound_cond_dict():
     """
     This function will return a dictionary of boundary conditions
     """
     return {1000: "dirichlet", 1001: "dirichlet", 1002: "dirichlet", 1003: "dirichlet"}
+
 
 def get_bilinear_params_dict(x, y):
     """

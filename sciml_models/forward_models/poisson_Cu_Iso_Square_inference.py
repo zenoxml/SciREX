@@ -103,6 +103,7 @@ def rhs(x, y):
         - 699.0 * np.cos(2 * x**2 + y**2)
     )
 
+
 def exact_solution(x, y):
     """
     This function will return the exact solution at a given point

@@ -58,6 +58,7 @@ i_beta = 10  # Boundary Loss Penalty ( Adds more weight to the boundary loss)
 # Epochs
 i_num_epochs = 8000
 
+
 ## Setting up boundary conditions
 def circle_boundary(x, y):
     """

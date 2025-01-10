@@ -135,7 +135,7 @@ class DenseModel_Inverse(tf.keras.Model):
         # inverse params dict
         self.inverse_params_dict = inverse_params_dict
 
-        # Conver all the values within inverse_params_dict to trainable variables
+        # Convert all the values within inverse_params_dict to trainable variables
         for key, value in self.inverse_params_dict.items():
             self.inverse_params_dict[key] = tf.Variable(
                 value, dtype=self.tensor_dtype, trainable=True
@@ -396,13 +396,8 @@ class DenseModel_Inverse(tf.keras.Model):
                 tf.square(predicted_sensor_values - self.sensor_values), axis=0
             )
 
-            # tf.print("Boundary Loss : ", boundary_loss)
-            # tf.print("Boundary Loss Shape : ", boundary_loss.shape)
-            # tf.print("Total PDE Loss : ", total_pde_loss)
-            # tf.print("Total PDE Loss Shape : ", total_pde_loss.shape)
-
             # Compute Total Loss
-            total_loss = total_pde_loss + beta * boundary_loss + 10 * sensor_loss
+            total_loss = total_pde_loss + beta * boundary_loss + 1000 * sensor_loss
 
         trainable_vars = self.trainable_variables
         self.gradients = tape.gradient(total_loss, trainable_vars)

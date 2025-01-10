@@ -301,7 +301,7 @@ model.summary()
 
 
 # Load the model
-output_folder = folder / 'model' / "model_poisson_al_aiso_quad_circle_weights.h5"
+output_folder = folder / "model" / "model_poisson_al_aiso_quad_circle_weights.h5"
 model.load_weights(str(output_folder))
 
 # Predict the solution
