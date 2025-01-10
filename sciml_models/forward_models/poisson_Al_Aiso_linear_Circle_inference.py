@@ -1,3 +1,5 @@
+
+
 """
 Example script for solving a 2D Poisson equation using FastvPINNs.
 
@@ -19,31 +21,32 @@ from scirex.core.sciml.geometry.geometry_2d import Geometry_2D
 from scirex.core.sciml.fe.fespace2d import Fespace2D
 from scirex.core.sciml.fastvpinns.data.datahandler2d import DataHandler2D
 
-i_mesh_type = "quadrilateral"  # "quadrilateral"
-i_mesh_generation_method = "internal"  # "internal" or "external"
+i_mesh_generation_method = "external"  # "internal" or "external"
+i_mesh_type = "quadrilateral"  # "triangular" or "quadrilateral"
+i_mesh_file_name = "tests/support_files/circle_quad.mesh"  # Mesh file name
+i_boundary_refinement_level = 4  # Boundary refinement level
+i_boundary_sampling_method = "lhs"
+i_generate_mesh_plot = True  # Generate mesh plot
 i_x_min = -1  # minimum x value
 i_x_max = 1  # maximum x value
 i_y_min = -1  # minimum y value
 i_y_max = 1  # maximum y value
-i_n_cells_x = 6  # Number of cells in the x direction
-i_n_cells_y = 6  # Number of cells in the y direction
-i_n_boundary_points = 500  # Number of points on the boundary
-i_output_path = "output/poisson_Cu_Iso_Square_train"  # Output path
+i_output_path = "output/poisson_Al_Aiso_Linear_Circle_train"  # Output path
 
 i_n_test_points_x = 100  # Number of test points in the x direction
 i_n_test_points_y = 100  # Number of test points in the y direction
 
 # fe Variables
-i_fe_order = 8  # Order of the finite element space
+i_fe_order = 3  # Order of the finite element space
 i_fe_type = "legendre"
-i_quad_order = 8  # 10 points in 1D, so 100 points in 2D for one cell
+i_quad_order = 4  # 10 points in 1D, so 100 points in 2D for one cell
 i_quad_type = "gauss-jacobi"
 
 # Neural Network Variables
 i_learning_rate_dict = {
     "initial_learning_rate": 0.001,  # Initial learning rate
     "use_lr_scheduler": True,  # Use learning rate scheduler
-    "decay_steps": 3000,  # Decay steps
+    "decay_steps": 5000,  # Decay steps
     "decay_rate": 0.99,  # Decay rate
     "staircase": True,  # Staircase Decay
 }
@@ -53,7 +56,7 @@ i_activation = "tanh"
 i_beta = 10  # Boundary Loss Penalty ( Adds more weight to the boundary loss)
 
 # Epochs
-i_num_epochs = 20000
+i_num_epochs = 6000
 
 
 ## Setting up boundary conditions
@@ -62,7 +65,7 @@ def left_boundary(x, y):
     This function will return the boundary value for given component of a boundary
     """
     val = 0.0
-    return np.sin(2 * x**2 + y**2)
+    return np.cos(x**2 + y) * np.sin(y)
 
 
 def right_boundary(x, y):
@@ -70,7 +73,7 @@ def right_boundary(x, y):
     This function will return the boundary value for given component of a boundary
     """
     val = 0.0
-    return np.sin(2 * x**2 + y**2)
+    return np.cos(x**2 + y) * np.sin(y)
 
 
 def top_boundary(x, y):
@@ -78,7 +81,7 @@ def top_boundary(x, y):
     This function will return the boundary value for given component of a boundary
     """
     val = 0.0
-    return np.sin(2 * x**2 + y**2)
+    return np.cos(x**2 + y) * np.sin(y)
 
 
 def bottom_boundary(x, y):
@@ -86,7 +89,7 @@ def bottom_boundary(x, y):
     This function will return the boundary value for given component of a boundary
     """
     val = 0.0
-    return np.sin(2 * x**2 + y**2)
+    return np.cos(x**2 + y) * np.sin(y)
 
 
 def rhs(x, y):
@@ -97,11 +100,12 @@ def rhs(x, y):
     omegaY = 2.0 * np.pi
     f_temp = -2.0 * (omegaX**2) * (np.sin(omegaX * x) * np.sin(omegaY * y))
 
-    return (
-        1864.0 * x**2 * np.sin(2 * x**2 + y**2)
-        + 466.0 * y**2 * np.sin(2 * x**2 + y**2)
-        - 699.0 * np.cos(2 * x**2 + y**2)
+    return (4 * x + 2 * y) * (
+        (2 * x**2 * np.cos(x**2 + y) + np.sin(x**2 + y)) * np.sin(y)
+        + np.sin(y) * np.cos(x**2 + y)
+        + np.sin(x**2 + y) * np.cos(y)
     )
+
 
 def exact_solution(x, y):
     """
@@ -114,7 +118,7 @@ def exact_solution(x, y):
     omegaY = 2.0 * np.pi
     val = -1.0 * np.sin(omegaX * x) * np.sin(omegaY * y)
 
-    return np.sin(2 * x**2 + y**2)
+    return np.cos(x**2 + y) * np.sin(y)
 
 
 def get_boundary_function_dict():
@@ -136,11 +140,11 @@ def get_bound_cond_dict():
     return {1000: "dirichlet", 1001: "dirichlet", 1002: "dirichlet", 1003: "dirichlet"}
 
 
-def get_bilinear_params_dict():
+def get_bilinear_params_dict(x, y):
     """
     This function will return a dictionary of bilinear parameters
     """
-    eps = 97.1
+    eps = 2 * x + y
 
     return {"eps": eps}
 
@@ -169,12 +173,11 @@ domain = Geometry_2D(
 )
 
 # load the mesh
-cells, boundary_points = domain.generate_quad_mesh_internal(
-    x_limits=[i_x_min, i_x_max],
-    y_limits=[i_y_min, i_y_max],
-    n_cells_x=i_n_cells_x,
-    n_cells_y=i_n_cells_y,
-    num_boundary_points=i_n_boundary_points,
+cells, boundary_points = domain.read_mesh(
+    i_mesh_file_name,
+    i_boundary_refinement_level,
+    i_boundary_sampling_method,
+    refinement_level=1,
 )
 
 # fe Space
@@ -202,8 +205,10 @@ datahandler = DataHandler2D(fespace, domain, dtype=i_dtype)
 params_dict = {}
 params_dict["n_cells"] = fespace.n_cells
 
-from scirex.core.sciml.fastvpinns.model.model import DenseModel
-from scirex.core.sciml.fastvpinns.physics.poisson2d import pde_loss_poisson
+from scirex.core.sciml.fastvpinns.model.model_anisotropic import DenseModelAnisotropic
+from scirex.core.sciml.fastvpinns.physics.poisson2d_anisotropic import (
+    pde_loss_poisson_anisotropic,
+)
 
 params_dict = {}
 params_dict["n_cells"] = fespace.n_cells
@@ -214,15 +219,21 @@ train_dirichlet_input, train_dirichlet_output = datahandler.get_dirichlet_input(
 # get bilinear parameters
 # this function will obtain the values of the bilinear parameters from the model
 # and convert them into tensors of desired dtype
-bilinear_params_dict = datahandler.get_bilinear_params_dict_as_tensors(
-    get_bilinear_params_dict
+bilinear_params_dict = get_bilinear_params_dict(
+    datahandler.x_pde_list[:, 0:1], datahandler.x_pde_list[:, 1:2]
 )
 
-model = DenseModel(
+# convert all the tensors to the desired dtype
+for key in bilinear_params_dict.keys():
+    bilinear_params_dict[key] = tf.convert_to_tensor(
+        bilinear_params_dict[key], dtype=i_dtype
+    )
+
+model = DenseModelAnisotropic(
     layer_dims=[2, 30, 30, 30, 1],
     learning_rate_dict=i_learning_rate_dict,
     params_dict=params_dict,
-    loss_function=pde_loss_poisson,
+    loss_function=pde_loss_poisson_anisotropic,
     input_tensors_list=[
         datahandler.x_pde_list,
         train_dirichlet_input,
@@ -251,35 +262,22 @@ y_exact = exact_solution(test_points[:, 0], test_points[:, 1])
 from tensorflow.keras import layers, models
 
 
-layer_dims = [2, 30, 30, 30, 1]
+layer_dims = [2,30,30,30,1]
 
 # Create a Sequential model
 model = models.Sequential()
 
 # Add the hidden layers (except the last layer, which will have no activation)
 for dim in layer_dims[1:-1]:
-    model.add(
-        layers.Dense(
-            units=dim,
-            activation="tanh",
-            kernel_initializer="glorot_uniform",
-            bias_initializer="zeros",
-        )
-    )
+    model.add(layers.Dense(units=dim, activation='tanh', kernel_initializer='glorot_uniform', bias_initializer='zeros'))
 
 # Add the output layer with no activation function
-model.add(
-    layers.Dense(
-        units=layer_dims[-1],
-        activation=None,
-        kernel_initializer="glorot_uniform",
-        bias_initializer="zeros",
-    )
-)
+model.add(layers.Dense(units=layer_dims[-1], activation=None, kernel_initializer='glorot_uniform', bias_initializer='zeros'))
+
 
 
 # Compile the model
-model.compile(optimizer=tf.keras.optimizers.Adam(), loss="mean_squared_error")
+model.compile(optimizer=tf.keras.optimizers.Adam(), loss='mean_squared_error')
 
 # Build the model with input shape of (None, 2) (which is equivalent to (?, 2))
 model.build(input_shape=(None, 2))
@@ -289,7 +287,7 @@ model.summary()
 
 
 # Load the model
-output_folder = folder / "model" / "model_poisson_cu_iso_square_weights.h5"
+output_folder = folder / 'model' / "model_poisson_al_aiso_linear_circle_weights.h5"
 model.load_weights(str(output_folder))
 
 # Predict the solution
@@ -323,7 +321,7 @@ print(error_df)
 
 
 # Assuming 'folder' is already defined and concatenated with 'model'
-output_folder = folder / "results_inference"
+output_folder = folder / 'results_inference'
 
 # Create the output folder if it doesn't exist
 output_folder.mkdir(parents=True, exist_ok=True)
@@ -338,11 +336,11 @@ plt.xlabel("Epochs")
 plt.ylabel("Loss")
 plt.yscale("log")
 plt.tight_layout()
-plt.savefig(str(output_folder / "loss_plot.png"))
+plt.savefig(str(output_folder / 'loss_plot.png'))
 plt.close()  # Close the figure to free memory
 
 # Save the loss_array as a CSV file
-np.savetxt(str(output_folder / "loss_array.csv"), loss_array, delimiter=",")
+np.savetxt(str(output_folder / 'loss_array.csv'), loss_array, delimiter=",")
 
 # 2. Exact Solution Contour Plot
 plt.figure(figsize=(6.4, 4.8), dpi=300)
@@ -352,11 +350,11 @@ plt.xlabel("x")
 plt.ylabel("y")
 cbar = plt.colorbar(contour_exact)
 plt.tight_layout()
-plt.savefig(str(output_folder / "exact_solution.png"))
+plt.savefig(str(output_folder / 'exact_solution.png'))
 plt.close()
 
 # Save the exact solution array as a CSV file
-np.savetxt(str(output_folder / "y_exact.csv"), y_exact, delimiter=",")
+np.savetxt(str(output_folder / 'y_exact.csv'), y_exact, delimiter=",")
 
 # 3. Predicted Solution Contour Plot
 plt.figure(figsize=(6.4, 4.8), dpi=300)
@@ -366,11 +364,11 @@ plt.xlabel("x")
 plt.ylabel("y")
 cbar = plt.colorbar(contour_pred)
 plt.tight_layout()
-plt.savefig(str(output_folder / "predicted_solution.png"))
+plt.savefig(str(output_folder / 'predicted_solution.png'))
 plt.close()
 
 # Save the predicted solution array as a CSV file
-np.savetxt(str(output_folder / "y_pred.csv"), y_pred, delimiter=",")
+np.savetxt(str(output_folder / 'y_pred.csv'), y_pred, delimiter=",")
 
 # 4. Error Contour Plot
 plt.figure(figsize=(6.4, 4.8), dpi=300)
@@ -380,8 +378,8 @@ plt.xlabel("x")
 plt.ylabel("y")
 cbar = plt.colorbar(contour_error)
 plt.tight_layout()
-plt.savefig(str(output_folder / "error_plot.png"))
+plt.savefig(str(output_folder / 'error_plot.png'))
 plt.close()
 
 # Save the error array as a CSV file
-np.savetxt(str(output_folder / "error.csv"), error, delimiter=",")
+np.savetxt(str(output_folder / 'error.csv'), error, delimiter=",")

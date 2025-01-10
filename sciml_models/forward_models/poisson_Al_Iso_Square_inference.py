@@ -28,7 +28,7 @@ i_y_max = 1  # maximum y value
 i_n_cells_x = 4  # Number of cells in the x direction
 i_n_cells_y = 4  # Number of cells in the y direction
 i_n_boundary_points = 400  # Number of points on the boundary
-i_output_path = "output/poisson_Cu_Iso_Square_train"  # Output path
+i_output_path = "output/poisson_Al_Iso_Square_train"  # Output path
 
 i_n_test_points_x = 100  # Number of test points in the x direction
 i_n_test_points_y = 100  # Number of test points in the y direction
@@ -290,7 +290,7 @@ model.summary()
 
 
 # Load the model
-output_folder = folder / "model" / "model_poisson_cu_iso_square_weights.h5"
+output_folder = folder / 'model' / "model_poisson_al_iso_square_weights.h5"
 model.load_weights(str(output_folder))
 
 # Predict the solution
