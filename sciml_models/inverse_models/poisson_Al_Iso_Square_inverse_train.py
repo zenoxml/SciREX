@@ -405,7 +405,7 @@ output_folder.mkdir(
 )  # Create the directory if it doesn't exist
 
 # Full path to save weights with a proper filename (e.g., 'model_weights.h5')
-weights_file_path = output_folder / "model_poisson_al_iso_square_weights.h5"
+weights_file_path = output_folder / "model_inverse_poisson_al_iso_square_weights.h5"
 
 # save the model weights to the folder
 model.save_weights(str(weights_file_path))  # Save the model in the SavedModel
