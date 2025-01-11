@@ -50,6 +50,7 @@ import optax
 
 from tqdm import tqdm
 
+
 class GCN(eqx.Module):
     num_layers: int
     W_list: list
@@ -66,17 +67,17 @@ class GCN(eqx.Module):
             activations: a python list of activation functions
             key: to generate random numbers for initialising the W and B matrices
         """
-        
+
         self.num_layers = len(layers)
         self.W_list = []
         self.B_list = []
 
         self.activations = activations
 
-        for i in range(self.num_layers-1):
+        for i in range(self.num_layers - 1):
             weights_key, bias_key, key = jax.random.split(key, num=3)
-            W = jax.random.normal(weights_key, (layers[i], layers[i+1]))
-            B = jax.random.normal(bias_key, (layers[i], layers[i+1]))
+            W = jax.random.normal(weights_key, (layers[i], layers[i + 1]))
+            B = jax.random.normal(bias_key, (layers[i], layers[i + 1]))
 
             self.W_list.append(W)
             self.B_list.append(B)
@@ -95,19 +96,20 @@ class GCN(eqx.Module):
         """
 
         # activation = jnp.tanh
-            # for W,B in zip(self.W_list,self.B_list):
-        for activation,W,B in zip(self.activations,self.W_list,self.B_list):
-            z = activation(jnp.diagflat(1.0/degree) @ adj_mat @ z @ W + z @ B)
+        # for W,B in zip(self.W_list,self.B_list):
+        for activation, W, B in zip(self.activations, self.W_list, self.B_list):
+            z = activation(jnp.diagflat(1.0 / degree) @ adj_mat @ z @ W + z @ B)
         return z
 
-class GCNModel():
+
+class GCNModel:
 
     def __init__(
         self,
         gcn: GCN,
         loss_fn: callable,
         metrics: list[callable] = [],
-        ):
+    ):
         """
         Initialize the gcn model with network architecture and training parameters.
 
@@ -121,7 +123,6 @@ class GCNModel():
         self.loss_fn = loss_fn
         self.metrics = metrics
 
-
     def fit(
         self,
         features: jnp.ndarray,
@@ -130,8 +131,8 @@ class GCNModel():
         target: jnp.ndarray,
         learning_rate: float,
         num_iters: int = 10,
-        num_check_points: int = 5
-        ):
+        num_check_points: int = 5,
+    ):
         """
         Train the gcn
 
@@ -157,31 +158,26 @@ class GCNModel():
         for iter_id in tqdm(range(num_iters), desc="Training", total=num_iters):
 
             loss, gcn, opt_state = self._update_step(
-                    gcn,
-                    features,
-                    adjacency_matrix,
-                    degree_array,
-                    target,
-                    opt_state
-                    ) 
+                gcn, features, adjacency_matrix, degree_array, target, opt_state
+            )
 
             if iter_id % check_point_gap == 0:
                 output = gcn(features, adjacency_matrix, degree_array)
-                metric_vals = [ m(output) for m in self.metrics ]
+                metric_vals = [m(output) for m in self.metrics]
                 print(f"Iter: {iter_id} | Loss: {loss:.2e} | Metrics {metric_vals}")
 
         return gcn
 
     @eqx.filter_jit
     def _update_step(
-            self,
-            gcn: GCN,
-            features: jnp.ndarray,
-            adjacency_matrix: jnp.ndarray,
-            degree_array: jnp.ndarray,
-            target: jnp.ndarray,
-            opt_state
-            ):
+        self,
+        gcn: GCN,
+        features: jnp.ndarray,
+        adjacency_matrix: jnp.ndarray,
+        degree_array: jnp.ndarray,
+        target: jnp.ndarray,
+        opt_state,
+    ):
         """
         Perform single training step with JIT compilation.
 
@@ -200,27 +196,24 @@ class GCNModel():
                 - Updated optimizer state
         """
         loss, grads = eqx.filter_value_and_grad(self._loss_fn)(
-                gcn,
-                features,
-                adjacency_matrix,
-                degree_array,
-                target
-                )
+            gcn, features, adjacency_matrix, degree_array, target
+        )
 
-        updates, opt_state = self.optimizer.update(grads, opt_state, eqx.filter(gcn, eqx.is_array)
-)
+        updates, opt_state = self.optimizer.update(
+            grads, opt_state, eqx.filter(gcn, eqx.is_array)
+        )
         gcn = eqx.apply_updates(gcn, updates)
 
         return loss, gcn, opt_state
 
     def _loss_fn(
-            self,
-            gcn: GCN,
-            features: jnp.ndarray,
-            adjacency_matrix,
-            degree_array,
-            target: jnp.ndarray
-            ):
+        self,
+        gcn: GCN,
+        features: jnp.ndarray,
+        adjacency_matrix,
+        degree_array,
+        target: jnp.ndarray,
+    ):
         """
         Compute loss for the given input data.
         Required for getting gradients during training and JIT.
@@ -235,4 +228,6 @@ class GCNModel():
         Returns:
             jnp.ndarray: Loss value.
         """
-        return self.loss_fn(gcn(features, adjacency_matrix, degree_array), target).mean()
+        return self.loss_fn(
+            gcn(features, adjacency_matrix, degree_array), target
+        ).mean()
