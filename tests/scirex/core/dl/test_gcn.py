@@ -23,9 +23,9 @@
 # please contact: contact@scirex.org
 
 """
-    Module: test_mlp.py
+    Module: test_gcn.py
 
-    This module contains unit tests for the Multi-Layer Perceptron implementation with the SciREX framework.
+    This module contains unit tests for the Graph Convolution Network in the SciREX framework.
 
     Authors:
         - Rajarshi Dasgupta (rajarshid@iisc.ac.in)
