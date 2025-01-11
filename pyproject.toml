@@ -50,7 +50,7 @@ dl = [
     "jaxtyping",
     "equinox",
     "optax",
-		"tensorflow",
+    "tensorflow",
 ]
 ml = [
     "xgboost>=1.5.0",
@@ -75,7 +75,13 @@ dev = [
     "pytest-timeout",
     "pytest-xdist",
 ]
-all = ["scirex[dl,ml,fastvpinns,dev]"]
+examples = [
+		"xmltodict",
+		"imageio",
+		"torch",
+		"torch_geometric",
+]
+all = ["scirex[dl,ml,fastvpinns,dev,examples]"]
 
 [project.urls]
 Homepage = "https://scirex.org/"
