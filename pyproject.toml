@@ -38,46 +38,34 @@ dependencies = [
     "numpy>=1.20.0",
     "pandas>=1.3.0",
     "scikit-learn>=1.0.0",
-    "xgboost>=1.5.0",
     "matplotlib>=3.4.0",
     "seaborn>=0.11.0",
-    "ipykernel>=6.0.0",
-    "jupyter>=1.0.0",
+    "tqdm==4.66.3",
+]
+
+[project.optional-dependencies]
+dl = [
     "jax",
     "jaxtyping",
     "equinox",
     "optax",
-    "tensorflow==2.13.0",
-    "meshio==5.3.4",
-    "pyDOE==0.3.8",
-    "tqdm==4.66.3",
-    "scipy",
-    "gmsh",
-    "pyyaml",
-    "black==24.8.0",
-    "pytest",
-		"pytest-dependency",
-    "pytest-benchmark",
-    "pytest-cov",
-    "pytest-env",
-    "pytest-timeout",
-    "pytest-xdist"
+		"tensorflow",
 ]
-
-[project.optional-dependencies]
+ml = [
+    "xgboost>=1.5.0",
+    "ipykernel>=6.0.0",
+    "jupyter>=1.0.0",
+]
 fastvpinns = [
-    "numpy>=1.20.0",
-    "pandas>=1.3.0",
-    "scikit-learn>=1.0.0",
     "tensorflow==2.13.0",
     "meshio==5.3.4",
     "pyDOE==0.3.8",
-    "tqdm==4.66.3",
     "scipy",
     "gmsh",
     "pyyaml",
 ]
 dev = [
+    "black==24.8.0",
     "pytest",
 		"pytest-dependency",
     "pytest-benchmark",
@@ -86,6 +74,7 @@ dev = [
     "pytest-timeout",
     "pytest-xdist",
 ]
+all = ["scirex[dl,ml,fastvpinns,dev]"]
 
 [project.urls]
 Homepage = "https://scirex.org/"

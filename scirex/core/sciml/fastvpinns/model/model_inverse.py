@@ -318,7 +318,7 @@ class DenseModel_Inverse(tf.keras.Model):
 
     @tf.function
     def train_step(
-        self, beta=10, bilinear_params_dict=None
+        self, beta=10, beta_sensor=10, bilinear_params_dict=None
     ) -> dict:  # pragma: no cover
         """
         Performs a single training step on the model.
@@ -402,7 +402,9 @@ class DenseModel_Inverse(tf.keras.Model):
             # tf.print("Total PDE Loss Shape : ", total_pde_loss.shape)
 
             # Compute Total Loss
-            total_loss = total_pde_loss + beta * boundary_loss + 10 * sensor_loss
+            total_loss = (
+                total_pde_loss + beta * boundary_loss + beta_sensor * sensor_loss
+            )
 
         trainable_vars = self.trainable_variables
         self.gradients = tape.gradient(total_loss, trainable_vars)
