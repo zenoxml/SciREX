@@ -45,7 +45,7 @@ import equinox as eqx
 import jax
 import jax.numpy as jnp
 from typing import Callable
-from scirex.core.dl.fcnn import FCNN
+from .fcnn import FCNN
 
 
 class MLP(FCNN):
