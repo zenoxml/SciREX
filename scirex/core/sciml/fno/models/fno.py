@@ -55,7 +55,7 @@ import jax.numpy as jnp
 
 from typing import List
 
-from scirex.core.sciml.fno.layers.fno_block import FNOBlock1d
+from ..layers.fno_block import FNOBlock1d
 
 
 class FNO1d(eqx.Module):
