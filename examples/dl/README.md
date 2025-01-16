@@ -1,14 +1,15 @@
 # SciREX Deep Learning Examples
 
-This directory contains implementations of various deep learning models using the SciREX library. The examples demonstrate how to build, train, and evaluate neural networks on the MNIST dataset.
+This directory contains implementations of various deep learning models using the SciREX library. The examples demonstrate how to build, train, and evaluate neural networks on a dataset.
 
 ## File Structure
 
 ```
 .
 ├── README.md
-├── cnn-mnist.py  # Convolutional Neural Network implementation
-└── vae-mnist.py  # Variational Autoencoder implementation
+├── cnn_mnist.py  # Convolutional Neural Network implementation
+├── gcn_cora.py   # Graph Convolutional Network implementation
+└── vae_mnist.py  # Variational Autoencoder implementation
 ```
 
 ## Table of Contents
@@ -16,6 +17,7 @@ This directory contains implementations of various deep learning models using th
 - [Installation](#installation)
 - [Models](#models)
   - [Convolutional Neural Network (CNN)](#convolutional-neural-network-cnn)
+  - [Graph Convolution Network (GCN)](#graph-convolution-network-gcn)
   - [Variational Autoencoder (VAE)](#variational-autoencoder-vae)
 - [Usage](#usage)
 - [Model Architectures](#model-architectures)
@@ -29,6 +31,7 @@ This directory contains implementations of various deep learning models using th
 pip install jax jaxlib
 pip install optax
 pip install tensorflow  # For MNIST dataset
+pip install torch, torch_geometric  # For CORA dataset
 pip install matplotlib  # For plotting
 # Install SciREX (assuming it's available on PyPI)
 pip install scirex
@@ -65,6 +68,11 @@ Features:
 - Cross-entropy loss
 - Accuracy metric
 - Adam optimizer
+
+### Graph Convolution Neural Network (GCN)
+
+A classification model that takes the citation network of scientific publications from the CORA dataset.
+Find more explanation in `gcn_cora.py`.
 
 ### Variational Autoencoder (VAE)
 
@@ -190,14 +198,20 @@ Both models include:
 
 ### Hyperparameters
 
-#### CNN (`cnn-mnist.py`)
+#### CNN (`cnn_mnist.py`)
 ```python
 batch_size = 10
 learning_rate = 0.001
 num_epochs = 10
 ```
 
-#### VAE (`vae-mnist.py`)
+#### GCN (`cnn_mnist.py`)
+```python
+learning_rate = 0.05
+num_epochs = 50
+```
+
+#### VAE (`vae_mnist.py`)
 ```python
 batch_size = 64
 learning_rate = 0.001
@@ -210,5 +224,6 @@ num_epochs = 100
 - JAX and JAX NumPy
 - Optax
 - TensorFlow (for MNIST dataset)
+- PyTorch (for CORA dataset)
 - SciREX
 - Matplotlib
