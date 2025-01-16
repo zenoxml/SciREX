@@ -203,7 +203,7 @@ class DenseModel(tf.keras.Model):
             tf.print(f"Adding Dense Layer with {self.layer_dims[dim + 1]} units")
             self.layer_list.append(
                 TensorflowDense.create_layer(
-                    units=self.layer_dims[dim + 1], # fixed + 1
+                    units=self.layer_dims[dim + 1],
                     activation="tanh",
                     dtype=tf.float32,
                     kernel_initializer=kernel_initializer,
