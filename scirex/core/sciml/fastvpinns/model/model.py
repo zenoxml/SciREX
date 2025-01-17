@@ -243,7 +243,7 @@ class DenseModel(tf.keras.Model):
         for dim in range(len(self.layer_dims) - 2):
             self.layer_list.append(
                 TensorflowDense.create_layer(
-                    units=self.layer_dims[dim+1],
+                    units=self.layer_dims[dim + 1],
                     activation=self.activation,
                     dtype=self.tensor_dtype,
                     kernel_initializer="glorot_uniform",
