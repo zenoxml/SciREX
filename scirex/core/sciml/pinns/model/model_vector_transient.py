@@ -49,9 +49,11 @@ import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras import initializers
 import copy
+import numpy as np
 
 # import tensorflow wrapper
 from ....dl.tensorflow_wrapper import TensorflowDense
+from ..optimizers.lbfgs import LBFGSHelper
 
 
 # Custom Model
@@ -358,7 +360,6 @@ class DenseModel(tf.keras.Model):
             # tf.print(f"PDE Residual Shape: {pde_residual.shape}")
             # tf.print(f"Boundary Loss Shape: {boundary_loss.shape}")
             # tf.print(f"Initial Loss Shape: {initial_Ez_loss.shape}")
-
 
         trainable_vars = self.trainable_variables
         self.gradients = tape.gradient(total_loss, trainable_vars)
