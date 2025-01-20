@@ -46,6 +46,7 @@ from pyDOE import lhs
 
 from scirex.core.sciml.pinns.model.model_vector_transient import DenseModel
 from scirex.core.sciml.pinns.physics.maxwell import pde_loss_maxwell
+from scirex.core.sciml.pinns.optimizers.lbfgs import *
 
 i_mesh_type = "quadrilateral"  # "quadrilateral"
 i_mesh_generation_method = "internal"  # "internal" or "external"
@@ -59,8 +60,8 @@ i_y_max = 1  # maximum y value
 i_t_min = 0  # minimum time value
 i_t_max = 2  # maximum time value
 
-i_n_collocation_points = 2000  # Number of collocation points
-i_n_boundary_points = 400  # Number of points on the boundary
+i_n_collocation_points = 3000  # Number of collocation points
+i_n_boundary_points = 1000  # Number of points on the boundary
 i_output_path = "output/poisson_2d"  # Output path
 
 i_n_test_points_x = 100  # Number of test points in the x direction
@@ -72,17 +73,17 @@ i_activation = "tanh"  # Activation function
 i_learning_rate_dict = {
     "initial_learning_rate": 0.001,  # Initial learning rate
     "use_lr_scheduler": False,  # Use learning rate scheduler
-    "decay_steps": 1000,  # Decay steps
-    "decay_rate": 0.96,  # Decay rate
-    "staircase": True,  # Staircase Decay
+    "decay_steps": 5000,  # Decay steps
+    "decay_rate": 0.98,  # Decay rate
+    "staircase": False,  # Staircase Decay
 }
 
 i_dtype = tf.float32
-i_num_epochs = 20000  # Number of epochs
+i_num_epochs = 150000  # Number of epochs
 
 # penalty parameter for boundary loss
-i_beta_boundary = 0.1
-i_beta_initial = 0.1
+i_beta_boundary = 0.01
+i_beta_initial = 10.0
 
 
 #############################################################################
@@ -145,7 +146,7 @@ def boundary_data(x, y, t):
 top_x = np.linspace(i_x_min, i_x_max, i_n_boundary_points)
 top_y = np.ones(i_n_boundary_points) * i_y_max
 top_t = np.linspace(i_t_min, i_t_max, i_n_boundary_points)
-# concatenate the points into 2D array
+# concatenate the points into 3D array
 top_boundary_points = np.vstack((top_x, top_y, top_t)).T
 top_boundary_values = boundary_data(top_x, top_y, top_t)
 
@@ -174,25 +175,29 @@ right_boundary_points = np.vstack((right_x, right_y, right_t)).T
 right_boundary_values = boundary_data(right_x, right_y, right_t)
 
 # initial condition boundary: t = i_t_min for Hx
-initial_x_Hx = np.linspace(i_x_min, i_x_max, i_n_boundary_points)
-initial_y_Hx = np.linspace(i_y_min, i_y_max, i_n_boundary_points)
+initial_collocation_points = lhs(2, i_n_boundary_points)
+initial_x_Hx = initial_collocation_points[:, 0] * (i_x_max - i_x_min) + i_x_min
+initial_y_Hx = initial_collocation_points[:, 1] * (i_y_max - i_y_min) + i_y_min
 initial_t_Hx = np.ones(i_n_boundary_points) * i_t_min
+
 
 # concatenate the points into 2D array
 initial_boundary_points_Hx = np.vstack((initial_x_Hx, initial_y_Hx, initial_t_Hx)).T
 initial_boundary_values_Hx = initial_data_Hx(initial_x_Hx, initial_y_Hx)
 
+
 # initial condition boundary: t = i_t_min for Hy
-initial_x_Hy = np.linspace(i_x_min, i_x_max, i_n_boundary_points)
-initial_y_Hy = np.linspace(i_y_min, i_y_max, i_n_boundary_points)
+initial_x_Hy = initial_collocation_points[:, 0] * (i_x_max - i_x_min) + i_x_min
+initial_y_Hy = initial_collocation_points[:, 1] * (i_y_max - i_y_min) + i_y_min
 initial_t_Hy = np.ones(i_n_boundary_points) * i_t_min
 # concatenate the points into 2D array
 initial_boundary_points_Hy = np.vstack((initial_x_Hy, initial_y_Hy, initial_t_Hy)).T
 initial_boundary_values_Hy = initial_data_Hy(initial_x_Hy, initial_y_Hy)
 
+
 # initial condition boundary: t = i_t_min for Ez
-initial_x_Ez = np.linspace(i_x_min, i_x_max, i_n_boundary_points)
-initial_y_Ez = np.linspace(i_y_min, i_y_max, i_n_boundary_points)
+initial_x_Ez = initial_collocation_points[:, 0] * (i_x_max - i_x_min) + i_x_min
+initial_y_Ez = initial_collocation_points[:, 1] * (i_y_max - i_y_min) + i_y_min
 initial_t_Ez = np.ones(i_n_boundary_points) * i_t_min
 # concatenate the points into 2D array
 initial_boundary_points_Ez = np.vstack((initial_x_Ez, initial_y_Ez, initial_t_Ez)).T
@@ -240,6 +245,7 @@ rhs_values = rhs(input_points[:, 0:1], input_points[:, 1:2], input_points[:, 2:3
 #############################################################################
 
 # Generate the test points in the domain between x_min and x_max and y_min and y_max
+
 test_points_x = np.linspace(i_x_min, i_x_max, i_n_test_points_x)
 test_points_y = np.linspace(i_y_min, i_y_max, i_n_test_points_y)
 test_points_t = np.linspace(i_t_min, i_t_max, i_n_test_points_t)
@@ -352,7 +358,7 @@ if not folder.exists():
 
 
 model = DenseModel(
-    layer_dims=[3, 50, 50, 50, 50, 3],
+    layer_dims=[3, 30, 50, 50, 50, 50, 30, 3],
     learning_rate_dict=i_learning_rate_dict,
     loss_function=pde_loss_maxwell,
     input_tensors_list=[
@@ -379,18 +385,31 @@ time_array = []  # time taken for each epoch
 for epoch in tqdm(range(i_num_epochs)):
     # Train the model
     batch_start_time = time.time()
-    loss = model.train_step(
-        beta_boundary=i_beta_boundary,
-        beta_initial=i_beta_initial,
-        bilinear_params_dict=i_bilinear_params_dict,
-    )
+    if epoch <= i_num_epochs:
+        loss = model.train_step(
+            beta_boundary=i_beta_boundary,
+            beta_initial=i_beta_initial,
+            bilinear_params_dict=i_bilinear_params_dict,
+        )
+        loss_array.append(loss["loss"])
+        if epoch % 1000 == 0:
+            pde_loss = loss["loss_pde"]
+            boundary_loss = loss["loss_dirichlet"]
+            initial_loss = loss["loss_initial"]
+            print(
+                f"Epoch: {epoch}, Loss: {loss['loss'] :.4e}",
+                f"PDE Loss: {pde_loss:.4e}, Boundary Loss: {boundary_loss:.4e}",
+                f"Inital Loss: {initial_loss:.4e}",
+            )
+    else:
+        results = lbfgs_minimize(
+            model.trainable_variables, model.calculate_train_loss_wrapper
+        )
     elapsed = time.time() - batch_start_time
     # print(elapsed)
     time_array.append(elapsed)
 
-    loss_array.append(loss["loss"])
-
-    if epoch % 1000 == 0:
+    if epoch % 500 == 0:
         model_sol = model(test_points)
         sol_Ez = model_sol[:, 0:1].numpy().reshape(-1)
         error_Ez = np.abs(exact_values_Ez - sol_Ez)
@@ -407,16 +426,12 @@ for epoch in tqdm(range(i_num_epochs)):
         l_inf_error_Hy = np.max(np.abs(error_Hy))
         l2_error_Hy = np.sqrt(np.mean(error_Hy**2))
 
-        pde_loss = loss["loss_pde"]
-        boundary_loss = loss["loss_dirichlet"]
-        initial_loss = loss["loss_initial"]
         print(
-            f"Epoch: {epoch}, Loss: {loss['loss'] :.4e}, L2 Error Ez: {l2_error_Ez:.4e}, L_inf Error Ez: {l_inf_error_Ez:.4e}",
+            f"L2 Error Ez: {l2_error_Ez:.4e}, L_inf Error Ez: {l_inf_error_Ez:.4e}",
             f"L2 Error Hx: {l2_error_Hx:.4e}, L_inf Error Hx: {l_inf_error_Hx:.4e}",
             f"L2 Error Hy: {l2_error_Hy:.4e}, L_inf Error Hy: {l_inf_error_Hy:.4e}",
-            f"PDE Loss: {pde_loss:.4e}, Boundary Loss: {boundary_loss:.4e}",
-            f"Inital Loss: {initial_loss:.4e}",
         )
+
 
 # Get predicted values of Ez at x = 0.75 and y = 0.75 for 200 time points
 test_points_t = np.linspace(i_t_min, i_t_max, 200)
