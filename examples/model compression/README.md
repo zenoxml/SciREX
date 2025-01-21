@@ -185,6 +185,11 @@ Size Reduction from Post-Training: ~71.7%
 ## Running the Code
 
 To run any of the examples, use the following command pattern:
+
+```bash
+pip install tensorflow-model-optimization
+```
+
 ```bash
 PYTHONPATH=$(pwd) python3 "examples/model compression/<filename>"
 ```
