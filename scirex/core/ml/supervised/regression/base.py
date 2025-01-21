@@ -37,7 +37,7 @@
         - numpy, pandas, sklearn
         - abc, pathlib, time, typing (for structural and type support)
 
-    Key Features:
+    Key Features:.
         - Consistent interface for loading and preparing data
         - Standard approach to computing and returning regression metrics
         - Enforces subclasses to implement `fit`, `predict`, and `get_model_params`
