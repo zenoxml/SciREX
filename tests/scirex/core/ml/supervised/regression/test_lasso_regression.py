@@ -25,6 +25,7 @@ import unittest
 import numpy as np
 from scirex.core.ml.supervised.regression.lasso_regression import LassoRegressionModel
 
+
 class TestLassoRegression(unittest.TestCase):
     def setUp(self):
         # Sample dataset for testing
@@ -34,7 +35,9 @@ class TestLassoRegression(unittest.TestCase):
 
     def test_fit(self):
         self.model.fit(self.X, self.y)
-        self.assertIsNotNone(self.model.model, "Model is not initialized after fitting.")
+        self.assertIsNotNone(
+            self.model.model, "Model is not initialized after fitting."
+        )
 
     def test_predict(self):
         self.model.fit(self.X, self.y)
@@ -44,5 +47,7 @@ class TestLassoRegression(unittest.TestCase):
     def test_get_model_params(self):
         self.model.fit(self.X, self.y)
         params = self.model.get_model_params()
-        self.assertIn("coefficients", params, "Model parameters missing 'coefficients'.")
+        self.assertIn(
+            "coefficients", params, "Model parameters missing 'coefficients'."
+        )
         self.assertIn("intercept", params, "Model parameters missing 'intercept'.")

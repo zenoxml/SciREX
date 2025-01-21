@@ -41,39 +41,42 @@ import optax
 from scirex.core.dl.gcn import GCN, GCNModel
 
 key = jax.random.PRNGKey(0)
-key_x, key_A, key_model = jax.random.split(key, num = 3)
+key_x, key_A, key_model = jax.random.split(key, num=3)
 
 num_nodes = 5
 input_feature_vector_size = 10
 output_vector_size = 2
 
 x = jax.random.normal(key_x, (num_nodes, input_feature_vector_size))
-x = x / jnp.linalg.norm(x, axis = 1, keepdims = True) # Normalising
+x = x / jnp.linalg.norm(x, axis=1, keepdims=True)  # Normalising
 
-A = jax.random.bernoulli(key_A, p = 0.4, shape = (num_nodes,num_nodes))
+A = jax.random.bernoulli(key_A, p=0.4, shape=(num_nodes, num_nodes))
 A = (A + jnp.transpose(A)) * 1
 deg = A.sum(axis=0)
+
 
 def loss_fn(output, target):
     differences = output.transpose() @ output - target
     return jnp.square(differences).sum()
 
+
 def test_GCN_call():
     gcn = GCN(
-            [input_feature_vector_size, 10, 10, output_vector_size],
-            [jnp.tanh]*2 + [jax.nn.sigmoid],
-            key_model
-            )
+        [input_feature_vector_size, 10, 10, output_vector_size],
+        [jnp.tanh] * 2 + [jax.nn.sigmoid],
+        key_model,
+    )
 
     output = gcn(x, A, deg)
     assert output.shape == (num_nodes, output_vector_size)
 
+
 def test_GCNModel_fit():
     gcn = GCN(
-            [input_feature_vector_size, 10, 10, output_vector_size],
-            [jnp.tanh]*2 + [jax.nn.sigmoid],
-            key_model
-            )
+        [input_feature_vector_size, 10, 10, output_vector_size],
+        [jnp.tanh] * 2 + [jax.nn.sigmoid],
+        key_model,
+    )
 
     target = jnp.eye(output_vector_size)
 
@@ -82,7 +85,7 @@ def test_GCNModel_fit():
     output = gcn(x, A, deg)
     loss_initial = loss_fn(output, target)
 
-    gcn = model.fit(x, A, deg, target, learning_rate = 5e-2, num_iters = 10)
+    gcn = model.fit(x, A, deg, target, learning_rate=5e-2, num_iters=10)
 
     output = gcn(x, A, deg)
     loss_final = loss_fn(output, target)
