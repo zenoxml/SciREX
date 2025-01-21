@@ -66,7 +66,7 @@ class RidgeRegressionModel(Regression):
     Ridge Regression model implementation using scikit-learn.
 
     This model performs Ridge Regression, which is a linear model that uses L2 regularization.
-    Ridge regression is useful when there is multicollinearity among input features or when 
+    Ridge regression is useful when there is multicollinearity among input features or when
     there are more predictors than observations.
 
     Attributes:
@@ -78,9 +78,9 @@ class RidgeRegressionModel(Regression):
         Initialize the RidgeRegressionModel class.
 
         Args:
-            alpha (float, optional): Regularization strength; must be a positive float. 
+            alpha (float, optional): Regularization strength; must be a positive float.
                                       Defaults to 1.0.
-            random_state (int, optional): Seed for reproducibility where applicable. 
+            random_state (int, optional): Seed for reproducibility where applicable.
                                           Defaults to 42.
         """
         super().__init__(model_type="ridge_regression", random_state=random_state)

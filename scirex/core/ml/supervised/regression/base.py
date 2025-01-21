@@ -58,16 +58,17 @@ import time
 
 # Third-party imports
 import numpy as np
-import pandas as pd 
+import pandas as pd
 import matplotlib.pyplot as plt
-from matplotlib.figure import Figure 
+from matplotlib.figure import Figure
 from sklearn.model_selection import train_test_split
-from sklearn.metrics import ( 
+from sklearn.metrics import (
     mean_squared_error,
     mean_absolute_error,
     r2_score,
 )
 from sklearn.preprocessing import StandardScaler
+
 
 class Regression(ABC):
     """
@@ -108,9 +109,9 @@ class Regression(ABC):
 
         # initialize the model to None
         self.model = None
-        
+
         # create a directory to save the plots
-        self.plots_dir = Path.cwd()  / "Plots"
+        self.plots_dir = Path.cwd() / "Plots"
         self.plots_dir.mkdir(parents=True, exist_ok=True)
 
     def prepare_data(self, path: str) -> Tuple[np.ndarray, np.ndarray]:
@@ -132,7 +133,7 @@ class Regression(ABC):
         numeric_columns = df.select_dtypes(include=[np.number]).columns
         if numeric_columns.empty:
             raise ValueError("No numeric columns found in the dataset.")
-    
+
         # Split into features (X) and target (y)
         X = df[numeric_columns[:-1]].values  # All numeric columns except the last one
         y = df[numeric_columns[-1]].values  # Last numeric column as the target
@@ -140,7 +141,6 @@ class Regression(ABC):
         # Scale the features
         X = StandardScaler().fit_transform(X)
         return X, y
-   
 
     @abstractmethod
     def fit(self, X: np.ndarray, y: np.ndarray) -> None:
@@ -150,7 +150,7 @@ class Regression(ABC):
         Args:
             X (np.ndarray): The input features for training the model.
             y (np.ndarray): The target values for training the model.
-        
+
         Subclasses must implement this method.
         """
         pass
@@ -168,7 +168,6 @@ class Regression(ABC):
         """
         pass
 
-
     @abstractmethod
     def get_model_params(self) -> Dict[str, Any]:
         """
@@ -178,7 +177,10 @@ class Regression(ABC):
             Dict[str, Any]: A dictionary of model parameters.
         """
         pass
-    def evaluation_metrics(self, y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
+
+    def evaluation_metrics(
+        self, y_true: np.ndarray, y_pred: np.ndarray
+    ) -> Dict[str, float]:
         """
         Compute and return regression evaluation metrics.
 
@@ -200,22 +202,25 @@ class Regression(ABC):
         }
 
     def plot_regression_results(self, y_true: np.ndarray, y_pred: np.ndarray) -> Figure:
-
         """
         Plot the regression results.
-      
+
         Args:
           y_true (np.ndarray): The true target values.
           y_pred (np.ndarray): The predicted target values.
-    
+
         Returns:
         Figure: The matplotlib figure object
         """
         fig, ax = plt.subplots(figsize=(8, 6))
-        ax.scatter(y_true, y_pred, color='blue', label='Predictions')       
-        ax.plot([y_true.min(), y_true.max()], 
-            [y_true.min(), y_true.max()], 
-            ls="--", color='red', label='Perfect Predictions')
+        ax.scatter(y_true, y_pred, color="blue", label="Predictions")
+        ax.plot(
+            [y_true.min(), y_true.max()],
+            [y_true.min(), y_true.max()],
+            ls="--",
+            color="red",
+            label="Perfect Predictions",
+        )
         ax.set_xlabel("True Values")
         ax.set_ylabel("Predicted Values")
         ax.set_title(f"{self.model_type} Regression Results")
@@ -231,10 +236,10 @@ class Regression(ABC):
 
     def run(
         self,
-        data:Optional[np.array]=None,
-        path: Optional[str]= None,
-        test_size: float =0.2,
-        ) -> Dict[str, Any]:
+        data: Optional[np.array] = None,
+        path: Optional[str] = None,
+        test_size: float = 0.2,
+    ) -> Dict[str, Any]:
         """
         Run the complete regression pipeline: data loading/preprocessing, fitting the model, and computing regression metrics on the test set.
 
@@ -253,31 +258,34 @@ class Regression(ABC):
         if data is None and path is None:
             raise ValueError("Either 'data' or 'path' must be provided.")
 
-        # Load and prepare the data 
+        # Load and prepare the data
         # If data is not provided, load the data from the specified path
         # If data is provided, use it directly
         X, y = data if data is not None else self.prepare_data(path)
 
-        #spliting the dataset into training set and testing set
-        x_train, x_test, y_train, y_test = train_test_split(X,y, test_size= test_size, random_state=self.random_state) 
-
+        # spliting the dataset into training set and testing set
+        x_train, x_test, y_train, y_test = train_test_split(
+            X, y, test_size=test_size, random_state=self.random_state
+        )
 
         # Fit the model on the training data
-        self.fit(x_train , y_train)
+        self.fit(x_train, y_train)
 
         # check model and make predictions
         if self.model is None:
-            raise ValueError(f"{self.model_type} model is not trained. Ensure the 'fit' method is called before predictions.")
+            raise ValueError(
+                f"{self.model_type} model is not trained. Ensure the 'fit' method is called before predictions."
+            )
         y_pred = self.predict(x_test)
 
         # compute regression metrics
-        metrics= self.evaluation_metrics(y_test,y_pred)
+        metrics = self.evaluation_metrics(y_test, y_pred)
 
-        #plot the regression results
-        fig =self.plot_regression_results(y_test, y_pred)
+        # plot the regression results
+        fig = self.plot_regression_results(y_test, y_pred)
 
-        #return the model parameters and evaluation metrics
-        return{
+        # return the model parameters and evaluation metrics
+        return {
             "params": self.get_model_params(),
             "MSE": metrics["mse"],
             "MAE": metrics["mae"],
