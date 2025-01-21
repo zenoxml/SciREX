@@ -105,7 +105,7 @@ class LassoRegressionModel(Regression):
 
     def get_model_params(self) -> Dict[str, Any]:
         """
-        Get the model parameters (coefficients and intercept).
+        Get the model parameters coefficients and intercept.
 
         Returns:
             Dict[str, Any]: Model parameters, including coefficients and intercept.
