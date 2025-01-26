@@ -37,6 +37,12 @@ nav:
                   - Logistic regression: api/core/ml/supervised/classification/logistic_regression.md
                   - Decision tree: api/core/ml/supervised/classification/decision_tree.md
                   - SVM: api/core/ml/supervised/classification/svm.md
+              - Regression:
+                  - base: api/core/ml/supervised/regression/base.md
+                  - Linear regression: api/core/ml/supervised/regression/linear_regression.md
+                  - Ridge regression: api/core/ml/supervised/regression/ridge_regression.md
+                  - Lasso regression: api/core/ml/supervised/regression/lasso_regression.md
+
           - Unsupervised:
               - Clustering: 
                   - Base: api/core/ml/unsupervised/clustering/base.md
@@ -64,6 +70,7 @@ nav:
             - sequential : api/core/dl/layer/sequential.md
           - tensorflow_wrapper: api/core/dl/tensorflow_wrapper.md
           - fcnn: api/core/dl/fcnn.md
+          - gcn: api/core/dl/gcn.md
           - base: api/core/dl/base.md
           - MLP: api/core/dl/mlp.md
       - SciML:
@@ -124,12 +131,17 @@ nav:
              - classification:
                - example logistic regresssion: api/core/examples/ml/supervised/classification/example_logistic_regression.md
                - example naive bayes: api/core/examples/ml/supervised/classification/example_naive_bayes.md
+             - regression:
+                - example linear regression: api/core/examples/ml/supervised/regression/example_linear_regression.md
+                - example ridge regression: api/core/examples/ml/supervised/regression/example_ridge_regression.md
+                - example lasso regression: api/core/examples/ml/supervised/regression/example_lasso_regression.md  
           - unsupervised :
              - clustering:
                - example Kmeans: api/core/examples/ml/unsupervised/clustering/example_naive_bayes.md
         - DL:
           - cnn_mnist : api/core/examples/dl/cnn_mnist.md
           - vae_mnist : api/core/examples/dl/vae_mnist.md
+          - gcn_cora : api/core/examples/dl/gcn_cora.md
         - Model compression:
           - pruned base mnist: api/core/examples/model compression/pruned_base_mnist.md
           - pruned mnist: api/core/examples/model compression/pruned_mnist.md
