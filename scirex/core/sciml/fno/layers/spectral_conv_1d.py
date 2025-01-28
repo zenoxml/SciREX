@@ -54,6 +54,7 @@ import jax
 import equinox as eqx
 import jax.numpy as jnp
 
+
 class SpectralConv1d(eqx.Module):
     """
     A 1D spectral convolution layer.

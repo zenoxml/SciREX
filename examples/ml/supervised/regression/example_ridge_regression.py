@@ -52,12 +52,7 @@ from sklearn.datasets import make_regression
 from scirex.core.ml.supervised.regression.ridge_regression import RidgeRegressionModel
 
 # Generate synthetic regression data
-X, y = make_regression(
-    n_samples=100, 
-    n_features=1, 
-    noise=10, 
-    random_state=42
-)
+X, y = make_regression(n_samples=100, n_features=1, noise=10, random_state=42)
 
 # Initialize the Ridge Regression model
 ridge_model = RidgeRegressionModel(random_state=42)
