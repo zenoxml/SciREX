@@ -23,7 +23,7 @@
 # please contact: contact@scirex.org
 
 """
-Module: fno_block.py
+Module: fno_block_2d.py
 
 This module provides the implementation of a single block of the Fourier Neural Operator (FNO) model.
 
@@ -43,7 +43,7 @@ Authors:
     Diya Nag Chaudhury
 
 Version Info:
-    29/Dec/2024: Initial version - Diya Nag Chaudhury
+    28/Jan/2024: Initial version - Diya Nag Chaudhury
 
 References:
     None
@@ -55,56 +55,38 @@ import jax.numpy as jnp
 
 from typing import Callable
 
-from scirex.core.sciml.fno.layers.spectral_conv import SpectralConv1d
+from scirex.core.sciml.fno.layers.spectral_conv_2d import SpectralConv2d
 
-
-class FNOBlock1d(eqx.Module):
+class FNOBlock2d(eqx.Module):
+    """2D FNO Block combining spectral and regular convolution
+    
+    This block combines a spectral convolution with a regular convolution
+    
+    Args:
+        in_channels: int
+        out_channels: int
+        modes1: int
+        modes2: int
+        activation: callable
+        key: jax.random
+        
+    Returns:
+        callable: FNOBlock2d object
+    
     """
-    A single block of the FNO model.
-
-    This block consists of a spectral convolution followed by a bypass convolution
-    and an activation function.
-
-    Attributes:
-    spectral_conv: SpectralConv1d
-    bypass_conv: eqx.nn.Conv1d
-    activation: Callable
-
-    Methods:
-    __init__: Initializes the FNOBlock1d object
-    __call__: Calls the FNOBlock1d object
-    """
-
-    spectral_conv: SpectralConv1d
-    bypass_conv: eqx.nn.Conv1d
-    activation: Callable
-
-    def __init__(
-        self,
-        in_channels,
-        out_channels,
-        modes,
-        activation,
-        *,
-        key,
-    ):
-        spectral_conv_key, bypass_conv_key = jax.random.split(key)
-        self.spectral_conv = SpectralConv1d(
-            in_channels,
-            out_channels,
-            modes,
-            key=spectral_conv_key,
+    spectral_conv: SpectralConv2d
+    conv: eqx.nn.Conv2d
+    activation: callable
+    
+    def __init__(self, in_channels, out_channels, modes1, modes2, activation, *, key):
+        keys = jax.random.split(key)
+        self.spectral_conv = SpectralConv2d(
+            in_channels, out_channels, modes1, modes2, key=keys[0]
         )
-        self.bypass_conv = eqx.nn.Conv1d(
-            in_channels,
-            out_channels,
-            1,  # Kernel size is one
-            key=bypass_conv_key,
+        self.conv = eqx.nn.Conv2d(
+            in_channels, out_channels, kernel_size=1, key=keys[1]
         )
         self.activation = activation
-
-    def __call__(
-        self,
-        x,
-    ):
-        return self.activation(self.spectral_conv(x) + self.bypass_conv(x))
+    
+    def __call__(self, x):
+        return self.activation(self.spectral_conv(x) + self.conv(x))

@@ -29,7 +29,7 @@ import equinox as eqx
 import optax
 import matplotlib.pyplot as plt
 from tqdm.autonotebook import tqdm
-from scirex.core.sciml.fno.models.fno import FNO1d
+from scirex.core.sciml.fno.models.fno_1d import FNO1d
 
 def generate_burgers_data(num_samples=1200, nx=256, t_final=1.0, nu=0.01/jnp.pi):
     """
