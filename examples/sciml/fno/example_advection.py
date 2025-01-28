@@ -29,7 +29,7 @@ import optax
 import matplotlib.pyplot as plt
 import os
 
-from scirex.core.sciml.fno.models.fno import FNO1d
+from scirex.core.sciml.fno.models.fno_1d import FNO1d
 
 
 def generate_advection_data(n_samples=1200, nx=64, nt=100, v=1.0):

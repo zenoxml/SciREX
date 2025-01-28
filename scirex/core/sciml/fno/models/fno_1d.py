@@ -23,9 +23,9 @@
 # please contact: contact@scirex.org
 
 """
-Module: fno.py
+Module: fno_1d.py
 
-This module provides the implementation of the Fourier Neural Operator (FNO) model.
+This module provides the implementation of a basic one-dimensional Fourier Neural Operator (FNO) model.
 
 Classes:
     FNO1d: 1D Fourier Neural Operator
@@ -55,7 +55,7 @@ import jax.numpy as jnp
 
 from typing import List
 
-from ..layers.fno_block import FNOBlock1d
+from ..layers.fno_block_1d import FNOBlock1d
 
 
 class FNO1d(eqx.Module):
@@ -101,12 +101,6 @@ class FNO1d(eqx.Module):
         activation: Callable
         n_blocks: int
         key: jax.random.PRNGKey
-
-        Returns:
-        None
-
-        Raises:
-        None
 
         Usage:
         fno = FNO1d(in_channels, out_channels, modes, width, activation, n_blocks, key)
