@@ -279,7 +279,7 @@ class DenseModel(tf.keras.Model):
         Returns:
             TensorFlow tensor of same shape as input with piecewise function applied
         """
-        return tf.where(tf.less(theta, 0.0), tf.exp(2.0*theta), theta + 1.0)
+        return tf.where(tf.less(theta, 0.0), tf.exp(2.0 * theta), theta + 1.0)
 
     @tf.function
     def train_step(
