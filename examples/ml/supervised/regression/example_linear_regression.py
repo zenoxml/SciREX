@@ -52,12 +52,7 @@ from sklearn.datasets import make_regression
 from scirex.core.ml.supervised.regression.linear_regression import LinearRegressionModel
 
 # Step 1: Generate synthetic regression data
-X, y = make_regression(
-    n_samples=100,
-    n_features=1,
-    noise=10,
-    random_state=42
-)
+X, y = make_regression(n_samples=100, n_features=1, noise=10, random_state=42)
 
 # Step 2: Initialize the Linear Regression model
 model = LinearRegressionModel(random_state=42)

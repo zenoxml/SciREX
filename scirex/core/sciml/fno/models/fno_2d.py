@@ -57,25 +57,27 @@ from typing import List
 
 from ..layers.fno_block_2d import FNOBlock2d
 
+
 class FNO2d(eqx.Module):
     """Complete 2D Fourier Neural Operator
-    
+
     This module combines the lifting layer, FNO blocks, and projection layer
     to create a complete 2D Fourier Neural Operator.
-    
+
     Attributes:
     lifting: eqx.nn.Conv2d
     fno_blocks: list
     projection: eqx.nn.Conv2d
-    
+
     Methods:
     __init__: Initializes the FNO2d object
     __call__: Calls the FNO2d object
     """
+
     lifting: eqx.nn.Conv2d
     fno_blocks: list
     projection: eqx.nn.Conv2d
-    
+
     def __init__(
         self,
         in_channels,
@@ -86,7 +88,7 @@ class FNO2d(eqx.Module):
         activation,
         n_blocks,
         *,
-        key
+        key,
     ):
         """
         Initializes the FNO2d object
@@ -101,39 +103,35 @@ class FNO2d(eqx.Module):
             n_blocks (_type_): _description_
             key (_type_): _description_
         """
-        
+
         keys = jax.random.split(key, n_blocks + 2)
-        
-        self.lifting = eqx.nn.Conv2d(
-            in_channels, width, kernel_size=1, key=keys[0]
-        )
-        
+
+        self.lifting = eqx.nn.Conv2d(in_channels, width, kernel_size=1, key=keys[0])
+
         self.fno_blocks = []
         for i in range(n_blocks):
             self.fno_blocks.append(
-                FNOBlock2d(
-                    width, width, modes1, modes2, activation, key=keys[i+1]
-                )
+                FNOBlock2d(width, width, modes1, modes2, activation, key=keys[i + 1])
             )
-        
+
         self.projection = eqx.nn.Conv2d(
             width, out_channels, kernel_size=1, key=keys[-1]
         )
-    
+
     def __call__(self, x):
         """_
         Calls the FNO2d object
-        
+
         Args:
         x: jnp.ndarray
-        
+
         Returns:
         jnp.ndarray
         """
         x = self.lifting(x)
-        
+
         for block in self.fno_blocks:
             x = block(x)
-        
+
         x = self.projection(x)
         return x

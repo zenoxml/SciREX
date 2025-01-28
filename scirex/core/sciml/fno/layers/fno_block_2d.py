@@ -57,11 +57,12 @@ from typing import Callable
 
 from scirex.core.sciml.fno.layers.spectral_conv_2d import SpectralConv2d
 
+
 class FNOBlock2d(eqx.Module):
     """2D FNO Block combining spectral and regular convolution
-    
+
     This block combines a spectral convolution with a regular convolution
-    
+
     Args:
         in_channels: int
         out_channels: int
@@ -69,24 +70,23 @@ class FNOBlock2d(eqx.Module):
         modes2: int
         activation: callable
         key: jax.random
-        
+
     Returns:
         callable: FNOBlock2d object
-    
+
     """
+
     spectral_conv: SpectralConv2d
     conv: eqx.nn.Conv2d
     activation: callable
-    
+
     def __init__(self, in_channels, out_channels, modes1, modes2, activation, *, key):
         keys = jax.random.split(key)
         self.spectral_conv = SpectralConv2d(
             in_channels, out_channels, modes1, modes2, key=keys[0]
         )
-        self.conv = eqx.nn.Conv2d(
-            in_channels, out_channels, kernel_size=1, key=keys[1]
-        )
+        self.conv = eqx.nn.Conv2d(in_channels, out_channels, kernel_size=1, key=keys[1])
         self.activation = activation
-    
+
     def __call__(self, x):
         return self.activation(self.spectral_conv(x) + self.conv(x))

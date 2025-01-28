@@ -31,9 +31,9 @@ import optax
 import numpy as np
 from typing import Tuple
 
-from scirex.core.sciml.fno.layers.spectral_conv import SpectralConv1d
-from scirex.core.sciml.fno.layers.fno_block import FNOBlock1d
-from scirex.core.sciml.fno.models.fno import FNO1d
+from scirex.core.sciml.fno.layers.spectral_conv_1d import SpectralConv1d
+from scirex.core.sciml.fno.layers.fno_block_1d import FNOBlock1d
+from scirex.core.sciml.fno.models.fno_1d import FNO1d
 
 
 @pytest.fixture
