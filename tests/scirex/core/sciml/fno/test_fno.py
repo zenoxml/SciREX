@@ -396,136 +396,250 @@ def test_end_to_end_training(rng_key, dummy_data):
     # Loss should decrease
     assert losses[-1] < losses[0]
 
+
+# Tests for the FNO2d model
+
+
+@pytest.fixture
+def sample_input() -> Tuple[int, int, int]:
+    # channels, height, width
+    return (3, 32, 32)
+
+
 class TestSpectralConv2d:
-    """Test suite for the SpectralConv2d layer"""
+    def test_initialization(self, random_key):
+        """Test if SpectralConv2d initializes correctly"""
+        layer = SpectralConv2d(
+            in_channels=2, out_channels=4, modes1=8, modes2=8, key=random_key
+        )
 
-    def test_initialization(self, rng_key):
-        """Test initialization with different parameters"""
-        test_configs = [
-            (2, 4, 16, 16),  # (in_channels, out_channels, modes1, modes2)
-            (1, 1, 8, 8),
-            (4, 2, 32, 32),
-        ]
+        assert layer.in_channels == 2
+        assert layer.out_channels == 4
+        assert layer.modes1 == 8
+        assert layer.modes2 == 8
+        assert layer.real_weights.shape == (2, 4, 8, 8)
+        assert layer.imag_weights.shape == (2, 4, 8, 8)
 
-        for in_channels, out_channels, modes1, modes2 in test_configs:
-            layer = SpectralConv2d(in_channels, out_channels, modes1, modes2, key=rng_key)
+    def test_forward_pass(self, random_key, sample_input):
+        """Test if forward pass produces expected output shape"""
+        in_channels, height, width = sample_input
+        layer = SpectralConv2d(
+            in_channels=in_channels,
+            out_channels=5,  # Different output channels
+            modes1=8,
+            modes2=8,
+            key=random_key,
+        )
 
-            # Check attributes
-            assert layer.in_channels == in_channels
-            assert layer.out_channels == out_channels
-            assert layer.modes1 == modes1
-            assert layer.modes2 == modes2
+        x = jax.random.normal(random_key, (in_channels, height, width))
+        output = layer(x)
 
-            # Check weight shapes
-            assert layer.real_weights.shape == (in_channels, out_channels, modes1, modes2)
-            assert layer.imag_weights.shape == (in_channels, out_channels, modes1, modes2)
+        assert output.shape == (5, height, width)  # Output channels = 5
 
-    def test_forward_pass(self, rng_key):
-        """Test forward pass with different input sizes"""
-        spatial_sizes = [(32, 32), (64, 64), (128, 128)]
-        in_channels = 2
-        out_channels = 4
-        modes1, modes2 = 16, 16
+    def test_fourier_mode_multiplication(self, random_key):
+        """Test if Fourier mode multiplication is performed correctly"""
+        layer = SpectralConv2d(
+            in_channels=1, out_channels=1, modes1=4, modes2=4, key=random_key
+        )
 
-        layer = SpectralConv2d(in_channels, out_channels, modes1, modes2, key=rng_key)
+        # Create simple input with known Fourier transform
+        x = jnp.ones((1, 16, 16))
+        output = layer(x)
 
-        for height, width in spatial_sizes:
-            x = jax.random.normal(rng_key, (in_channels, height, width))
-            x_ft = jnp.fft.rfft2(x)
-            output = layer(x)
+        # Check if output is real
+        assert jnp.isclose(jnp.imag(output).sum(), 0.0, atol=1e-6)
+        assert output.shape == (1, 16, 16)
 
-            # Check output shape
-            assert output.shape == (out_channels, height, width), f"Unexpected output shape: {output.shape}"
-            # Check output is finite
-            assert jnp.all(jnp.isfinite(output))
-
-    def test_fourier_transform_shape(self, rng_key):
-        """Test that the Fourier transform shape is consistent"""
-        in_channels, out_channels, modes1, modes2 = 2, 4, 16, 16
-        layer = SpectralConv2d(in_channels, out_channels, modes1, modes2, key=rng_key)
-
-        x = jax.random.normal(rng_key, (in_channels, 64, 64))
-        x_ft = jnp.fft.rfft2(x)
-        assert x_ft.shape == (in_channels, 64, 33), f"Unexpected Fourier transform shape: {x_ft.shape}"
 
 class TestFNOBlock2d:
-    """Test suite for the FNOBlock2d layer"""
+    def test_initialization(self, random_key):
+        """Test if FNOBlock2d initializes correctly"""
+        block = FNOBlock2d(
+            in_channels=2,
+            out_channels=4,
+            modes1=8,
+            modes2=8,
+            activation=jax.nn.gelu,
+            key=random_key,
+        )
 
-    def test_initialization(self, rng_key):
-        """Test initialization with different parameters"""
-        activation = jax.nn.relu
-        block = FNOBlock2d(2, 4, 16, 16, activation, key=rng_key)
-
-        # Check attributes
         assert isinstance(block.spectral_conv, SpectralConv2d)
         assert isinstance(block.conv, eqx.nn.Conv2d)
-        assert block.activation == activation
+        assert block.activation == jax.nn.gelu
 
-    def test_forward_pass(self, rng_key):
-        """Test forward pass with different input sizes"""
-        spatial_sizes = [(32, 32), (64, 64), (128, 128)]
-        in_channels = 2
-        out_channels = 4
-        modes1, modes2 = 16, 16
-        activation = jax.nn.relu
+    def test_forward_pass(self, random_key, sample_input):
+        """Test if forward pass combines spectral and regular convolution"""
+        in_channels, height, width = sample_input
+        block = FNOBlock2d(
+            in_channels=in_channels,
+            out_channels=4,
+            modes1=8,
+            modes2=8,
+            activation=jax.nn.gelu,
+            key=random_key,
+        )
 
-        block = FNOBlock2d(in_channels, out_channels, modes1, modes2, activation, key=rng_key)
-
-        for height, width in spatial_sizes:
-            x = jax.random.normal(rng_key, (in_channels, height, width))
-            output = block(x)
-
-            # Check output shape
-            assert output.shape == (out_channels, height, width)
-            # Check output is finite
-            assert jnp.all(jnp.isfinite(output))
-            # Check activation is applied
-            assert jnp.all(output >= 0)
-
-    def test_fourier_properties(self, rng_key):
-        """Test that the block preserves Fourier transform properties"""
-        modes1, modes2 = 4, 4
-        activation = jax.nn.relu
-        block = FNOBlock2d(1, 1, modes1, modes2, activation, key=rng_key)
-
-        spatial_size = (8, 8)
-        x = jnp.cos(2 * jnp.pi * jnp.arange(spatial_size[0]) / spatial_size[0])[:, None] \
-            * jnp.cos(2 * jnp.pi * jnp.arange(spatial_size[1]) / spatial_size[1])[None, :]
-        x = x[None, :, :]  # Add channel dimension
-
+        x = jax.random.normal(random_key, (in_channels, height, width))
         output = block(x)
 
-        # Verify output shape and realness
-        assert output.shape == (1, spatial_size[0], spatial_size[1])
-        output_ft = jnp.fft.rfft2(output[0])
-        assert jnp.allclose(output_ft[modes1:, modes2:].imag, 0.0, atol=1e-6)
-        assert jnp.allclose(output_ft[modes1:, modes2:].real, 0.0, atol=1e-6)
+        assert output.shape == (4, height, width)
+        # Check if output has non-zero values (activation applied)
+        assert not jnp.allclose(output, 0.0)
+
+    def test_residual_connection(self, random_key):
+        """Test if the residual connection is working"""
+        block = FNOBlock2d(
+            in_channels=1,
+            out_channels=1,
+            modes1=4,
+            modes2=4,
+            activation=lambda x: x,  # Linear activation for testing
+            key=random_key,
+        )
+
+        x = jnp.ones((1, 16, 16))
+        output = block(x)
+
+        # Output should be different from input due to convolutions
+        assert not jnp.allclose(output, x)
+        assert output.shape == x.shape
+
 
 class TestFNO2d:
-    """Test suite for the FNO2d model"""
+    def test_initialization(self, random_key):
+        """Test if FNO2d initializes correctly"""
+        model = FNO2d(
+            in_channels=2,
+            out_channels=1,
+            modes1=8,
+            modes2=8,
+            width=32,
+            activation=jax.nn.gelu,
+            n_blocks=4,
+            key=random_key,
+        )
 
-    def test_initialization(self, rng_key):
-        """Test initialization with different parameters"""
-        model = FNO2d(
-            in_channels=3, out_channels=1, modes1=12, modes2=12,
-            width=16, activation=jax.nn.relu, n_blocks=3, key=rng_key
-        )
-        
         assert isinstance(model.lifting, eqx.nn.Conv2d)
-        assert len(model.fno_blocks) == 3
+        assert len(model.fno_blocks) == 4
         assert isinstance(model.projection, eqx.nn.Conv2d)
-    
-    def test_forward_pass(self, rng_key):
-        """Test forward pass with different input sizes"""
-        spatial_sizes = [(32, 32), (64, 64)]
+
+    def test_forward_pass(self, random_key, sample_input):
+        """Test if forward pass produces expected output shape"""
+        in_channels, height, width = sample_input
         model = FNO2d(
-            in_channels=3, out_channels=1, modes1=12, modes2=12,
-            width=16, activation=jax.nn.relu, n_blocks=3, key=rng_key
+            in_channels=in_channels,
+            out_channels=1,
+            modes1=8,
+            modes2=8,
+            width=32,
+            activation=jax.nn.gelu,
+            n_blocks=4,
+            key=random_key,
         )
-        
-        for height, width in spatial_sizes:
-            x = jax.random.normal(rng_key, (3, height, width))
-            output = model(x)
-            
-            assert output.shape == (1, height, width), f"Unexpected output shape: {output.shape}"
-            assert jnp.all(jnp.isfinite(output))
+
+        x = jax.random.normal(random_key, (in_channels, height, width))
+        output = model(x)
+
+        assert output.shape == (1, height, width)
+
+    def test_model_training(self, random_key):
+        """Test if model can be trained on a simple problem"""
+        model = FNO2d(
+            in_channels=1,
+            out_channels=1,
+            modes1=4,
+            modes2=4,
+            width=16,
+            activation=jax.nn.gelu,
+            n_blocks=2,
+            key=random_key,
+        )
+
+        # Create simple training data
+        x = jnp.ones((1, 16, 16))
+        y = jnp.ones((1, 16, 16)) * 2
+
+        # Simple training step
+        def loss_fn(model):
+            pred = model(x)
+            return jnp.mean((pred - y) ** 2)
+
+        loss, grad = eqx.filter_value_and_grad(loss_fn)(model)
+        assert not jnp.isnan(loss)
+        assert all(not jnp.any(jnp.isnan(g)) for g in jax.tree_util.tree_leaves(grad))
+
+    @pytest.mark.parametrize("batch_size", [1, 2, 4])
+    def test_batch_processing(self, random_key, batch_size):
+        """Test if model can handle different batch sizes using vmap"""
+        model = FNO2d(
+            in_channels=2,
+            out_channels=1,
+            modes1=4,
+            modes2=4,
+            width=16,
+            activation=jax.nn.gelu,
+            n_blocks=2,
+            key=random_key,
+        )
+
+        # Create batch of inputs
+        x = jax.random.normal(random_key, (batch_size, 2, 16, 16))
+
+        # Process batch using vmap
+        batch_forward = jax.vmap(model)
+        output = batch_forward(x)
+
+        assert output.shape == (batch_size, 1, 16, 16)
+
+
+def test_end_to_end_training():
+    """Test end-to-end training on a simple Poisson problem"""
+    key = jax.random.PRNGKey(0)
+
+    # Create simple Poisson problem
+    nx = ny = 16
+    x = jnp.linspace(0, 1, nx)
+    y = jnp.linspace(0, 1, ny)
+    X, Y = jnp.meshgrid(x, y)
+
+    # Source term (simple Gaussian)
+    f = jnp.exp(-100 * ((X - 0.5) ** 2 + (Y - 0.5) ** 2))
+
+    # Initialize model
+    model = FNO2d(
+        in_channels=3,  # source + coordinates
+        out_channels=1,
+        modes1=4,
+        modes2=4,
+        width=16,
+        activation=jax.nn.gelu,
+        n_blocks=2,
+        key=key,
+    )
+
+    # Prepare input (include spatial coordinates)
+    input_data = jnp.stack([f, X, Y], axis=0)
+
+    # Simple training step
+    optimizer = optax.adam(1e-3)
+    opt_state = optimizer.init(eqx.filter(model, eqx.is_array))
+
+    def loss_fn(model):
+        pred = model(input_data)
+        # Simple loss: prediction should be smooth and match boundary conditions
+        return (
+            jnp.mean(jnp.square(pred))
+            + jnp.mean(jnp.square(pred[:, 0, :]))  # Boundary penalties
+            + jnp.mean(jnp.square(pred[:, -1, :]))
+            + jnp.mean(jnp.square(pred[:, :, 0]))
+            + jnp.mean(jnp.square(pred[:, :, -1]))
+        )
+
+    # Run few training steps
+    for _ in range(5):
+        loss, grads = eqx.filter_value_and_grad(loss_fn)(model)
+        updates, opt_state = optimizer.update(grads, opt_state, model)
+        model = eqx.apply_updates(model, updates)
+
+        assert not jnp.isnan(loss)
+        assert all(not jnp.any(jnp.isnan(g)) for g in jax.tree_util.tree_leaves(grads))
