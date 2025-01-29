@@ -500,7 +500,7 @@ class TestFNOBlock2d:
         output_ft = jnp.fft.rfft2(output[0])
         assert jnp.allclose(output_ft[modes1:, modes2:].imag, 0.0, atol=1e-6)
         assert jnp.allclose(output_ft[modes1:, modes2:].real, 0.0, atol=1e-6)
-        
+
 class TestFNO2d:
     """Test suite for the FNO2d model"""
 
