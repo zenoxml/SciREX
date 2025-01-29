@@ -407,10 +407,10 @@ def sample_input() -> Tuple[int, int, int]:
 
 
 class TestSpectralConv2d:
-    def test_initialization(self, random_key):
+    def test_initialization(self, rng_key):
         """Test if SpectralConv2d initializes correctly"""
         layer = SpectralConv2d(
-            in_channels=2, out_channels=4, modes1=8, modes2=8, key=random_key
+            in_channels=2, out_channels=4, modes1=8, modes2=8, key=rng_key
         )
 
         assert layer.in_channels == 2
@@ -420,7 +420,7 @@ class TestSpectralConv2d:
         assert layer.real_weights.shape == (2, 4, 8, 8)
         assert layer.imag_weights.shape == (2, 4, 8, 8)
 
-    def test_forward_pass(self, random_key, sample_input):
+    def test_forward_pass(self, rng_key, sample_input):
         """Test if forward pass produces expected output shape"""
         in_channels, height, width = sample_input
         layer = SpectralConv2d(
@@ -428,18 +428,18 @@ class TestSpectralConv2d:
             out_channels=5,  # Different output channels
             modes1=8,
             modes2=8,
-            key=random_key,
+            key=rng_key,
         )
 
-        x = jax.random.normal(random_key, (in_channels, height, width))
+        x = jax.random.normal(rng_key, (in_channels, height, width))
         output = layer(x)
 
         assert output.shape == (5, height, width)  # Output channels = 5
 
-    def test_fourier_mode_multiplication(self, random_key):
+    def test_fourier_mode_multiplication(self, rng_key):
         """Test if Fourier mode multiplication is performed correctly"""
         layer = SpectralConv2d(
-            in_channels=1, out_channels=1, modes1=4, modes2=4, key=random_key
+            in_channels=1, out_channels=1, modes1=4, modes2=4, key=rng_key
         )
 
         # Create simple input with known Fourier transform
@@ -452,7 +452,7 @@ class TestSpectralConv2d:
 
 
 class TestFNOBlock2d:
-    def test_initialization(self, random_key):
+    def test_initialization(self, rng_key):
         """Test if FNOBlock2d initializes correctly"""
         block = FNOBlock2d(
             in_channels=2,
@@ -460,14 +460,14 @@ class TestFNOBlock2d:
             modes1=8,
             modes2=8,
             activation=jax.nn.gelu,
-            key=random_key,
+            key=rng_key,
         )
 
         assert isinstance(block.spectral_conv, SpectralConv2d)
         assert isinstance(block.conv, eqx.nn.Conv2d)
         assert block.activation == jax.nn.gelu
 
-    def test_forward_pass(self, random_key, sample_input):
+    def test_forward_pass(self, rng_key, sample_input):
         """Test if forward pass combines spectral and regular convolution"""
         in_channels, height, width = sample_input
         block = FNOBlock2d(
@@ -476,17 +476,17 @@ class TestFNOBlock2d:
             modes1=8,
             modes2=8,
             activation=jax.nn.gelu,
-            key=random_key,
+            key=rng_key,
         )
 
-        x = jax.random.normal(random_key, (in_channels, height, width))
+        x = jax.random.normal(rng_key, (in_channels, height, width))
         output = block(x)
 
         assert output.shape == (4, height, width)
         # Check if output has non-zero values (activation applied)
         assert not jnp.allclose(output, 0.0)
 
-    def test_residual_connection(self, random_key):
+    def test_residual_connection(self, rng_key):
         """Test if the residual connection is working"""
         block = FNOBlock2d(
             in_channels=1,
@@ -494,7 +494,7 @@ class TestFNOBlock2d:
             modes1=4,
             modes2=4,
             activation=lambda x: x,  # Linear activation for testing
-            key=random_key,
+            key=rng_key,
         )
 
         x = jnp.ones((1, 16, 16))
@@ -506,7 +506,7 @@ class TestFNOBlock2d:
 
 
 class TestFNO2d:
-    def test_initialization(self, random_key):
+    def test_initialization(self, rng_key):
         """Test if FNO2d initializes correctly"""
         model = FNO2d(
             in_channels=2,
@@ -516,14 +516,14 @@ class TestFNO2d:
             width=32,
             activation=jax.nn.gelu,
             n_blocks=4,
-            key=random_key,
+            key=rng_key,
         )
 
         assert isinstance(model.lifting, eqx.nn.Conv2d)
         assert len(model.fno_blocks) == 4
         assert isinstance(model.projection, eqx.nn.Conv2d)
 
-    def test_forward_pass(self, random_key, sample_input):
+    def test_forward_pass(self, rng_key, sample_input):
         """Test if forward pass produces expected output shape"""
         in_channels, height, width = sample_input
         model = FNO2d(
@@ -534,15 +534,15 @@ class TestFNO2d:
             width=32,
             activation=jax.nn.gelu,
             n_blocks=4,
-            key=random_key,
+            key=rng_key,
         )
 
-        x = jax.random.normal(random_key, (in_channels, height, width))
+        x = jax.random.normal(rng_key, (in_channels, height, width))
         output = model(x)
 
         assert output.shape == (1, height, width)
 
-    def test_model_training(self, random_key):
+    def test_model_training(self, rng_key):
         """Test if model can be trained on a simple problem"""
         model = FNO2d(
             in_channels=1,
@@ -552,7 +552,7 @@ class TestFNO2d:
             width=16,
             activation=jax.nn.gelu,
             n_blocks=2,
-            key=random_key,
+            key=rng_key,
         )
 
         # Create simple training data
@@ -569,7 +569,7 @@ class TestFNO2d:
         assert all(not jnp.any(jnp.isnan(g)) for g in jax.tree_util.tree_leaves(grad))
 
     @pytest.mark.parametrize("batch_size", [1, 2, 4])
-    def test_batch_processing(self, random_key, batch_size):
+    def test_batch_processing(self, rng_key, batch_size):
         """Test if model can handle different batch sizes using vmap"""
         model = FNO2d(
             in_channels=2,
@@ -579,11 +579,11 @@ class TestFNO2d:
             width=16,
             activation=jax.nn.gelu,
             n_blocks=2,
-            key=random_key,
+            key=rng_key,
         )
 
         # Create batch of inputs
-        x = jax.random.normal(random_key, (batch_size, 2, 16, 16))
+        x = jax.random.normal(rng_key, (batch_size, 2, 16, 16))
 
         # Process batch using vmap
         batch_forward = jax.vmap(model)
