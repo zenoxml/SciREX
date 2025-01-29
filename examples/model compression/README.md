@@ -180,7 +180,111 @@ QAT Model Size: ~0.02 MB
 Post-Training Quantized Size: ~0.02 MB
 Size Reduction from QAT: ~70.7%
 Size Reduction from Post-Training: ~71.7%
+
 ```
+
+
+## 3. SVD (Singular Value Decomposition)
+
+SVD (Singular Value Decomposition) is a matrix factorization technique that decomposes a matrix A into three components: A = U ∑ V^T, where U and V are orthogonal matrices containing left and right singular vectors, and ∑ is a diagonal matrix containing singular values. In simpler terms, it breaks down a complex matrix into simpler, meaningful components that capture the most important patterns in the data.
+
+### matrix notation:
+
+    A (m×n) = U (m×m) × Σ (m×n) × V^T (n×n)
+
+- A is any m×n matrix 
+- U and V are orthogonal matrices 
+- Σ contains singular values in descending order.
+
+### Overview
+The code demonstrates matrix compression using Singular Value Decomposition (SVD) on a 50x40 matrix, testing different compression ranks while analyzing the trade-off between accuracy and size reduction.
+
+## Key Components:
+
+- Original Matrix: 50x40 matrix (2000 elements)
+- SVD Components: U matrix, singular values (s), and Vt matrix
+- Testing ranks: 5, 10, 15, and 20
+
+## Main Features:
+
+### Model Initialization:
+
+- Creates a random 50x40 matrix
+- Original size: 2000 elements
+- Baseline accuracy: 1.0 (perfect)
+
+### Model Architecture:
+- Uses SVD decomposition with three components:
+
+         - U matrix: Captures row patterns
+         - s vector: Contains singular values
+         - Vt matrix: Captures column patterns
+
+
+## Key Methods:
+
+- SVD decomposition using numpy.linalg.svd
+- Matrix reconstruction from compressed components
+- Accuracy calculation using normalized error
+- Compression ratio calculation
+
+### Results
+
+Typical output looks like:
+```
+Original matrix shape: (50, 40)
+Original matrix size: 2000 elements
+Original matrix accuracy: 1.0000
+
+Compression Details:
+----------------------------------------------------------------------
+Rank  5:
+  - Matrix Shapes after SVD:
+    * U matrix: (50, 5) = 250 elements
+    * s vector: (5,) = 5 elements
+    * Vt matrix: (5, 40) = 200 elements
+  - Accuracy: 0.8281
+  - Original Size: 2000 elements
+  - Compressed Size: 455 elements
+  - Compression Ratio: 0.23 (model is 22.8% of original size)
+  - Size Reduction: 77.2%
+----------------------------------------------------------------------
+Rank 10:
+  - Matrix Shapes after SVD:
+    * U matrix: (50, 10) = 500 elements
+    * s vector: (10,) = 10 elements
+    * Vt matrix: (10, 40) = 400 elements
+  - Accuracy: 0.8921
+  - Original Size: 2000 elements
+  - Compressed Size: 910 elements
+  - Compression Ratio: 0.46 (model is 45.5% of original size)
+  - Size Reduction: 54.5%
+----------------------------------------------------------------------
+Rank 15:
+  - Matrix Shapes after SVD:
+    * U matrix: (50, 15) = 750 elements
+    * s vector: (15,) = 15 elements
+    * Vt matrix: (15, 40) = 600 elements
+  - Accuracy: 0.9346
+  - Original Size: 2000 elements
+  - Compressed Size: 1365 elements
+  - Compression Ratio: 0.68 (model is 68.2% of original size)
+  - Size Reduction: 31.8%
+----------------------------------------------------------------------
+Rank 20:
+  - Matrix Shapes after SVD:
+    * U matrix: (50, 20) = 1000 elements
+    * s vector: (20,) = 20 elements
+    * Vt matrix: (20, 40) = 800 elements
+  - Accuracy: 0.9635
+  - Original Size: 2000 elements
+  - Compressed Size: 1820 elements
+  - Compression Ratio: 0.91 (model is 91.0% of original size)
+  - Size Reduction: 9.0%
+----------------------------------------------------------------------
+
+```
+- A visual graph will be displayed comparing the accuracy of compressed vs original matrix across different ranks, helping visualize the compression-accuracy trade-off.
 
 ## Running the Code
 
@@ -204,9 +308,12 @@ PYTHONPATH=$(pwd) python3 "examples/model compression/pruned_mnist.py"
 PYTHONPATH=$(pwd) python3 "examples/model compression/quantized_base_mnist.py"
 PYTHONPATH=$(pwd) python3 "examples/model compression/quantized_mnist.py"
 
+# For SVD
+PYTHONPATH=$(pwd) python3 "examples/model compression/tensor_svd.py"
 ```
 
 ## Dependencies
 - TensorFlow
 - NumPy
+- matplotlib
 
