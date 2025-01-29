@@ -24,9 +24,9 @@
 
 
 """
-Module: spectral_conv.py
+Module: spectral_conv_2d.py
 
-This module provides the implementation of a 1D spectral convolution layer.
+This module provides the implementation of a 2D spectral convolution layer.
 
 Classes:
     SpectralConv2d: 2D spectral convolution layer
@@ -44,7 +44,7 @@ Authors:
     Diya Nag Chaudhury
 
 Version Info:
-    29/Dec/2024: Initial version - Diya Nag Chaudhury
+    28/Jan/2025: Initial version - Diya Nag Chaudhury
 
 References:
     None

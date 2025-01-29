@@ -43,7 +43,7 @@ Authors:
     Diya Nag Chaudhury
 
 Version Info:
-    28/Jan/2024: Initial version - Diya Nag Chaudhury
+    28/Jan/2025: Initial version - Diya Nag Chaudhury
 
 References:
     None
@@ -81,6 +81,20 @@ class FNOBlock2d(eqx.Module):
     activation: callable
 
     def __init__(self, in_channels, out_channels, modes1, modes2, activation, *, key):
+        """
+        This method initializes the FNOBlock2d object.
+
+        Args:
+            in_channels (_type_): _description_
+            out_channels (_type_): _description_
+            modes1 (_type_): _description_
+            modes2 (_type_): _description_
+            activation (_type_): _description_
+            key (_type_):
+
+        Returns:
+            None
+        """
         keys = jax.random.split(key)
         self.spectral_conv = SpectralConv2d(
             in_channels, out_channels, modes1, modes2, key=keys[0]
@@ -89,4 +103,12 @@ class FNOBlock2d(eqx.Module):
         self.activation = activation
 
     def __call__(self, x):
+        """Call method for FNOBlock2d
+
+        Args:
+            x: jax.Array
+
+        Returns:
+            jax.Array: Output of the FNOBlock2d object
+        """
         return self.activation(self.spectral_conv(x) + self.conv(x))
