@@ -34,6 +34,9 @@ Example Script: tensor_svd.py
         - Accuracy visualization
         
     Dependencies: NumPy, Matplotlib
+    
+    Authors:
+       - Nithyashree R (nithyashreer@iisc.ac.in)
         
     Version: 01/27/2025
 """
