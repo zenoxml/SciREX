@@ -52,12 +52,7 @@ from sklearn.datasets import make_regression
 from scirex.core.ml.supervised.regression.lasso_regression import LassoRegressionModel
 
 # Generate synthetic regression data
-X, y = make_regression(
-    n_samples=100, 
-    n_features=1, 
-    noise=10, 
-    random_state=42
-)
+X, y = make_regression(n_samples=100, n_features=1, noise=10, random_state=42)
 
 # Initialize the Lasso Regression model
 lasso_model = LassoRegressionModel(alpha=1.0, random_state=42)
