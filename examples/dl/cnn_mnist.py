@@ -91,7 +91,9 @@ class CNN(Network):
     def __init__(self):
         """Initialize the CNN architecture with predefined layers."""
         self.layers = [
-            layers.Conv2d(1, 4, kernel_size=4, key=key1),  # First conv layer: 1->4 channels
+            layers.Conv2d(
+                1, 4, kernel_size=4, key=key1
+            ),  # First conv layer: 1->4 channels
             layers.MaxPool2d(2, 2),  # Reduce spatial dimensions
             activations.relu,  # Activation function
             layers.Conv2d(
