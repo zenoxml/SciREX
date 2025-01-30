@@ -38,7 +38,7 @@ import pytest
 import jax
 import optax
 from scirex.core.dl import Model, MLP
-from scirex.core.dl.nn import mse_loss
+from scirex.core.dl.losses import mse_loss
 
 
 key = jax.random.PRNGKey(0)

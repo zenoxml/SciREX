@@ -53,32 +53,32 @@ import jax.numpy as jnp
 import optax
 from tensorflow.keras.datasets import mnist
 
-from scirex.core.dl import Model, Network, FCNN, nn
+from scirex.core.dl import Model, Network, FCNN, layers, activations, utils
 
 # Generate random keys for layer initialization
 keys = jax.random.split(jax.random.PRNGKey(0), 3)
 
 # Define encoder architecture
 encoderLayers = [
-    nn.Conv2d(1, 4, kernel_size=4, key=keys[0]),  # First conv layer
-    nn.MaxPool2d(2, 2),  # Reduce spatial dimensions
-    nn.relu,  # Activation
-    nn.Conv2d(4, 8, kernel_size=4, key=keys[1]),  # Second conv layer
-    nn.MaxPool2d(2, 2),  # Further reduce dimensions
-    nn.relu,  # Activation
+    layers.Conv2d(1, 4, kernel_size=4, key=keys[0]),  # First conv layer
+    layers.MaxPool2d(2, 2),  # Reduce spatial dimensions
+    activations.relu,  # Activation
+    layers.Conv2d(4, 8, kernel_size=4, key=keys[1]),  # Second conv layer
+    layers.MaxPool2d(2, 2),  # Further reduce dimensions
+    activations.relu,  # Activation
     jnp.ravel,  # Flatten for dense layer
-    nn.Linear(8 * 4 * 4, 5, key=keys[2]),  # Project to latent space
-    nn.log_softmax,  # For numerical stability
+    layers.Linear(8 * 4 * 4, 5, key=keys[2]),  # Project to latent space
+    utils.log_softmax,  # For numerical stability
 ]
 
 # Define decoder architecture
 decoderLayers = [
-    nn.Linear(4, 64, key=keys[0]),  # First dense layer
-    nn.relu,  # Activation
-    nn.Linear(64, 128, key=keys[1]),  # Second dense layer
-    nn.relu,  # Activation
-    nn.Linear(128, 784, key=keys[2]),  # Output layer (28*28=784)
-    nn.sigmoid,
+    layers.Linear(4, 64, key=keys[0]),  # First dense layer
+    activations.relu,  # Activation
+    layers.Linear(64, 128, key=keys[1]),  # Second dense layer
+    activations.relu,  # Activation
+    layers.Linear(128, 784, key=keys[2]),  # Output layer (28*28=784)
+    activations.sigmoid,
     lambda x: x.reshape(-1, 28, 28),  # Reshape to image dimensions
 ]
 
