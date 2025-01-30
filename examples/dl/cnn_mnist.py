@@ -61,10 +61,9 @@ from sklearn.metrics import (
 import matplotlib.pyplot as plt
 from tensorflow.keras.datasets import mnist
 
-from scirex.core.dl import Model, Network
-from scirex.core.dl.nn.loss import cross_entropy_loss
-from scirex.core.dl.nn.metrics import accuracy
-import scirex.core.dl.nn as nn
+from scirex.core.dl import Model, Network, layers, activations, utils
+from scirex.core.dl.losses import cross_entropy_loss
+from scirex.core.dl.metrics import accuracy
 
 # Set random seed for reproducibility
 key = jax.random.PRNGKey(42)
@@ -92,17 +91,17 @@ class CNN(Network):
     def __init__(self):
         """Initialize the CNN architecture with predefined layers."""
         self.layers = [
-            nn.Conv2d(1, 4, kernel_size=4, key=key1),  # First conv layer: 1->4 channels
-            nn.MaxPool2d(2, 2),  # Reduce spatial dimensions
-            nn.relu,  # Activation function
-            nn.Conv2d(
+            layers.Conv2d(1, 4, kernel_size=4, key=key1),  # First conv layer: 1->4 channels
+            layers.MaxPool2d(2, 2),  # Reduce spatial dimensions
+            activations.relu,  # Activation function
+            layers.Conv2d(
                 4, 8, kernel_size=4, key=key1
             ),  # Second conv layer: 4->8 channels
-            nn.MaxPool2d(2, 2),  # Further reduce dimensions
-            nn.relu,  # Activation function
+            layers.MaxPool2d(2, 2),  # Further reduce dimensions
+            activations.relu,  # Activation function
             jnp.ravel,  # Flatten for dense layer
-            nn.Linear(8 * 4 * 4, 10, key=key2),  # Output layer: 10 classes
-            nn.log_softmax,  # For numerical stability
+            layers.Linear(8 * 4 * 4, 10, key=key2),  # Output layer: 10 classes
+            utils.log_softmax,  # For numerical stability
         ]
 
     def __call__(self, x):

@@ -38,18 +38,17 @@ import pytest
 import jax
 import jax.numpy as jnp
 import optax
-from scirex.core.dl import Model, FCNN
-import scirex.core.dl.nn as nn
+from scirex.core.dl import Model, FCNN, layers, activations
 
 
 key = jax.random.PRNGKey(0)
 
-layers = [nn.Linear(20, 10, key=key), nn.relu, nn.Linear(10, 1, key=key)]
+layers = [layers.Linear(20, 10, key=key), activations.relu, nn.Linear(10, 1, key=key)]
 layersConv = [
-    nn.Conv2d(1, 2, 2, key=key),
-    nn.MaxPool2d(2),
+    layers.Conv2d(1, 2, 2, key=key),
+    layers.MaxPool2d(2),
     jnp.ravel,
-    nn.Linear(12, 1, key=key),
+    layers.Linear(12, 1, key=key),
 ]
 
 x = jax.random.normal(key, (100, 20))
