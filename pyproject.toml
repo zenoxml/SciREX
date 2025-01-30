@@ -41,7 +41,6 @@ dependencies = [
     "matplotlib>=3.4.0",
     "seaborn>=0.11.0",
     "tqdm==4.66.3",
-    "tensorflow-model-optimization"
 ]
 
 [project.optional-dependencies]
@@ -50,7 +49,6 @@ dl = [
     "jaxtyping",
     "equinox",
     "optax",
-    "tensorflow",
 ]
 ml = [
     "xgboost>=1.5.0",
@@ -65,21 +63,25 @@ fastvpinns = [
     "gmsh",
     "pyyaml",
 ]
+model_compression = [
+    "tensorflow-model-optimization"
+]
 dev = [
     "black==24.8.0",
     "pytest",
-		"pytest-dependency",
+    "pytest-dependency",
     "pytest-benchmark",
     "pytest-cov",
     "pytest-env",
     "pytest-timeout",
     "pytest-xdist",
 ]
-examples = [
-		"xmltodict",
-		"imageio",
-		"torch",
-		"torch_geometric",
+examples_dl = [
+    "tensorflow",
+]
+examples_gnn = [
+    "torch",
+    "torch_geometric",
 ]
 all = ["scirex[dl,ml,fastvpinns,dev,examples]"]
 
@@ -103,7 +105,7 @@ testpaths = [
 
 [tool.black]
 line-length = 88
-target-version = ['py39']
+target-version = ['py310']
 include = '\.pyi?$'
 
 [tool.isort]
