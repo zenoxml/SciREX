@@ -1,1 +1,0 @@
-::: scirex.core.sciml.fno.layers.spectral_conv
