@@ -42,6 +42,8 @@ nav:
                   - Linear regression: api/core/ml/supervised/regression/linear_regression.md
                   - Ridge regression: api/core/ml/supervised/regression/ridge_regression.md
                   - Lasso regression: api/core/ml/supervised/regression/lasso_regression.md
+                  - Polynomial regression: api/core/ml/supervised/regression/polynomial_regression.md
+                  - support vector regression: api/core/ml/supervised/regression/svr.md
 
           - Unsupervised:
               - Clustering: 
@@ -82,10 +84,10 @@ nav:
               - Poisson2d: api/core/sciml/pinns/physics/poisson2d.md  
           - FNO:
             - Layer:
-              - FNO block: api/core/sciml/fno/layers/fno_block.md 
-              - Spectral conv: api/core/sciml/fno/layers/spectral_conv.md
+              - FNO block: api/core/sciml/fno/layers/fno_block_1d.md 
+              - Spectral conv: api/core/sciml/fno/layers/spectral_conv_1d.md
             - Models: 
-              - FNO: api/core/sciml/fno/layers/fno.md        
+              - FNO: api/core/sciml/fno/layers/fno_1d.md        
           - Geometry:
               - geometry_2d: api/core/sciml/geometry/geometry_2d.md
               - geometry: api/core/sciml/geometry/geometry.md
@@ -135,6 +137,8 @@ nav:
                 - example linear regression: api/core/examples/ml/supervised/regression/example_linear_regression.md
                 - example ridge regression: api/core/examples/ml/supervised/regression/example_ridge_regression.md
                 - example lasso regression: api/core/examples/ml/supervised/regression/example_lasso_regression.md  
+                - example polynomial regression: api/core/examples/ml/supervised/regression/example_polynomial_regression.md
+                - example support vector regression: api/core/examples/ml/supervised/regression/example_svr.md
           - unsupervised :
              - clustering:
                - example Kmeans: api/core/examples/ml/unsupervised/clustering/example_naive_bayes.md
