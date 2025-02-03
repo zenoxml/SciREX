@@ -80,3 +80,22 @@ def convert_to_numpy(x):
         return x
     else:
         return x.numpy()
+
+
+
+def get_devices():
+    devices = tf.config.list_physical_devices()
+    # pretty print
+    print("Available devices:\n")
+    print("-" * 50)
+    for device in devices:
+        device_name = device.name.replace("/physical_device:", "")
+        print(f"Device name: {device_name}")
+        if 'GPU' in device.device_type:
+            details = tf.config.experimental.get_device_details(device)
+            print(f"Device type: {details['device_name']}")
+        print("-" * 50)
+    return devices
+
+def get_device_count():
+    return len(tf.config.list_physical_devices())
