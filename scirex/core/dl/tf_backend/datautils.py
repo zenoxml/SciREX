@@ -22,7 +22,7 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 """
-    File: mathutils.py
+    File: datautils.py
 
     Description: This module contains the implementation of various data 
                  handling utility functions in tensorflow.
@@ -37,32 +37,42 @@
 import tensorflow as tf
 import numpy as np
 
+
 def reshape(x, shape):
     return tf.reshape(x, shape)
+
 
 def transpose(x, axes=None):
     return tf.transpose(x, perm=axes)
 
+
 def is_tensor(x):
     return tf.is_tensor(x)
+
 
 def convert_to_tensor(x, dtype=None):
     return tf.convert_to_tensor(x, dtype=dtype)
 
+
 def cast(x, dtype):
     return tf.cast(x, dtype)
+
 
 def concat(tensors, axis):
     return tf.concat(tensors, axis=axis)
 
+
 def vstack(tensors):
     return tf.vstack(tensors)
+
 
 def hstack(tensors):
     return tf.hstack(tensors)
 
+
 def stack(tensors, axis):
     return tf.stack(tensors, axis=axis)
+
 
 def convert_to_numpy(x):
     # check if x is already a numpy array
@@ -70,9 +80,3 @@ def convert_to_numpy(x):
         return x
     else:
         return x.numpy()
-    
-
-    
-
-
-
