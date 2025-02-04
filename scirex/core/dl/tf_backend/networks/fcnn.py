@@ -22,7 +22,7 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 """
-    File: fcn.py
+    File: fcnn.py
     Description: Implements a fully connected neural network using native TensorFlow operations.
 
     Authors: Divij Ghose (divijghose@{iisc.ac.in})
