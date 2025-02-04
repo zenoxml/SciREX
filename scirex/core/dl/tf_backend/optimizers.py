@@ -34,7 +34,6 @@ from typing import List, Optional, Union, Callable
 from tensorflow.keras.optimizers import Adam, SGD, RMSprop, schedules, Optimizer
 
 
-
 def get_optimizer(
     optimizer_name: str = "Adam", learning_rate_dict: dict = {}
 ) -> Optimizer:
@@ -98,6 +97,7 @@ def get_optimizer(
             return RMSprop(learning_rate=learning_rate_dict["initial_learning_rate"])
         else:
             raise ValueError("Invalid optimizer name")
-        
+
+
 def lbfgs_optimizer():
     pass
