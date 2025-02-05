@@ -97,5 +97,9 @@ def reduce_min(x, axis=None):
     return tf.reduce_min(x, axis=axis)
 
 
+def dot(x, y):
+    return tf.tensordot(x, y, axes=1)
+
+
 if __name__ == "__main__":
     pass
