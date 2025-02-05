@@ -28,6 +28,7 @@ Module: spectral_conv_2d.py
 
 This module provides the implementation of a 2D spectral convolution layer.
 
+
 Classes:
     SpectralConv2d: 2D spectral convolution layer
 

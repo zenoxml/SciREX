@@ -38,7 +38,6 @@ from scirex.core.sciml.fno.layers.fno_block_2d import FNOBlock2d
 from scirex.core.sciml.fno.models.fno_1d import FNO1d
 from scirex.core.sciml.fno.models.fno_2d import FNO2d
 
-
 @pytest.fixture
 def rng_key():
     return jax.random.PRNGKey(42)

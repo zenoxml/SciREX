@@ -31,7 +31,6 @@ import os
 
 from scirex.core.sciml.fno.models.fno_2d import FNO2d
 
-
 def generate_poisson_data(n_samples=1200, nx=64, ny=64):
     """Generate data for the 2D Poisson equation:
     ∇²u = f with Dirichlet boundary conditions

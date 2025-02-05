@@ -91,7 +91,7 @@ git checkout -b feature/<descriptive-name>
 ```
 4. Install dependencies:
 ```bash
-pip install -e
+pip install -e .
 ```
 
 #### Development Workflow
