@@ -32,13 +32,15 @@ import numpy as np
 from typing import Tuple
 
 from scirex.core.sciml.fno.layers.spectral_conv_1d import SpectralConv1d
+from scirex.core.sciml.fno.layers.spectral_conv_2d import SpectralConv2d
 from scirex.core.sciml.fno.layers.fno_block_1d import FNOBlock1d
+from scirex.core.sciml.fno.layers.fno_block_2d import FNOBlock2d
 from scirex.core.sciml.fno.models.fno_1d import FNO1d
-
+from scirex.core.sciml.fno.models.fno_2d import FNO2d
 
 @pytest.fixture
 def rng_key():
-    return jax.random.PRNGKey(0)
+    return jax.random.PRNGKey(42)
 
 
 @pytest.fixture
@@ -392,3 +394,251 @@ def test_end_to_end_training(rng_key, dummy_data):
 
     # Loss should decrease
     assert losses[-1] < losses[0]
+
+
+# Tests for the FNO2d model
+
+
+@pytest.fixture
+def sample_input() -> Tuple[int, int, int]:
+    # channels, height, width
+    return (3, 32, 32)
+
+
+class TestSpectralConv2d:
+    def test_initialization(self, rng_key):
+        """Test if SpectralConv2d initializes correctly"""
+        layer = SpectralConv2d(
+            in_channels=2, out_channels=4, modes1=8, modes2=8, key=rng_key
+        )
+
+        assert layer.in_channels == 2
+        assert layer.out_channels == 4
+        assert layer.modes1 == 8
+        assert layer.modes2 == 8
+        assert layer.real_weights.shape == (2, 4, 8, 8)
+        assert layer.imag_weights.shape == (2, 4, 8, 8)
+
+    def test_forward_pass(self, rng_key, sample_input):
+        """Test if forward pass produces expected output shape"""
+        in_channels, height, width = sample_input
+        layer = SpectralConv2d(
+            in_channels=in_channels,
+            out_channels=5,  # Different output channels
+            modes1=8,
+            modes2=8,
+            key=rng_key,
+        )
+
+        x = jax.random.normal(rng_key, (in_channels, height, width))
+        output = layer(x)
+
+        assert output.shape == (5, height, width)  # Output channels = 5
+
+    def test_fourier_mode_multiplication(self, rng_key):
+        """Test if Fourier mode multiplication is performed correctly"""
+        layer = SpectralConv2d(
+            in_channels=1, out_channels=1, modes1=4, modes2=4, key=rng_key
+        )
+
+        # Create simple input with known Fourier transform
+        x = jnp.ones((1, 16, 16))
+        output = layer(x)
+
+        # Check if output is real
+        assert jnp.isclose(jnp.imag(output).sum(), 0.0, atol=1e-6)
+        assert output.shape == (1, 16, 16)
+
+
+class TestFNOBlock2d:
+    def test_initialization(self, rng_key):
+        """Test if FNOBlock2d initializes correctly"""
+        block = FNOBlock2d(
+            in_channels=2,
+            out_channels=4,
+            modes1=8,
+            modes2=8,
+            activation=jax.nn.gelu,
+            key=rng_key,
+        )
+
+        assert isinstance(block.spectral_conv, SpectralConv2d)
+        assert isinstance(block.conv, eqx.nn.Conv2d)
+        assert block.activation == jax.nn.gelu
+
+    def test_forward_pass(self, rng_key, sample_input):
+        """Test if forward pass combines spectral and regular convolution"""
+        in_channels, height, width = sample_input
+        block = FNOBlock2d(
+            in_channels=in_channels,
+            out_channels=4,
+            modes1=8,
+            modes2=8,
+            activation=jax.nn.gelu,
+            key=rng_key,
+        )
+
+        x = jax.random.normal(rng_key, (in_channels, height, width))
+        output = block(x)
+
+        assert output.shape == (4, height, width)
+        # Check if output has non-zero values (activation applied)
+        assert not jnp.allclose(output, 0.0)
+
+    def test_residual_connection(self, rng_key):
+        """Test if the residual connection is working"""
+        block = FNOBlock2d(
+            in_channels=1,
+            out_channels=1,
+            modes1=4,
+            modes2=4,
+            activation=lambda x: x,  # Linear activation for testing
+            key=rng_key,
+        )
+
+        x = jnp.ones((1, 16, 16))
+        output = block(x)
+
+        # Output should be different from input due to convolutions
+        assert not jnp.allclose(output, x)
+        assert output.shape == x.shape
+
+
+class TestFNO2d:
+    def test_initialization(self, rng_key):
+        """Test if FNO2d initializes correctly"""
+        model = FNO2d(
+            in_channels=2,
+            out_channels=1,
+            modes1=8,
+            modes2=8,
+            width=32,
+            activation=jax.nn.gelu,
+            n_blocks=4,
+            key=rng_key,
+        )
+
+        assert isinstance(model.lifting, eqx.nn.Conv2d)
+        assert len(model.fno_blocks) == 4
+        assert isinstance(model.projection, eqx.nn.Conv2d)
+
+    def test_forward_pass(self, rng_key, sample_input):
+        """Test if forward pass produces expected output shape"""
+        in_channels, height, width = sample_input
+        model = FNO2d(
+            in_channels=in_channels,
+            out_channels=1,
+            modes1=8,
+            modes2=8,
+            width=32,
+            activation=jax.nn.gelu,
+            n_blocks=4,
+            key=rng_key,
+        )
+
+        x = jax.random.normal(rng_key, (in_channels, height, width))
+        output = model(x)
+
+        assert output.shape == (1, height, width)
+
+    def test_model_training(self, rng_key):
+        """Test if model can be trained on a simple problem"""
+        model = FNO2d(
+            in_channels=1,
+            out_channels=1,
+            modes1=4,
+            modes2=4,
+            width=16,
+            activation=jax.nn.gelu,
+            n_blocks=2,
+            key=rng_key,
+        )
+
+        # Create simple training data
+        x = jnp.ones((1, 16, 16))
+        y = jnp.ones((1, 16, 16)) * 2
+
+        # Simple training step
+        def loss_fn(model):
+            pred = model(x)
+            return jnp.mean((pred - y) ** 2)
+
+        loss, grad = eqx.filter_value_and_grad(loss_fn)(model)
+        assert not jnp.isnan(loss)
+        assert all(not jnp.any(jnp.isnan(g)) for g in jax.tree_util.tree_leaves(grad))
+
+    @pytest.mark.parametrize("batch_size", [1, 2, 4])
+    def test_batch_processing(self, rng_key, batch_size):
+        """Test if model can handle different batch sizes using vmap"""
+        model = FNO2d(
+            in_channels=2,
+            out_channels=1,
+            modes1=4,
+            modes2=4,
+            width=16,
+            activation=jax.nn.gelu,
+            n_blocks=2,
+            key=rng_key,
+        )
+
+        # Create batch of inputs
+        x = jax.random.normal(rng_key, (batch_size, 2, 16, 16))
+
+        # Process batch using vmap
+        batch_forward = jax.vmap(model)
+        output = batch_forward(x)
+
+        assert output.shape == (batch_size, 1, 16, 16)
+
+
+def test_end_to_end_training():
+    """Test end-to-end training on a simple Poisson problem"""
+    key = jax.random.PRNGKey(0)
+
+    # Create simple Poisson problem
+    nx = ny = 16
+    x = jnp.linspace(0, 1, nx)
+    y = jnp.linspace(0, 1, ny)
+    X, Y = jnp.meshgrid(x, y)
+
+    # Source term (simple Gaussian)
+    f = jnp.exp(-100 * ((X - 0.5) ** 2 + (Y - 0.5) ** 2))
+
+    # Initialize model
+    model = FNO2d(
+        in_channels=3,  # source + coordinates
+        out_channels=1,
+        modes1=4,
+        modes2=4,
+        width=16,
+        activation=jax.nn.gelu,
+        n_blocks=2,
+        key=key,
+    )
+
+    # Prepare input (include spatial coordinates)
+    input_data = jnp.stack([f, X, Y], axis=0)
+
+    # Simple training step
+    optimizer = optax.adam(1e-3)
+    opt_state = optimizer.init(eqx.filter(model, eqx.is_array))
+
+    def loss_fn(model):
+        pred = model(input_data)
+        # Simple loss: prediction should be smooth and match boundary conditions
+        return (
+            jnp.mean(jnp.square(pred))
+            + jnp.mean(jnp.square(pred[:, 0, :]))  # Boundary penalties
+            + jnp.mean(jnp.square(pred[:, -1, :]))
+            + jnp.mean(jnp.square(pred[:, :, 0]))
+            + jnp.mean(jnp.square(pred[:, :, -1]))
+        )
+
+    # Run few training steps
+    for _ in range(5):
+        loss, grads = eqx.filter_value_and_grad(loss_fn)(model)
+        updates, opt_state = optimizer.update(grads, opt_state, model)
+        model = eqx.apply_updates(model, updates)
+
+        assert not jnp.isnan(loss)
+        assert all(not jnp.any(jnp.isnan(g)) for g in jax.tree_util.tree_leaves(grads))

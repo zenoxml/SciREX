@@ -23,7 +23,7 @@
 # please contact: contact@scirex.org
 
 """
-Module: fno_block.py
+Module: fno_block_1d.py
 
 This module provides the implementation of a single block of the Fourier Neural Operator (FNO) model.
 
@@ -43,7 +43,7 @@ Authors:
     Diya Nag Chaudhury
 
 Version Info:
-    29/Dec/2024: Initial version - Diya Nag Chaudhury
+    29/Jan/2025: Minor changes - Diya Nag Chaudhury
 
 References:
     None
@@ -88,6 +88,19 @@ class FNOBlock1d(eqx.Module):
         *,
         key,
     ):
+        """
+        This method initializes the FNOBlock1d object.
+
+        Args:
+            in_channels (_type_): _description_
+            out_channels (_type_): _description_
+            modes (_type_): _description_
+            activation (_type_): _description_
+            key (_type_): _description_
+
+        Returns:
+            None
+        """
         spectral_conv_key, bypass_conv_key = jax.random.split(key)
         self.spectral_conv = SpectralConv1d(
             in_channels,
@@ -107,4 +120,13 @@ class FNOBlock1d(eqx.Module):
         self,
         x,
     ):
+        """
+        This method calls the FNOBlock1d object.
+
+        Args:
+            x (jax.Array): Input array
+
+        Returns:
+            jax.Array: Output array
+        """
         return self.activation(self.spectral_conv(x) + self.bypass_conv(x))
