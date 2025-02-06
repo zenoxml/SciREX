@@ -23,7 +23,7 @@
 # please contact: contact@scirex.org
 
 """
-    Example Usage: Support Vector Regression (SVR) on a Sample Dataset
+Example Usage: Support Vector Regression (SVR) on a Sample Dataset
 
     This example demonstrates how to use the SVRModel class from the SciREX library
     to perform regression on a sample dataset.
@@ -43,6 +43,7 @@
 """
 
 from scirex.core.ml.supervised.regression.svr import SVRModel
+
 # Sample dataset (for illustration purposes, replace with actual data)
 import numpy as np
 from sklearn.datasets import make_regression
