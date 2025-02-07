@@ -42,7 +42,9 @@
         - 01/Feb/2025: Initial version    
 """
 
-from scirex.core.ml.supervised.regression.polynomial_regression import PolynomialRegressionModel
+from scirex.core.ml.supervised.regression.polynomial_regression import (
+    PolynomialRegressionModel,
+)
 
 # Sample dataset (for illustration purposes, replace with actual data)
 import numpy as np
@@ -65,13 +67,15 @@ print(f"Model Parameters: {params}")
 # Example output: MSE, MAE, R2, and a plot saved in the current directory
 
 # Plotting the results (visualization of polynomial regression curve)
-X_test = np.linspace(X.min(), X.max(), 100).reshape(-1, 1)  # Generate test data for plotting
+X_test = np.linspace(X.min(), X.max(), 100).reshape(
+    -1, 1
+)  # Generate test data for plotting
 y_pred = polynomial_model.predict(X_test)
 
-plt.scatter(X, y, color='blue', label='Data points')
-plt.plot(X_test, y_pred, color='red', label='Polynomial fit')
-plt.title('Polynomial Regression - Degree 3')
-plt.xlabel('Feature')
-plt.ylabel('Target')
+plt.scatter(X, y, color="blue", label="Data points")
+plt.plot(X_test, y_pred, color="red", label="Polynomial fit")
+plt.title("Polynomial Regression - Degree 3")
+plt.xlabel("Feature")
+plt.ylabel("Target")
 plt.legend()
 plt.show()
