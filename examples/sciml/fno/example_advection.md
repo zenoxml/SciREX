@@ -135,3 +135,20 @@ outputs/fno/advection/
 ├── advection_loss.png
 └── advection_error.png
 ```
+
+## Output Visualization
+
+<div style="text-align: center;">
+  <img src="outputs/fno/advection/advection_example.png" alt="Advection Example" />
+  <p>Advection Example</p>
+</div>
+
+<div style="text-align: center;">
+  <img src="outputs/fno/advection/advection_loss.png" alt="Advection Loss" />
+  <p>Advection Loss</p>
+</div>
+
+<div style="text-align: center;">
+  <img src="outputs/fno/advection/advection_error.png" alt="Advection Error" />
+  <p>Advection Error</p>
+</div>
