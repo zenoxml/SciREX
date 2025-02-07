@@ -97,20 +97,11 @@ outputs/fno/wave/
 └── absolute_error.png     # Point-wise absolute error
 ```
 
-<div style="text-align: center;">
-  <img src="outputs/fno/wave/example_prediction.png" alt="Example Prediction" />
-  <p>Example Prediction</p>
-</div>
+## Output Visualization
 
-<div style="text-align: center;">
-  <img src="outputs/fno/wave/training_loss.png" alt="Training Loss" />
-  <p>Training Loss</p>
-</div>
-
-<div style="text-align: center;">
-  <img src="outputs/fno/wave/absolute_error.png" alt="Absolute Error" />
-  <p>Absolute Error</p>
-</div>
+![Example Prediction](outputs/wave/example_prediction.png)
+![Training Loss](outputs/wave/training_loss.png)
+![Absolute Error](outputs/wave/absolute_error.png)
 
 
 ### Key Metrics

@@ -120,18 +120,7 @@ outputs/fno/heat/
 
 ## Output Visualization
 
-<div style="text-align: center;">
-  <img src="outputs/fno/heat/example_prediction.png" alt="Example Prediction" />
-  <p>Heat Example</p>
-</div>
-
-<div style="text-align: center;">
-  <img src="outputs/fno/heat/training_loss.png" alt="Training loss" />
-  <p>Heat Error</p>
-</div>
-
-<div style="text-align: center;">
-  <img src="outputs/fno/heat/absolute_error.png" alt="Absolute error" />
-  <p>Heat Loss</p>
-</div>
+![Example prediction](outputs/heat/example_prediction.png)
+![Training loss](outputs/heat/training_loss.png)
+![Absolute error](outputs/heat/absolute_error.png)
 
