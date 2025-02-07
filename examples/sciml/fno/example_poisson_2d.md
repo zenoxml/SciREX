@@ -164,3 +164,20 @@ outputs/fno/poisson/
 └── poisson_error.png
 ```
 
+## Output Visualization
+
+<div style="text-align: center;">
+  <img src="outputs/fno/poisson/poisson_example.png" alt="Poisson Example" />
+  <p>Poisson Example</p>
+</div>
+
+<div style="text-align: center;">
+  <img src="outputs/fno/poisson/poisson_loss.png" alt="Poisson Loss" />
+  <p>Poisson Loss</p>
+</div>
+
+<div style="text-align: center;">
+  <img src="outputs/fno/poisson/poisson_error.png" alt="Poisson Error" />
+  <p>Poisson Error</p>
+</div>
+
