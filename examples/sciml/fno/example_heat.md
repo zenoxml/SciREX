@@ -117,3 +117,10 @@ outputs/fno/heat/
 ├── training_loss.png
 └── absolute_error.png
 ```
+
+## Output Visualization
+
+![Example prediction](outputs/heat/example_prediction.png)
+![Training loss](outputs/heat/training_loss.png)
+![Absolute error](outputs/heat/absolute_error.png)
+

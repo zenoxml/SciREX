@@ -164,3 +164,8 @@ outputs/fno/poisson/
 └── poisson_error.png
 ```
 
+## Output Visualization
+
+![Poisson Example](outputs/poisson/poisson_example.png)
+![Training loss](outputs/poisson/poisson_loss.png)
+

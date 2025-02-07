@@ -97,6 +97,13 @@ outputs/fno/wave/
 └── absolute_error.png     # Point-wise absolute error
 ```
 
+## Output Visualization
+
+![Example Prediction](outputs/wave/example_prediction.png)
+![Training Loss](outputs/wave/training_loss.png)
+![Absolute Error](outputs/wave/absolute_error.png)
+
+
 ### Key Metrics
 - MSE Loss tracking
 - Test set error evaluation
