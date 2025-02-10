@@ -41,7 +41,7 @@ Attributes:
     TechniqueType (Enum): Available optimization techniques
     
 Authors:
-    - Nithyashree R (nithyashreer@iisc.ac.in)
+    - Nithyashree R (nithyashreer@iisc.ac.in).
 """
 
 import os

@@ -38,7 +38,7 @@ Attributes:
     ModelType (Enum): Available model architectures
 
 Authors:
- - Nithyashree R (nithyashreer@iisc.ac.in)
+ - Nithyashree R (nithyashreer@iisc.ac.in).
 """
 
 

@@ -36,7 +36,7 @@ Attributes:
     ModelArchitecture (Enum): Supported model architecture families (base, cnn)
  
 Authors:
- - Nithyashree R (nithyashreer@iisc.ac.in)
+ - Nithyashree R (nithyashreer@iisc.ac.in).
 
 """
 

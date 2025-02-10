@@ -38,7 +38,7 @@ Attributes:
     DatasetType (Enum): Available dataset types
     
 Authors:
-    - Nithyashree R (nithyashreer@iisc.ac.in)
+    - Nithyashree R (nithyashreer@iisc.ac.in).
 """
 
 from enum import Enum
