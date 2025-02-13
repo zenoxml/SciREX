@@ -38,6 +38,9 @@ Key Components:
     - Dataset management through DatasetLoader
     - Compression techniques through pruning and quantization modules
     - Command-line interface for easy usage
+    
+Authors:
+ - Nithyashree R (nithyashreer@iisc.ac.in).
 
 """
 import os
@@ -49,8 +52,8 @@ import importlib.util
 from typing import Dict, Any, Tuple
 
 # Suppress warnings
-os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
-warnings.filterwarnings('ignore')
+os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
+warnings.filterwarnings("ignore")
 
 # Import modules
 from datasets import DatasetLoader, DatasetType
@@ -58,8 +61,7 @@ import pruning
 import quantization
 
 logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s'
+    level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s"
 )
 logger = logging.getLogger(__name__)
 
@@ -67,11 +69,11 @@ logger = logging.getLogger(__name__)
 class ModelCompressor:
     """
     A comprehensive framework for neural network model compression.
-    
+
     This class provides functionality to load models dynamically and apply
     various compression techniques such as pruning and quantization. It handles
     the complete pipeline from model loading to compression application.
-    
+
     Attributes:
         technique (str): Compression technique to be applied ('pruning' or 'quantization')
         model_path (str): Path to the model definition file
@@ -80,7 +82,7 @@ class ModelCompressor:
         model (tf.keras.Model): Loaded neural network model
         compressed_model (tf.keras.Model): Compressed version of the model
         dataset_info (DatasetInfo): Information about the dataset being used
-    
+
     """
 
     def __init__(
@@ -90,17 +92,19 @@ class ModelCompressor:
     ) -> None:
         """
         Initialize the ModelCompressor with specified parameters.
-        
+
         Args:
             technique (str): Compression technique to apply ('pruning' or 'quantization')
             model_path (str, optional): Path to model definition file. Defaults to "models.py"
         """
         self.technique = technique
         self.model_path = model_path
-        
+
         # Dynamically import the model module
         try:
-            spec = importlib.util.spec_from_file_location("model_module", self.model_path)
+            spec = importlib.util.spec_from_file_location(
+                "model_module", self.model_path
+            )
             model_module = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(model_module)
             self.get_model = model_module.get_model
@@ -109,14 +113,16 @@ class ModelCompressor:
         except Exception as e:
             logger.error(f"Error loading model module: {str(e)}")
             raise
-        
+
         # Load MNIST dataset
-        (self.train_data, self.test_data) = DatasetLoader.load_dataset(DatasetType.MNIST)
+        (self.train_data, self.test_data) = DatasetLoader.load_dataset(
+            DatasetType.MNIST
+        )
         logger.info("Successfully loaded MNIST dataset")
-        
+
         # Get dataset info
         self.dataset_info = DatasetLoader.get_dataset_info(DatasetType.MNIST)
-        
+
         # Initialize model
         self.model = self._load_model()
         logger.info("Successfully initialized model")
@@ -124,11 +130,11 @@ class ModelCompressor:
     def _load_model(self) -> tf.keras.Model:
         """
         Load and initialize the neural network model.
-        
+
         This method uses the dynamically imported model factory function to create
         a model instance with appropriate input shape and number of classes based
         on the dataset information.
-        
+
         Returns:
             tf.keras.Model: Initialized neural network model
 
@@ -136,15 +142,15 @@ class ModelCompressor:
         try:
             # Add channel dimension to input shape
             input_shape = (*self.dataset_info.input_shape, 1)
-            
+
             # Create model using dynamically imported get_model
             model = self.get_model(
                 model_type=self.ModelType.SIMPLE_CNN,
                 input_shape=input_shape,
-                num_classes=self.dataset_info.num_classes
+                num_classes=self.dataset_info.num_classes,
             )
             return model
-            
+
         except Exception as e:
             logger.error(f"Error loading model: {str(e)}")
             raise
@@ -152,11 +158,11 @@ class ModelCompressor:
     def compress(self) -> None:
         """
         Apply the selected compression technique to the model.
-        
+
         This method configures and applies either pruning or quantization based on
         the specified technique. It handles the complete compression process including
         parameter configuration and technique application.
-        
+
         Compression parameters:
             - batch_size: 32
             - epochs: 10
@@ -164,37 +170,31 @@ class ModelCompressor:
             - target_sparsity: 0.75 (for pruning)
         """
         logger.info(f"Starting {self.technique} compression...")
-        
+
         # Define optimization parameters
         params = {
-            'batch_size': 32,
-            'epochs': 10,
-            'validation_split': 0.2,
-            'target_sparsity': 0.75  # for pruning
+            "batch_size": 32,
+            "epochs": 10,
+            "validation_split": 0.2,
+            "target_sparsity": 0.75,  # for pruning
         }
-        
+
         try:
             if self.technique.lower() == "pruning":
-                technique = pruning.get_technique(
-                    pruning.TechniqueType.PRUNING,
-                    params
-                )
+                technique = pruning.get_technique(pruning.TechniqueType.PRUNING, params)
             elif self.technique.lower() == "quantization":
                 technique = quantization.get_technique(
-                    quantization.TechniqueType.QUANTIZATION,
-                    params
+                    quantization.TechniqueType.QUANTIZATION, params
                 )
             else:
                 raise ValueError(f"Unknown technique: {self.technique}")
-            
+
             # Apply compression technique
             self.compressed_model = technique.apply(
-                model=self.model,
-                train_data=self.train_data,
-                test_data=self.test_data
+                model=self.model, train_data=self.train_data, test_data=self.test_data
             )
             logger.info(f"Successfully applied {self.technique}")
-            
+
         except Exception as e:
             logger.error(f"Compression failed: {str(e)}")
             raise
@@ -203,26 +203,30 @@ class ModelCompressor:
 def parse_args() -> argparse.Namespace:
     """
     Parse command line arguments for the compression framework.
-    
+
     Returns:
         argparse.Namespace: Parsed command line arguments containing:
             - technique: Compression technique to apply ('pruning' or 'quantization')
             - model: Path to model definition file
     """
-    parser = argparse.ArgumentParser(description='Model Compression Framework')
-    parser.add_argument('--technique', type=str, required=True, 
-                      choices=['pruning', 'quantization'],
-                      help='Compression technique to apply')
-    parser.add_argument('--model', type=str, 
-                      default="models.py",
-                      help='Path to the model file')
+    parser = argparse.ArgumentParser(description="Model Compression Framework")
+    parser.add_argument(
+        "--technique",
+        type=str,
+        required=True,
+        choices=["pruning", "quantization"],
+        help="Compression technique to apply",
+    )
+    parser.add_argument(
+        "--model", type=str, default="models.py", help="Path to the model file"
+    )
     return parser.parse_args()
 
 
 def main() -> None:
     """
     Main entry point for the model compression framework.
-    
+
     This function orchestrates the complete compression pipeline:
         1. Parses command line arguments
         2. Initializes the ModelCompressor
@@ -232,17 +236,14 @@ def main() -> None:
     try:
         args = parse_args()
         logger.info(f"Starting compression with technique: {args.technique}")
-        
+
         # Initialize compressor with the specified model path
-        compressor = ModelCompressor(
-            technique=args.technique,
-            model_path=args.model
-        )
-        
+        compressor = ModelCompressor(technique=args.technique, model_path=args.model)
+
         # Apply compression
         compressor.compress()
         logger.info("Compression completed successfully")
-        
+
     except Exception as e:
         logger.error(f"An error occurred: {str(e)}")
         raise
@@ -250,5 +251,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-    
-    
