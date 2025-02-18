@@ -39,8 +39,8 @@ import jax
 import jax.numpy as jnp
 import optax
 import equinox as eqx
-from scirex.core.dl import Model, Network
-from scirex.core.dl.losses import mse_loss
+from scirex.core.dl.jax_backend.equinox.base import Model, Network
+from scirex.core.dl.jax_backend.equinox.losses import mse_loss
 
 
 key = jax.random.PRNGKey(0)

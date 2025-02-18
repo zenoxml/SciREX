@@ -37,8 +37,8 @@
 """
 import pytest
 import jax.numpy as jnp
-from scirex.core.dl.metrics import accuracy
-from scirex.core.dl.losses import mse_loss, cross_entropy_loss
+from scirex.core.dl.jax_backend.equinox.metrics import accuracy
+from scirex.core.dl.jax_backend.equinox.losses import mse_loss, cross_entropy_loss
 
 
 @pytest.mark.parametrize(

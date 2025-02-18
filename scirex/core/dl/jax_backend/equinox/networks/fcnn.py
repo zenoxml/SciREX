@@ -45,7 +45,7 @@
 
 """
 import jax.numpy as jnp
-from .base import Network
+from ..base import Network
 
 
 class FCNN(Network):

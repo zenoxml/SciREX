@@ -53,7 +53,9 @@ import jax.numpy as jnp
 import optax
 from tensorflow.keras.datasets import mnist
 
-from scirex.core.dl import Model, Network, FCNN, layers, activations, utils
+from scirex.core.dl.jax_backend.equinox import layers, losses, activations, utils
+from scirex.core.dl.jax_backend.equinox.base import Model, Network
+from scirex.core.dl.jax_backend.equinox.networks import FCNN
 
 # Generate random keys for layer initialization
 keys = jax.random.split(jax.random.PRNGKey(0), 3)
@@ -142,7 +144,7 @@ def loss_fn(output, y):
     Returns:
         float: Loss value
     """
-    return jnp.abs(nn.kl_divergence(output.reshape(-1), y.reshape(-1)))
+    return jnp.abs(losses.kl_divergence(output.reshape(-1), y.reshape(-1)))
 
 
 # Initialize model with VAE architecture

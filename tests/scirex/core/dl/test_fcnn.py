@@ -38,12 +38,15 @@ import pytest
 import jax
 import jax.numpy as jnp
 import optax
-from scirex.core.dl import Model, FCNN, layers, activations, losses
+from scirex.core.dl.jax_backend.equinox import layers, activations, losses
+from scirex.core.dl.jax_backend.equinox.networks import FCNN
+from scirex.core.dl.jax_backend.equinox.base import Model
+
 
 
 key = jax.random.PRNGKey(0)
 
-layers = [layers.Linear(20, 10, key=key), activations.relu, layers.Linear(10, 1, key=key)]
+layersLinear = [layers.Linear(20, 10, key=key), activations.relu, layers.Linear(10, 1, key=key)]
 layersConv = [
     layers.Conv2d(1, 2, 2, key=key),
     layers.MaxPool2d(2),
@@ -55,7 +58,7 @@ x = jax.random.normal(key, (100, 20))
 y = x @ jax.random.normal(key, (20, 1)) + jax.random.normal(key, (100, 1))
 data1D = (x, y)
 data2D = (x.reshape(100, 1, 5, 4), y)
-model1D = Model(FCNN(layers), optax.sgd(1e-3), losses.mse_loss, [losses.mse_loss])
+model1D = Model(FCNN(layersLinear), optax.sgd(1e-3), losses.mse_loss, [losses.mse_loss])
 model2D = Model(FCNN(layersConv), optax.sgd(1e-3), losses.mse_loss, [losses.mse_loss])
 
 # Parameterized variables in global scope
