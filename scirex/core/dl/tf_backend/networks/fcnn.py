@@ -30,7 +30,7 @@
     Version Info:
         - 03/02/2025: Initial version
 """
-from typing import List, Optional, Union, Callable
+from typing import List, Optional
 import tensorflow as tf
 from scirex.core.dl.tf_backend.layers.dense import DenseLayer
 
@@ -153,7 +153,7 @@ class FullyConnectedNetwork:
 
     def summary(self) -> str:
         """Generate a string summary of the network architecture."""
-        summary = ["Network Architecture Using Tensorflow v2 backend:"]
+        summary = ["\nNetwork Architecture Using Tensorflow v2 backend:"]
         summary.append("-" * 50)
         summary.append(f"Input dimension: {self.architecture[0]}")
 

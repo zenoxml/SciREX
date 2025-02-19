@@ -99,3 +99,9 @@ def get_devices():
 
 def get_device_count():
     return len(tf.config.list_physical_devices())
+
+
+def get_batches(x_train, y_train, batch_size, buffer_size=1024):
+    dataset = tf.data.Dataset.from_tensor_slices((x_train, y_train))
+    batched_dataset = dataset.shuffle(buffer_size=buffer_size).batch(batch_size)
+    return batched_dataset
