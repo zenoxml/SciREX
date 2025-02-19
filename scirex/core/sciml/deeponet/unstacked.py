@@ -74,5 +74,3 @@ class UnstackedDeepONet(DeepONet):
         assert (
             branch_architecture[-1] == num_branches
         ), "Output layer of branch architecture must match number of branches"
-
-    
