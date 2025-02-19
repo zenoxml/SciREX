@@ -105,7 +105,7 @@ class DeepONet:
         trunk_output = reshape(trunk_output, [-1, 1])
 
         if self.num_branch_networks == 1:
-            branch_outputs = reshape(branch_outputs, [-1, 1])
+            # branch_outputs = reshape(branch_outputs, [-1, 1])
             return dot(trunk_output, branch_outputs)
         elif self.num_branch_networks > 1:
             branch_outputs = concat(branch_outputs, axis=1)
@@ -148,6 +148,7 @@ class DeepONet:
             epochs: Number of epochs
             batch_size: Batch size
         """
+        return
 
     def print_summary(self):
         """
@@ -158,7 +159,8 @@ class DeepONet:
         print("Trunk architecture:")
         print("-" * 50)
         print(self.trunk.summary())
-        print("\nBranch architecture:")
+        print("\nBranch architecture:\n")
+        print("-" * 50)
         for i, branch in enumerate(self.branches):
             print(f"Branch {i+1}:")
             print("-" * 50)
