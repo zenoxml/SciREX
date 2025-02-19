@@ -30,7 +30,7 @@
     Version Info:
         - 03/02/2025: Initial version
 """
-from typing import List, Optional, Union, Callable
+from typing import List, Tuple, Optional, Union, Callable
 from scirex.core.dl.tf_backend.networks.fcnn import FullyConnectedNetwork
 from scirex.core.dl.tf_backend.mathutils import *
 from scirex.core.dl.tf_backend.datautils import *
@@ -75,24 +75,4 @@ class UnstackedDeepONet(DeepONet):
             branch_architecture[-1] == num_branches
         ), "Output layer of branch architecture must match number of branches"
 
-    def generate_train_data(
-        self, num_samples: int, num_sensors: int, num_branches: int
-    ):
-        """
-        Generate test data for the unstacked DeepONet.
-
-        Args:
-            num_samples: Number of samples
-            num_sensors: Number of sensors
-            num_branches: Number of branches
-        """
-        x = np.linspace(-1, 1, num_sensors)
-        frequencies = np.random.randn(num_samples)
-
-        def function_family(x, n):
-            return tf.sin(n * np.pi * x)
-
-        for _ in range(num_samples):
-            for i in range(num_branches):
-                y[i] = function_family(x, i)
-            yield x, y
+    
