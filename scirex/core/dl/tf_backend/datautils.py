@@ -38,6 +38,16 @@ import tensorflow as tf
 import numpy as np
 
 
+def datatypes():
+    return {
+        "float32": tf.float32,
+        "float64": tf.float64,
+        "int32": tf.int32,
+        "int64": tf.int64,
+        "bool": tf.bool,
+    }
+
+
 def reshape(x, shape):
     return tf.reshape(x, shape)
 
@@ -80,6 +90,10 @@ def convert_to_numpy(x):
         return x
     else:
         return x.numpy()
+
+
+def expand_dims(x, axis):
+    return tf.expand_dims(x, axis=axis)
 
 
 def get_devices():
