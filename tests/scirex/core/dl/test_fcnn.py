@@ -43,10 +43,13 @@ from scirex.core.dl.jax_backend.equinox.networks import FCNN
 from scirex.core.dl.jax_backend.equinox.base import Model
 
 
-
 key = jax.random.PRNGKey(0)
 
-layersLinear = [layers.Linear(20, 10, key=key), activations.relu, layers.Linear(10, 1, key=key)]
+layersLinear = [
+    layers.Linear(20, 10, key=key),
+    activations.relu,
+    layers.Linear(10, 1, key=key),
+]
 layersConv = [
     layers.Conv2d(1, 2, 2, key=key),
     layers.MaxPool2d(2),
