@@ -96,7 +96,10 @@ class DenseLayer(TensorflowLayer):
             name="dense_weights",
         )
         self.bias = tf.Variable(
-            tf.zeros([self.units]), trainable=True, dtype=self.dtype, name="dense_bias"
+            tf.zeros([self.units], dtype=self.dtype),
+            trainable=True,
+            dtype=self.dtype,
+            name="dense_bias",
         )
 
     def _get_activation_fn(
@@ -128,6 +131,12 @@ class DenseLayer(TensorflowLayer):
         Returns:
             Output tensor of shape [batch_size, units]
         """
+        inputs = cast(inputs, self.dtype)
+
+        if len(inputs.shape) > 2:
+            raise ValueError(
+                f"Expected input tensor of rank 2, got tensor of rank {len(inputs.shape)}"
+            )
         # Check input shape
         if inputs.shape[-1] != self.input_dim:
             raise ValueError(
