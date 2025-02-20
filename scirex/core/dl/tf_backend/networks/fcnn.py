@@ -33,6 +33,13 @@
 from typing import List, Optional
 import tensorflow as tf
 from scirex.core.dl.tf_backend.layers.dense import DenseLayer
+from scirex.core.dl.tf_backend.datautils import (
+    convert_to_tensor,
+    expand_dims,
+    datatypes,
+)
+
+datatypes = datatypes()
 
 
 class FullyConnectedNetwork:
@@ -109,6 +116,12 @@ class FullyConnectedNetwork:
             Output tensor of shape [batch_size, output_dim]
         """
         # Check input dimensions
+        inputs = convert_to_tensor(inputs, dtype=self.dtype)
+
+        # Add batch dimesnsion if input is a single sample
+        if len(inputs.shape) == 1:
+            inputs = expand_dims(inputs, axis=0)
+
         if inputs.shape[-1] != self.architecture[0]:
             raise ValueError(
                 f"Expected input dimension {self.architecture[0]}, "
