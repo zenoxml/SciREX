@@ -34,11 +34,9 @@
         - 10/01/2025: Initial version
 
 """
-import pytest
 import jax
 import jax.numpy as jnp
-import optax
-from scirex.core.dl.gcn import GCN, GCNModel
+from scirex.core.dl.jax_backend.equinox.networks.gcn import GCN, GCNModel
 
 key = jax.random.PRNGKey(0)
 key_x, key_A, key_model = jax.random.split(key, num=3)
