@@ -89,3 +89,6 @@ tests/support_files/stator_bh_curve.csv
 tests/support_files/stator_normalized.mesh
 tests/support_files/stator.mesh
 tests/support_files/stator_unnormalized.mesh
+tests/support_files/*.txt
+tests/support_files/Case1
+tests/support_files/Case2
