@@ -92,3 +92,4 @@ tests/support_files/stator_unnormalized.mesh
 tests/support_files/*.txt
 tests/support_files/Case1
 tests/support_files/Case2
+tests/support_files/Case_magnet
