@@ -838,8 +838,8 @@ class DenseModel(tf.keras.Model):
 
         # gradients = tape.gradient(predicted_Az, test_tensor)
 
-        Bx = tape.gradient(predicted_Az, test_tensor_y)
-        By = -1.0 * tape.gradient(predicted_Az, test_tensor_x)
+        Bx = tape.gradient(predicted_Az, test_tensor_y) / 46.25
+        By = -(1.0 / 46.25) * tape.gradient(predicted_Az, test_tensor_x)
 
         B = tf.sqrt(tf.square(Bx) + tf.square(By))
 

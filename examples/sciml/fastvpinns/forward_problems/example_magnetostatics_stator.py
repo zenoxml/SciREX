@@ -87,7 +87,9 @@ i_beta = 1e8  # Boundary Loss Penalty ( Adds more weight to the boundary loss)
 # Epochs
 i_num_epochs = 100000
 
-bh_data = np.loadtxt("tests/support_files/stator_bh_curve.csv", delimiter=",", skiprows=1)
+bh_data = np.loadtxt(
+    "tests/support_files/stator_bh_curve.csv", delimiter=",", skiprows=1
+)
 b = bh_data[:, 1]
 h = bh_data[:, 0]
 b = reshape(b, (-1, 1))
@@ -104,7 +106,7 @@ std_h = tf.math.reduce_std(h)
 b_norm = (b - mean_b) / std_b
 h_norm = (h - mean_h) / std_h
 
-magnetisation = MagnetisationModel(b, h,  dtype=i_dtype)
+magnetisation = MagnetisationModel(b, h, dtype=i_dtype)
 
 # train the bh network
 for epoch in range(50000):
@@ -112,7 +114,7 @@ for epoch in range(50000):
     if (epoch + 1) % 100 == 0:
         training_loss = loss["loss"].numpy()
         print(f"Epoch: {epoch+1}, Loss: {training_loss}")
-        if training_loss < 1e-6: 
+        if training_loss < 1e-6:
             print("Converged")
             break
 
@@ -130,6 +132,7 @@ for epoch in range(50000):
 # plt.savefig("h_b_curve_test.png")
 
 # exit(0)
+
 
 ## Setting up boundary conditions
 def inner_boundary(x, y):
@@ -179,11 +182,13 @@ def exact_solution(x, y):
 
     return np.ones_like(x) * r
 
+
 def stator_max_radius():
     """
     This function will return the maximum radius of the stator
     """
     return 46.25
+
 
 def stator_diameter():
     """
@@ -224,7 +229,6 @@ domain = Geometry_2D(
 )
 
 
-
 # # load the mesh
 cells, boundary_points = domain.read_mesh(
     i_mesh_file_name,
@@ -232,7 +236,7 @@ cells, boundary_points = domain.read_mesh(
     i_boundary_sampling_method,
     refinement_level=1,
 )
-#save cells as pickle file
+# save cells as pickle file
 # domain.save_cell_points(cells, Path(i_output_path) / "cells.pkl")
 # domain.save_boundary_points(boundary_points, Path(i_output_path) / "boundary_points.pkl")
 # exit(0)
@@ -349,7 +353,6 @@ for epoch in tqdm(range(i_num_epochs)):
 # Get predicted values from the model
 y_pred = model(test_points).numpy()
 y_pred = y_pred.reshape(-1)
-
 
 
 # compute the error
