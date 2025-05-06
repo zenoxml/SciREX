@@ -48,7 +48,7 @@ References:
 import tensorflow as tf
 
 
-def pde_loss_magnetostatics(
+def pde_loss_magnetostatics_magnet(
     test_shape_val_mat: tf.Tensor,
     test_grad_x_mat: tf.Tensor,
     test_grad_y_mat: tf.Tensor,
@@ -93,6 +93,8 @@ def pde_loss_magnetostatics(
     """
 
     # ∫du/dx. dv/dx dΩ
+    # tf.print("diff_permeability:\n", diff_permeability)
+
     pde_diffusion_x = tf.transpose(
         tf.linalg.matvec(test_grad_x_mat, pred_grad_x_nn * diff_permeability)
     )
@@ -103,7 +105,7 @@ def pde_loss_magnetostatics(
     )
 
     # eps * ∫ (du/dx. dv/dx + du/dy. dv/dy) dΩ
-    pde_diffusion = (1 / (46.25**2)) * (pde_diffusion_x + pde_diffusion_y)
+    pde_diffusion = (1.0 / (0.04625**2)) * (pde_diffusion_x + pde_diffusion_y)
 
     residual_matrix = pde_diffusion - forcing_function
 
