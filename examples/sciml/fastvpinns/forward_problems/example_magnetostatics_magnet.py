@@ -573,6 +573,7 @@ model_stator = DenseModel(
     use_polynomial=i_use_polynomial,
     polynomial_coeffs=i_polynomial_coeffs,
     trained_magnetisation_model=magnetisation,
+    use_adaptive_loss_weights=i_use_adaptive_loss_weights
 )
 
 # air loss components
