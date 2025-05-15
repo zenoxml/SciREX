@@ -134,6 +134,7 @@ class Geometry_2D(Geometry):
         n_test_points_y: int,
         output_folder: str,
         is_optimized: bool = False,
+        vtk_filename: str = "external.vtk",
     ):
         """
         Constructor for Geometry_2D class.
@@ -160,6 +161,7 @@ class Geometry_2D(Geometry):
         self.n_test_points_y = n_test_points_y
         self.output_folder = output_folder
         self.is_optimized = is_optimized
+        self.vtk_filename = vtk_filename
 
         if self.mesh_generation_method not in ["internal", "external"]:
             print(
@@ -521,7 +523,7 @@ class Geometry_2D(Geometry):
 
         elif self.mesh_generation_method == "external":
 
-            vtk_file_name = Path(self.output_folder) / "external.vtk"
+            vtk_file_name = Path(self.output_folder) / self.vtk_filename
 
             # Use the internal mesh to generate the vtk file
             mesh = meshio.read(str(self.mesh_file_name))
@@ -557,7 +559,7 @@ class Geometry_2D(Geometry):
             return self.test_points
 
         elif self.mesh_generation_method == "external":
-            vtk_file_name = Path(self.output_folder) / "external.vtk"
+            vtk_file_name = Path(self.output_folder) / self.vtk_filename
 
         mesh = meshio.read(str(vtk_file_name))
         points = mesh.points
@@ -582,7 +584,7 @@ class Geometry_2D(Geometry):
         if self.mesh_generation_method == "internal":
             vtk_file_name = Path(self.output_folder) / "internal.vtk"
         elif self.mesh_generation_method == "external":
-            vtk_file_name = Path(self.output_folder) / "external.vtk"
+            vtk_file_name = Path(self.output_folder) / self.vtk_filename
 
         data = []
         with open(vtk_file_name, "r", encoding="utf-8") as File:

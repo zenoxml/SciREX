@@ -359,7 +359,7 @@ class DenseModel(tf.keras.Model):
         """
         x = inputs
 
-        x = x 
+        x = x
 
         # Apply attention layer after input if flag is True
         if self.use_attention:
@@ -369,7 +369,13 @@ class DenseModel(tf.keras.Model):
         for layer in self.layer_list:
             x = layer(x)
 
-        x = tf.cast((tf.sqrt(tf.square(inputs[:, 0:1]) + tf.square(inputs[:, 1:2])) - 1), dtype=self.tensor_dtype) * x
+        x = (
+            tf.cast(
+                (tf.sqrt(tf.square(inputs[:, 0:1]) + tf.square(inputs[:, 1:2])) - 1),
+                dtype=self.tensor_dtype,
+            )
+            * x
+        )
         return x
 
     def get_config(self) -> dict:
@@ -429,8 +435,6 @@ class DenseModel(tf.keras.Model):
                 # Compute the predicted values from the model
                 predicted_Az = self(self.input_tensor)
 
-
-
             # compute the gradients of the predicted values wrt the input which is (x, y)
             gradients = tape1.gradient(predicted_Az, self.input_tensor)
 
@@ -447,17 +451,24 @@ class DenseModel(tf.keras.Model):
                 predicted_Az, [self.n_cells, self.pre_multiplier_val.shape[-1]]
             )  # shape : (N_cells , N_quadrature_points)
 
-
             predicted_Bx = gradients[:, 0]
             predicted_By = gradients[:, 1]
 
             calculated_B = tf.sqrt(tf.square(predicted_Bx) + tf.square(predicted_By))
             calculated_B = tf.reshape(calculated_B, [-1, 1])
-            normalized_B = (calculated_B - self.trained_magnetisation_model.mean_b) / self.trained_magnetisation_model.std_b
+            normalized_B = (
+                calculated_B - self.trained_magnetisation_model.mean_b
+            ) / self.trained_magnetisation_model.std_b
             predicted_H = self.trained_magnetisation_model(normalized_B)
-            calculated_H = predicted_H * self.trained_magnetisation_model.std_h + self.trained_magnetisation_model.mean_h
+            calculated_H = (
+                predicted_H * self.trained_magnetisation_model.std_h
+                + self.trained_magnetisation_model.mean_h
+            )
             calculated_permeability = calculated_B / calculated_H
-            calculated_permeability = tf.reshape(calculated_permeability, [self.n_cells, self.pre_multiplier_val.shape[-1]])
+            calculated_permeability = tf.reshape(
+                calculated_permeability,
+                [self.n_cells, self.pre_multiplier_val.shape[-1]],
+            )
 
             cells_residual = self.loss_function(
                 test_shape_val_mat=self.pre_multiplier_val,
@@ -468,7 +479,7 @@ class DenseModel(tf.keras.Model):
                 pred_grad_y_nn=pred_Az_grad_y,
                 forcing_function=self.force_matrix,
                 bilinear_params=bilinear_params_dict,
-                diff_permeability=calculated_permeability,
+                # diff_permeability=calculated_permeability,
             )
 
             residual = tf.reduce_sum(cells_residual)
@@ -493,7 +504,7 @@ class DenseModel(tf.keras.Model):
             "loss_dirichlet": boundary_loss,
             "loss": total_loss,
         }
-    
+
     def inference(self, test_tensor):
         """
         The inference method for the model.
@@ -502,18 +513,26 @@ class DenseModel(tf.keras.Model):
             dict: The predicted values from the model.
         """
         test_tensor = tf.convert_to_tensor(test_tensor, dtype=self.tensor_dtype)
+        test_tensor_x, test_tensor_y = test_tensor[:, 0], test_tensor[:, 1]
+
         with tf.GradientTape(persistent=True) as tape:
             # tape gradient
-            tape.watch(test_tensor)
+            tape.watch(test_tensor_x)
+            tape.watch(test_tensor_y)
             # Compute the predicted values from the model
-            predicted_Az = self(test_tensor)
-        
-        gradients = tape.gradient(predicted_Az, test_tensor)
 
-        Bx = gradients[:, 1]
-        By = -1.0 * gradients[:, 0]
+            coords = tf.stack([test_tensor_x, test_tensor_y], axis=-1)
+
+            predicted_Az = self(coords)
+
+        # gradients = tape.gradient(predicted_Az, test_tensor)
+
+        Bx = tape.gradient(predicted_Az, test_tensor_y) / 0.04625
+        By = -(1.0 / 0.04625) * tape.gradient(predicted_Az, test_tensor_x)
 
         B = tf.sqrt(tf.square(Bx) + tf.square(By))
+
+        del tape
 
         return {
             "Az": predicted_Az,
@@ -521,5 +540,3 @@ class DenseModel(tf.keras.Model):
             "By": By,
             "B": B,
         }
-
-

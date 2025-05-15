@@ -22,8 +22,8 @@
 # For any clarifications or special considerations,
 # please contact: contact@scirex.org
 
-# Author: Sai Bhargav P. (https://thivinanandh.github.io)
-# Version Info: 08/Mar/2025: Initial version - Sai Bhargav P.
+# Author: Thivin Anandh (https://thivinanandh.github.io)
+# Version Info: 27/Dec/2024: Initial version - Thivin Anandh
 
 
 """Implementation of Tensor-Based Loss Calculation for 2D Poisson Equation.
@@ -48,7 +48,7 @@ References:
 import tensorflow as tf
 
 
-def pde_loss_magnetostatics(
+def pde_loss_magnetostatics_magnet(
     test_shape_val_mat: tf.Tensor,
     test_grad_x_mat: tf.Tensor,
     test_grad_y_mat: tf.Tensor,
@@ -57,6 +57,7 @@ def pde_loss_magnetostatics(
     pred_grad_y_nn: tf.Tensor,
     forcing_function: callable,
     bilinear_params: dict,
+    diff_permeability: tf.Tensor,
 ) -> tf.Tensor:
     """Calculates residual for 2D Poisson equation.
 
@@ -91,14 +92,20 @@ def pde_loss_magnetostatics(
         computing the variational residual.
     """
 
+    # tf.print("diff_permeability:\n", diff_permeability)
     # ∫du/dx. dv/dx dΩ
-    pde_diffusion_x = tf.transpose(tf.linalg.matvec(test_grad_x_mat, pred_grad_x_nn))
+
+    pde_diffusion_x = tf.transpose(
+        tf.linalg.matvec(test_grad_x_mat, pred_grad_x_nn * diff_permeability)
+    )
 
     # ∫du/dy. dv/dy dΩ
-    pde_diffusion_y = tf.transpose(tf.linalg.matvec(test_grad_y_mat, pred_grad_y_nn))
+    pde_diffusion_y = tf.transpose(
+        tf.linalg.matvec(test_grad_y_mat, pred_grad_y_nn * diff_permeability)
+    )
 
     # eps * ∫ (du/dx. dv/dx + du/dy. dv/dy) dΩ
-    pde_diffusion = (1 / (0.04625**2)) * (pde_diffusion_x + pde_diffusion_y)
+    pde_diffusion = (1.0 / (0.04625**2)) * (pde_diffusion_x + pde_diffusion_y)
 
     residual_matrix = pde_diffusion - forcing_function
 

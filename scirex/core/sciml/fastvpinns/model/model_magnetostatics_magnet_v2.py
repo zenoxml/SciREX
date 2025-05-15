@@ -52,6 +52,7 @@ from tensorflow.keras import layers
 from tensorflow.keras import initializers
 from tensorflow.keras import backend as K
 import copy
+import matplotlib.pyplot as plt
 
 # import tensorflow wrapper
 from ....dl.tensorflow_wrapper import TensorflowDense
@@ -393,6 +394,8 @@ class DenseModel(tf.keras.Model):
         polynomial_coeffs=[0.0, 1.0],
         hessian=False,
         trained_magnetisation_model=None,
+        use_adaptive_loss_weights=True,
+        adaptive_alpha=0.9,
     ):
         """
         Initialize the DenseModel class.
@@ -460,6 +463,7 @@ class DenseModel(tf.keras.Model):
         self.input_tensor = copy.deepcopy(input_tensors_list[0])
         self.dirichlet_input = copy.deepcopy(input_tensors_list[1])
         self.dirichlet_actual = copy.deepcopy(input_tensors_list[2])
+        self.interface_input = copy.deepcopy(input_tensors_list[3])
 
         self.params_dict = params_dict
 
@@ -470,6 +474,29 @@ class DenseModel(tf.keras.Model):
         self.force_matrix = self.force_function_list
 
         self.trained_magnetisation_model = trained_magnetisation_model
+
+        self.use_adaptive_loss_weights = use_adaptive_loss_weights
+        self.adaptive_alpha = adaptive_alpha
+
+        self.pde_weight = tf.Variable(
+            1.0, dtype=self.tensor_dtype, trainable=False, name="pde_weight"
+        )
+        self.boundary_weight = tf.Variable(
+            10.0, dtype=self.tensor_dtype, trainable=False, name="boundary_weight"
+        )
+        self.interface_weight = tf.Variable(
+            10.0, dtype=self.tensor_dtype, trainable=False, name="interface_weight"
+        )
+
+        self.prev_grad_stats = {
+            "pde_max_grad": tf.Variable(0.0, dtype=self.tensor_dtype, trainable=False),
+            "boundary_mean_grad": tf.Variable(
+                1.0, dtype=self.tensor_dtype, trainable=False
+            ),
+            "interface_mean_grad": tf.Variable(
+                1.0, dtype=self.tensor_dtype, trainable=False
+            ),
+        }
 
         print(f"{'-'*74}")
         print(f"| {'PARAMETER':<25} | {'SHAPE':<25} |")
@@ -707,9 +734,86 @@ class DenseModel(tf.keras.Model):
         # Return combined list
         return keras_vars + poly_vars
 
+    def update_adaptive_weights(self, grads_pde, grads_boundary, grads_interface):
+        """
+        Update the adaptive weights for different loss components according to equation (32).
+
+        Args:
+            grads_pde: Gradients from the PDE residual loss
+            grads_boundary: Gradients from the boundary condition loss
+            grads_interface: Gradients from the interface condition loss
+
+        Returns:
+            None (updates class variables)
+        """
+        # Skip if not using adaptive weights
+        if not self.use_adaptive_loss_weights:
+            return
+
+        # Calculate gradient statistics as in equation (31)
+        # For PDE loss: maximum absolute gradient
+        pde_grads_flattened = tf.concat(
+            [tf.reshape(g, [-1]) for g in grads_pde if g is not None], axis=0
+        )
+        pde_max_grad = tf.reduce_max(tf.abs(pde_grads_flattened))
+
+        # For boundary loss: mean absolute gradient
+        boundary_grads_flattened = tf.concat(
+            [tf.reshape(g, [-1]) for g in grads_boundary if g is not None], axis=0
+        )
+        boundary_mean_grad = tf.reduce_mean(tf.abs(boundary_grads_flattened))
+
+        # For interface loss: mean absolute gradient
+        interface_grads_flattened = tf.concat(
+            [tf.reshape(g, [-1]) for g in grads_interface if g is not None], axis=0
+        )
+        interface_mean_grad = tf.reduce_mean(tf.abs(interface_grads_flattened))
+
+        # Avoid division by zero by adding a small epsilon
+        epsilon = 1e-8
+        boundary_mean_grad = tf.maximum(boundary_mean_grad, epsilon)
+        interface_mean_grad = tf.maximum(interface_mean_grad, epsilon)
+
+        # Calculate target weights using equation (31)
+        target_boundary_weight = pde_max_grad / boundary_mean_grad
+        target_interface_weight = pde_max_grad / interface_mean_grad
+
+        # Update weights using exponential averaging as in equation (32)
+        # λj = (1 - α)λj + α^λj
+        self.boundary_weight.assign(
+            (1 - self.adaptive_alpha) * self.boundary_weight
+            + self.adaptive_alpha * target_boundary_weight
+        )
+
+        self.interface_weight.assign(
+            (1 - self.adaptive_alpha) * self.interface_weight
+            + self.adaptive_alpha * target_interface_weight
+        )
+
+        # Update gradient statistics for debugging/monitoring
+        self.prev_grad_stats["pde_max_grad"].assign(pde_max_grad)
+        self.prev_grad_stats["boundary_mean_grad"].assign(boundary_mean_grad)
+        self.prev_grad_stats["interface_mean_grad"].assign(interface_mean_grad)
+
+        # Print updated weights for monitoring
+        tf.print(
+            "Updated weights:",
+            "PDE:",
+            self.pde_weight,
+            "Boundary:",
+            self.boundary_weight,
+            "Interface:",
+            self.interface_weight,
+        )
+
     @tf.function
     def train_step(
-        self, beta=10, bilinear_params_dict=None
+        self,
+        epoch=1000,
+        alpha=1,
+        beta=10,
+        bilinear_params_dict=None,
+        trained_conjugate_model=None,
     ) -> dict:  # pragma: no cover
         """
         The train step method for the model.
@@ -717,10 +821,23 @@ class DenseModel(tf.keras.Model):
         Args:
             beta (int): The weight for the boundary loss, defaults to 10.
             bilinear_params_dict (dict): The bilinear parameters dictionary, defaults to None.
+            trained_conjugate_model (model): model to infer interface loss
 
         Returns:
             dict: The loss values for the model.
         """
+
+        # Learning rate annealing method
+        if self.use_adaptive_loss_weights:
+            # print("entering adaptive functionality")
+            alpha_weight = self.pde_weight if alpha is None else alpha
+            boundary_weight = self.boundary_weight if beta is None else beta
+            interface_weight = self.interface_weight if beta is None else beta
+        else:
+            # Use default values if adaptive weighting is disabled
+            alpha_weight = 1.0 if alpha is None else alpha
+            boundary_weight = 10.0 if beta is None else beta
+            interface_weight = 10.0 if beta is None else beta
 
         with tf.GradientTape(persistent=True) as tape:
             # Predict the values for dirichlet boundary conditions
@@ -754,32 +871,53 @@ class DenseModel(tf.keras.Model):
             predicted_Bx = gradients[:, 0]
             predicted_By = gradients[:, 1]
 
-            calculated_B = tf.sqrt(tf.square(predicted_Bx) + tf.square(predicted_By))
-            calculated_B = tf.reshape(calculated_B, [-1, 1])
-            normalized_B = (
-                calculated_B - self.trained_magnetisation_model.mean_b
-            ) / self.trained_magnetisation_model.std_b
-            predicted_H = self.trained_magnetisation_model(normalized_B)
-            calculated_H = (
-                predicted_H * self.trained_magnetisation_model.std_h
-                + self.trained_magnetisation_model.mean_h
-            )
-            calculated_permeability = calculated_B / calculated_H
-            calculated_permeability = tf.reshape(
-                calculated_permeability,
-                [self.n_cells, self.pre_multiplier_val.shape[-1]],
-            )
+            if self.trained_magnetisation_model:
+                # Loss computation for stator using B-H curve to compute permeability
 
-            cells_residual = self.loss_function(
-                test_shape_val_mat=self.pre_multiplier_val,
-                test_grad_x_mat=self.pre_multiplier_grad_x,
-                test_grad_y_mat=self.pre_multiplier_grad_y,
-                pred_nn=pred_Az_val,
-                pred_grad_x_nn=pred_Az_grad_x,
-                pred_grad_y_nn=pred_Az_grad_y,
-                forcing_function=self.force_matrix,
-                bilinear_params=bilinear_params_dict,
-            )
+                calculated_B = tf.sqrt(
+                    tf.square(predicted_Bx) + tf.square(predicted_By)
+                )
+                calculated_B = tf.reshape(calculated_B, [-1, 1])
+                normalized_B = (
+                    calculated_B - self.trained_magnetisation_model.mean_b
+                ) / self.trained_magnetisation_model.std_b
+                predicted_H = self.trained_magnetisation_model(normalized_B)
+                calculated_H = (
+                    predicted_H * self.trained_magnetisation_model.std_h
+                    + self.trained_magnetisation_model.mean_h
+                )
+                calculated_permeability = calculated_B / calculated_H
+                calculated_permeability = tf.reshape(
+                    calculated_permeability,
+                    [self.n_cells, self.pre_multiplier_val.shape[-1]],
+                )
+
+                cells_residual = self.loss_function(
+                    test_shape_val_mat=self.pre_multiplier_val,
+                    test_grad_x_mat=self.pre_multiplier_grad_x,
+                    test_grad_y_mat=self.pre_multiplier_grad_y,
+                    pred_nn=pred_Az_val,
+                    pred_grad_x_nn=pred_Az_grad_x,
+                    pred_grad_y_nn=pred_Az_grad_y,
+                    forcing_function=self.force_matrix,
+                    bilinear_params=bilinear_params_dict,
+                    diff_permeability=calculated_permeability,
+                )
+
+            else:
+                # Loss computation for airgap using mu0 as permeability
+
+                cells_residual = self.loss_function(
+                    test_shape_val_mat=self.pre_multiplier_val,
+                    test_grad_x_mat=self.pre_multiplier_grad_x,
+                    test_grad_y_mat=self.pre_multiplier_grad_y,
+                    pred_nn=pred_Az_val,
+                    pred_grad_x_nn=pred_Az_grad_x,
+                    pred_grad_y_nn=pred_Az_grad_y,
+                    forcing_function=self.force_matrix,
+                    bilinear_params=bilinear_params_dict,
+                    diff_permeability=bilinear_params_dict["mu0"],
+                )
 
             residual = tf.reduce_sum(cells_residual)
 
@@ -791,17 +929,102 @@ class DenseModel(tf.keras.Model):
                 tf.square(predicted_values_dirichlet - self.dirichlet_actual), axis=0
             )
 
+            # Interface loss
+            predicted_interface = self(self.interface_input)
+
+            predicted_interface_conjugate = trained_conjugate_model(
+                self.interface_input
+            )
+
+            interface_loss = tf.reduce_mean(
+                tf.square(predicted_interface - predicted_interface_conjugate), axis=0
+            )
+
             # Compute Total Loss
-            total_loss = total_pde_loss + beta * boundary_loss
+            weighted_pde_loss = alpha_weight * total_pde_loss
+            weighted_boundary_loss = boundary_weight * boundary_loss
+            weighted_interface_loss = interface_weight * interface_loss
+
+        total_loss = (
+            weighted_pde_loss + weighted_boundary_loss + weighted_interface_loss
+        )
 
         trainable_vars = self.trainable_variables
-        self.gradients = tape.gradient(total_loss, trainable_vars)
-        self.optimizer.apply_gradients(zip(self.gradients, trainable_vars))
+
+        # Calculate gradients for each loss term separately
+        pde_grads = tape.gradient(weighted_pde_loss, trainable_vars)
+        boundary_grads = tape.gradient(weighted_boundary_loss, trainable_vars)
+        interface_grads = tape.gradient(weighted_interface_loss, trainable_vars)
+
+        # Calculate the combined gradients for optimization
+        # This follows equation (33) in the paper
+
+        # tf.print("alpha_weight:", alpha_weight, type(alpha_weight))
+        # tf.print("pde_grads:", pde_grads, type(pde_grads))
+        # tf.print("boundary_weight:", boundary_weight, type(boundary_weight))
+        # tf.print("boundary_grads:", boundary_grads, type(boundary_grads))
+        # tf.print("interface_weight:", interface_weight, type(interface_weight))
+        # tf.print("interface_grads:", interface_grads, type(interface_grads))
+
+        # Apply weights to each gradient tensor individually
+        weighted_pde_grads = [
+            g * alpha_weight if g is not None else None for g in pde_grads
+        ]
+        weighted_boundary_grads = [
+            g * boundary_weight if g is not None else None for g in boundary_grads
+        ]
+        weighted_interface_grads = [
+            g * interface_weight if g is not None else None for g in interface_grads
+        ]
+
+        # Sum the weighted gradients element-wise
+        total_grads = []
+        for i in range(len(weighted_pde_grads)):
+            # Handle None gradients safely
+            pde_grad = weighted_pde_grads[i] if weighted_pde_grads[i] is not None else 0
+            boundary_grad = (
+                weighted_boundary_grads[i]
+                if weighted_boundary_grads[i] is not None
+                else 0
+            )
+            interface_grad = (
+                weighted_interface_grads[i]
+                if weighted_interface_grads[i] is not None
+                else 0
+            )
+
+            # Sum the gradients
+            if all(
+                g is None
+                for g in [
+                    weighted_pde_grads[i],
+                    weighted_boundary_grads[i],
+                    weighted_interface_grads[i],
+                ]
+            ):
+                total_grads.append(None)
+            else:
+                total_grads.append(pde_grad + boundary_grad + interface_grad)
+
+        # total_grads = alpha_weight * pde_grads +  boundary_weight * boundary_grads + interface_weight * interface_grads
+
+        # total_grads = tape.gradient(total_loss, trainable_vars)
+
+        # Apply gradients for optimization
+        self.optimizer.apply_gradients(zip(total_grads, trainable_vars))
+
+        # Update adaptive weights after each step
+        if (self.use_adaptive_loss_weights) and ((epoch % 1000) == 0):
+            self.update_adaptive_weights(pde_grads, boundary_grads, interface_grads)
 
         return {
-            "loss_pde": total_pde_loss,
-            "loss_dirichlet": beta * boundary_loss,
+            "loss_pde": weighted_pde_loss,
+            "loss_dirichlet": weighted_boundary_loss,
+            "loss_interface": weighted_interface_loss,
             "loss": total_loss,
+            "pde_weight": self.pde_weight,
+            "boundary_weight": self.boundary_weight,
+            "interface_weight": self.interface_weight,
         }
 
     # method to get polynomial coefficients
@@ -838,8 +1061,8 @@ class DenseModel(tf.keras.Model):
 
         # gradients = tape.gradient(predicted_Az, test_tensor)
 
-        Bx = tape.gradient(predicted_Az, test_tensor_y) / 46.25
-        By = -(1.0 / 46.25) * tape.gradient(predicted_Az, test_tensor_x)
+        Bx = tape.gradient(predicted_Az, test_tensor_y) / 0.04625
+        By = -(1.0 / 0.04625) * tape.gradient(predicted_Az, test_tensor_x)
 
         B = tf.sqrt(tf.square(Bx) + tf.square(By))
 

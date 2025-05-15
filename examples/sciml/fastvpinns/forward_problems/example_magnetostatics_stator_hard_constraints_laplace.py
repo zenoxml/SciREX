@@ -34,10 +34,14 @@ Author: Sai Bhargav P.
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib import cm
+from matplotlib.colors import Normalize
 from pathlib import Path
 import tensorflow as tf
 import time
 from tqdm import tqdm
+import sys
+import os
 
 # Fastvpinns Modules
 from scirex.core.sciml.geometry.geometry_2d import Geometry_2D
@@ -45,11 +49,11 @@ from scirex.core.sciml.fe.fespace2d import Fespace2D
 from scirex.core.sciml.fastvpinns.data.datahandler2d import DataHandler2D
 from scirex.core.dl.tf_backend.datautils import convert_to_tensor, reshape
 
-from scirex.core.sciml.fastvpinns.model.model_magnetostatic_bvp_hard_constraints_laplace import (
+from scirex.core.sciml.fastvpinns.model.model_magnetostatic_bvp_hard_constraints_perm import (
     DenseModel,
     MagnetisationModel,
 )
-from scirex.core.sciml.fastvpinns.physics.magnetostatics_laplace import (
+from scirex.core.sciml.fastvpinns.physics.magnetostatics_exp import (
     pde_loss_magnetostatics,
 )
 
@@ -65,7 +69,7 @@ i_y_max = 1  # maximum y value
 i_n_cells_x = 4  # Number of cells in the x direction
 i_n_cells_y = 4  # Number of cells in the y direction
 i_n_boundary_points = 400  # Number of points on the boundary
-i_output_path = "output/Case1/magnetostatics_stator_inference_tanh"  # Output path
+# i_output_path = "output/Case1/magnetostatics_stator_w_permeab_soft_polyorder2"  # Output path
 
 i_n_test_points_x = 100  # Number of test points in the x direction
 i_n_test_points_y = 100  # Number of test points in the y direction
@@ -89,14 +93,33 @@ i_dtype = tf.float64
 i_activation = "tanh"
 i_use_adaptive = False
 i_use_polynomial = False
-i_polynomial_coeffs = [0.1, 0.5, 0.3]
-i_beta = 1e8  # Boundary Loss Penalty ( Adds more weight to the boundary loss)
+i_polynomial_coeffs = [0.1, 0.5, 0.3, 0.25]
+i_alpha = 1e0
+i_beta = 1e0  # Boundary Loss Penalty ( Adds more weight to the boundary loss)
+
+# Script for hyperparameter search
+# Check if an argument is passed
+if len(sys.argv) > 1:
+    i_beta = float(sys.argv[1])
+    i_alpha = float(sys.argv[2])
+
+print(f"--------------------------------------------------------------------")
+print(f"Experiment running with beta value= {i_beta}, alpha value  {i_alpha}")
+print(f"--------------------------------------------------------------------")
+
+# i_output_path = f"output/Case1/Hyperparameter/Test_alpha_{i_alpha}_beta_{i_beta}_soft"  # Output path
+i_output_path = (
+    f"output/Case_Fresh/Case1/ipbc_scaling_no_perm_tanh_sigmoid_exit"  # Output path
+)
 
 # Epochs
 i_num_epochs = 100000
 
 # Parameters to test external data
 i_test_external = True
+i_test_external_path = "/home/saibhargav/Projects/scirex/SciREX/tests/support_files/Case1/Case1_inference.txt"
+i_Ascale = 0.02
+
 
 bh_data = np.loadtxt(
     "tests/support_files/stator_bh_curve.csv", delimiter=",", skiprows=1
@@ -150,7 +173,8 @@ def inner_boundary(x, y):
     """
     This function will return the boundary value for given component of a boundary
     """
-    r = 0.02
+    # r = 0.02
+    r = 1.0
     return np.ones_like(x) * r
 
 
@@ -212,7 +236,7 @@ def get_bilinear_params_dict():
     """
     This function will return a dictionary of bilinear parameters
     """
-    mu0 = 0.0
+    mu0 = 4 * np.pi * 1e-7
     return {"mu0": mu0}
 
 
@@ -304,6 +328,26 @@ bilinear_params_dict = datahandler.get_bilinear_params_dict_as_tensors(
     get_bilinear_params_dict
 )
 
+# model = DenseModel(
+#     layer_dims=[2, 30, 30, 30, 1],
+#     learning_rate_dict=i_learning_rate_dict,
+#     params_dict=params_dict,
+#     loss_function=pde_loss_magnetostatics,
+#     input_tensors_list=[
+#         datahandler.x_pde_list,
+#         train_dirichlet_input,
+#         train_dirichlet_output,
+#     ],
+#     orig_factor_matrices=[
+#         datahandler.shape_val_mat_list,
+#         datahandler.grad_x_mat_list,
+#         datahandler.grad_y_mat_list,
+#     ],
+#     force_function_list=datahandler.forcing_function_list,
+#     tensor_dtype=i_dtype,
+#     activation=i_activation,
+#     trained_magnetisation_model=magnetisation,
+# )
 
 model = DenseModel(
     layer_dims=[2, 30, 30, 30, 1],
@@ -349,7 +393,9 @@ y_exact = exact_solution(test_points[:, 0], test_points[:, 1])
 for epoch in tqdm(range(i_num_epochs)):
     # Train the model
     batch_start_time = time.time()
-    loss = model.train_step(beta=i_beta, bilinear_params_dict=bilinear_params_dict)
+    loss = model.train_step(
+        alpha=i_alpha, beta=i_beta, bilinear_params_dict=bilinear_params_dict
+    )
     elapsed = time.time() - batch_start_time
 
     # print(elapsed)
@@ -364,8 +410,9 @@ for epoch in tqdm(range(i_num_epochs)):
     total_loss = float(loss["loss"].numpy())
 
     # print("Updated polynomial coefficients:\n", model.get_polynomial_coefficients())
+    # print("Updated trainable parameter:\n", float(loss["trainable_param"].numpy()))
 
-    if (epoch + 1) % 10000 == 0:
+    if (epoch + 1) % 5000 == 0:
         y_test_pred = model(test_points).numpy().reshape(-1)
 
         error = y_test_pred - y_exact
@@ -378,6 +425,7 @@ for epoch in tqdm(range(i_num_epochs)):
         print(
             f"Variational Losses || Pde : {loss_pde:.3e} Dirichlet : {loss_dirichlet:.3e} Total : {total_loss:.3e}"
         )
+        # print("Updated trainable parameter:\n", float(loss["trainable_param"].numpy()))
         solution_array = np.c_[y_test_pred, y_exact, np.abs(y_exact - y_test_pred)]
         domain.write_vtk(
             solution_array,
@@ -414,7 +462,127 @@ for epoch in tqdm(range(i_num_epochs)):
 # Get predicted values from the model
 
 y_pred = model(test_points).numpy()
-y_pred = y_pred.reshape(-1)
+y_pred = y_pred.reshape(-1) * i_Ascale
+
+
+def plot_inference(predicted_path, fig_path):
+    """
+    Plotting code for external inference data
+    """
+    inference_data = np.loadtxt(i_test_external_path)
+
+    # Extract x and y coordinates
+    x, y = inference_data[:, 0], inference_data[:, 1]
+
+    prediction_data = np.loadtxt(predicted_path)
+
+    A_pred = prediction_data[:, 0]
+    A_exact = prediction_data[:, 1]
+    A_err = prediction_data[:, 2]
+
+    # Create figure with three subplots sharing the y-axis
+    fig, axes = plt.subplots(1, 3, figsize=(18, 6), sharey=True)
+
+    # Create a common colorbar normalization for the first two plots
+    vmin = min(np.min(A_pred), np.min(A_exact))
+    vmax = max(np.max(A_pred), np.max(A_exact))
+    norm = Normalize(vmin=vmin, vmax=vmax)
+
+    # Error plot needs its own normalization
+    error_norm = Normalize(vmin=np.min(A_err), vmax=np.max(A_err))
+
+    # Create scatter plots with the points
+    scatter1 = axes[0].scatter(x, y, c=A_pred, cmap=cm.viridis, s=5, norm=norm)
+    scatter2 = axes[1].scatter(x, y, c=A_exact, cmap=cm.viridis, s=5, norm=norm)
+    scatter3 = axes[2].scatter(x, y, c=A_err, cmap=cm.magma, s=5, norm=error_norm)
+
+    # Add colorbars
+    cbar1 = fig.colorbar(scatter1, ax=axes[0])
+    cbar1.set_label(r"$A$")
+    cbar2 = fig.colorbar(scatter2, ax=axes[1])
+    cbar2.set_label(r"$A$")
+    cbar3 = fig.colorbar(scatter3, ax=axes[2])
+    cbar3.set_label("Error")
+
+    # Set titles for each subplot
+    axes[0].set_title("Predicted Solution")
+    axes[1].set_title("Exact Solution")
+    axes[2].set_title("Error")
+
+    # Set x-labels for each subplot
+    axes[0].set_xlabel("X")
+    axes[1].set_xlabel("X")
+    axes[2].set_xlabel("X")
+
+    # Set a common y-label for all subplots
+    fig.text(0.01, 0.5, "Y", va="center", rotation="vertical", fontsize=12)
+    fig.suptitle("Case 1 - Mag A, Poly Activation function (ord = 2)")
+    # Set uniform aspect ratio for all subplots
+    for ax in axes:
+        ax.set_aspect("equal")
+
+    # Adjust layout for better spacing
+    plt.tight_layout(rect=[0.03, 0, 1, 1])  # Adjust left margin for y-label
+
+    # Save figure if needed
+    plt.savefig(fig_path / "FieldA_Comp.png", dpi=300, bbox_inches="tight")
+
+    plt.close()
+
+    B_pred = prediction_data[:, 5]
+    B_exact = prediction_data[:, 6]
+    B_err = prediction_data[:, 7]
+
+    # Create figure with three subplots sharing the y-axis
+    fig, axes = plt.subplots(1, 3, figsize=(18, 6), sharey=True)
+
+    # Create a common colorbar normalization for the first two plots
+    vmin = min(np.min(B_pred), np.min(B_exact))
+    vmax = max(np.max(B_pred), np.max(B_exact))
+    norm = Normalize(vmin=vmin, vmax=vmax)
+
+    # Error plot needs its own normalization
+    error_norm = Normalize(vmin=np.min(B_err), vmax=np.max(B_err))
+
+    # Create scatter plots with the points
+    scatter1 = axes[0].scatter(x, y, c=B_pred, cmap=cm.viridis, s=5)
+    scatter2 = axes[1].scatter(x, y, c=B_exact, cmap=cm.viridis, s=5, norm=norm)
+    scatter3 = axes[2].scatter(x, y, c=B_err, cmap=cm.magma, s=5, norm=error_norm)
+
+    # Add colorbars
+    cbar1 = fig.colorbar(scatter1, ax=axes[0])
+    cbar1.set_label(r"$B$")
+    cbar2 = fig.colorbar(scatter2, ax=axes[1])
+    cbar2.set_label(r"$B$")
+    cbar3 = fig.colorbar(scatter3, ax=axes[2])
+    cbar3.set_label("Error")
+
+    # Set titles for each subplot
+    axes[0].set_title("Predicted Solution")
+    axes[1].set_title("Exact Solution")
+    axes[2].set_title("Error")
+
+    # Set x-labels for each subplot
+    axes[0].set_xlabel("X")
+    axes[1].set_xlabel("X")
+    axes[2].set_xlabel("X")
+
+    # Set a common y-label for all subplots
+    fig.text(0.01, 0.5, "Y", va="center", rotation="vertical", fontsize=12)
+    fig.suptitle("Case 1 - Mag B, Poly Activation function (ord = 2)")
+
+    # Set uniform aspect ratio for all subplots
+    for ax in axes:
+        ax.set_aspect("equal")
+
+    # Adjust layout for better spacing
+    plt.tight_layout(rect=[0.03, 0, 1, 1])  # Adjust left margin for y-label
+
+    # Save figure if needed
+    plt.savefig(fig_path / "FieldB_Comp.png", dpi=300, bbox_inches="tight")
+
+    plt.close()
+
 
 if i_test_external:
     test_points_solution = np.loadtxt(
@@ -425,7 +593,7 @@ if i_test_external:
     )
 
     # predicted solution
-    y_test_pred = model(test_points_external).numpy().reshape(-1)
+    y_test_pred = model(test_points_external).numpy().reshape(-1) * i_Ascale
 
     # exact solution
     y_exact_external = test_points_solution[:, 2].reshape(-1)
@@ -496,6 +664,21 @@ if i_test_external:
     np.savetxt(output_folder / "inference_results.txt", solution_array)
 
     print("Saved Inference results!")
+
+    print(output_folder)
+    # exit(0)
+
+    plot_inference(output_folder / "inference_results.txt", output_folder)
+    os.system(
+        f"cp scirex/core/sciml/fastvpinns/model/model_magnetostatic_bvp_hard_constraints_perm.py {output_folder}"
+    )
+    os.system(
+        f"cp examples/sciml/fastvpinns/forward_problems/example_magnetostatics_stator_hard_constraints_laplace.py {output_folder}"
+    )
+    # np.savetxt(output_folder / "inference_results.txt", "scirex/core/sciml/fastvpinns/model/model_magnetostatic_bvp_hard_constraints_perm.py")
+    # np.savetxt(output_folder / "inference_results.txt", "scirex/examples/sciml/fastvpinns/forward_problems/example_magnetostatics_stator_hard_constraints_laplace.py")
+
+    print("Saved inference plots!")
 
 
 # compute the error

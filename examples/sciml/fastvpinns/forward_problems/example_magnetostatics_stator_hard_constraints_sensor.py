@@ -34,11 +34,14 @@ Author: Sai Bhargav P.
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib import cm
 from matplotlib.colors import Normalize
 from pathlib import Path
 import tensorflow as tf
 import time
 from tqdm import tqdm
+import sys
+import os
 
 # Fastvpinns Modules
 from scirex.core.sciml.geometry.geometry_2d import Geometry_2D
@@ -46,17 +49,17 @@ from scirex.core.sciml.fe.fespace2d import Fespace2D
 from scirex.core.sciml.fastvpinns.data.datahandler2d import DataHandler2D
 from scirex.core.dl.tf_backend.datautils import convert_to_tensor, reshape
 
-from scirex.core.sciml.fastvpinns.model.model_magnetostatic_bvp_hard_constraints_perm import (
+from scirex.core.sciml.fastvpinns.model.model_magnetostatic_bvp_hard_constraints_perm_sensor import (
     DenseModel,
     MagnetisationModel,
 )
-from scirex.core.sciml.fastvpinns.physics.magnetostatics_exp import (
+from scirex.core.sciml.fastvpinns.physics.magnetostatics import (
     pde_loss_magnetostatics,
 )
 
 i_mesh_type = "quadrilateral"  # "quadrilateral"
 i_mesh_generation_method = "external"  # "internal" or "external"
-i_mesh_file_name = "tests/support_files/Case2/test.mesh"  # should be a .mesh file
+i_mesh_file_name = "tests/support_files/Case1/test.mesh"  # should be a .mesh file
 i_boundary_refinement_level = 4
 i_boundary_sampling_method = "uniform"  # "uniform"
 i_x_min = -1  # minimum x value
@@ -66,8 +69,7 @@ i_y_max = 1  # maximum y value
 i_n_cells_x = 4  # Number of cells in the x direction
 i_n_cells_y = 4  # Number of cells in the y direction
 i_n_boundary_points = 400  # Number of points on the boundary
-i_output_path = "home/saibhargav/Projects/SciREX/output/Case_Fresh/ipbc_scaling_no_perm_tanh"  # Output path
-i_external_dirichlet_data = "tests/support_files/Case2/dirichlet_case2_v2.txt"
+# i_output_path = "output/Case1/magnetostatics_stator_w_permeab_soft_polyorder2"  # Output path
 
 i_n_test_points_x = 100  # Number of test points in the x direction
 i_n_test_points_y = 100  # Number of test points in the y direction
@@ -75,7 +77,7 @@ i_n_test_points_y = 100  # Number of test points in the y direction
 # fe Variables
 i_fe_order = 4  # Order of the finite element space
 i_fe_type = "legendre"
-i_quad_order = 3  # 10 points in 1D, so 100 points in 2D for one cell
+i_quad_order = 4  # 10 points in 1D, so 100 points in 2D for one cell
 i_quad_type = "gauss-jacobi"
 
 # Neural Network Variables
@@ -90,18 +92,32 @@ i_learning_rate_dict = {
 i_dtype = tf.float64
 i_activation = "tanh"
 i_use_adaptive = False
-i_use_polynomial = False
-i_polynomial_coeffs = [0.1, 0.5, 0.3]
-i_alpha = 1e0
-i_beta = 1e0  # Boundary Loss Penalty ( Adds more weight to the boundary loss)
+i_use_polynomial = True
+i_polynomial_coeffs = [0.1, 0.5, 0.3, 0.25]
+i_alpha = 1e8
+i_beta = 1e8  # Boundary Loss Penalty ( Adds more weight to the boundary loss)
+i_gamma = 1e8
+
+# Script for hyperparameter search
+# Check if an argument is passed
+# if len(sys.argv) > 1:
+#     i_beta = float(sys.argv[1])
+#     i_alpha = float(sys.argv[2])
+
+# print(f"--------------------------------------------------------------------")
+# print(f"Experiment running with beta value= {i_beta}, alpha value  {i_alpha}")
+# print(f"--------------------------------------------------------------------")
+
+i_output_path = f"output/Case1/Magnetostatics__sparse_alpha_{i_alpha}_beta_{i_beta}_v3"  # Output path
+i_external_sensor_data = "tests/support_files/Case1/Case1_SensorData_v3.txt"
 
 # Epochs
 i_num_epochs = 100000
 
 # Parameters to test external data
 i_test_external = True
-i_test_external_path = "/home/saibhargav/Projects/scirex/SciREX/tests/support_files/Case2/Case2_inference.txt"
-i_Ascale = 0.0114070131508068
+i_test_external_path = "/home/saibhargav/Projects/scirex/SciREX/tests/support_files/Case1/Case1_inference.txt"
+
 
 bh_data = np.loadtxt(
     "tests/support_files/stator_bh_curve.csv", delimiter=",", skiprows=1
@@ -133,6 +149,21 @@ for epoch in range(50000):
         if training_loss < 1e-6:
             print("Converged")
             break
+
+
+# b_test = np.linspace(0, 3.2, 100)
+# b_test_norm = (b_test - mean_b) / std_b
+# b_test_norm = convert_to_tensor(reshape(b_test_norm, (-1, 1)), dtype=i_dtype)
+# h_test = magnetisation(b_test_norm)
+# h_test = h_test * std_h + mean_h
+# plt.plot(h_test.numpy(),b_test, "k--", label="Predicted")
+# plt.plot(h, b, "o", label="Data")
+# plt.xlabel("H")
+# plt.ylabel("B")
+# plt.legend()
+# plt.savefig("h_b_curve_test.png")
+
+# exit(0)
 
 
 ## Setting up boundary conditions
@@ -202,11 +233,11 @@ def get_bilinear_params_dict():
     """
     This function will return a dictionary of bilinear parameters
     """
-    mu0 = 4 * np.pi * 1e-7
+    mu0 = 0.0
     return {"mu0": mu0}
 
 
-def get_dirichlet_and_test_data_external(filename, dtype):
+def get_sensor_data(filename, dtype):
     """
     Function to read external dirichlet data on the inner boundary
 
@@ -226,15 +257,15 @@ def get_dirichlet_and_test_data_external(filename, dtype):
     a_bc = a.flatten()
 
     # input X bc
-    input_ext_dirichlet = np.hstack((x_bc[:, None], y_bc[:, None]))
+    sensor_points = np.hstack((x_bc[:, None], y_bc[:, None]))
 
     # input A bc
-    output_ext_dirichlet = a_bc[:, None] / a_bc[:, None].max()
+    sensor_values = a_bc[:, None]
 
-    input_ext_dirichlet = tf.constant(input_ext_dirichlet, dtype=dtype)
-    output_ext_dirichlet = tf.constant(output_ext_dirichlet, dtype=dtype)
+    sensor_points = tf.constant(sensor_points, dtype=dtype)
+    sensor_values = tf.constant(sensor_values, dtype=dtype)
 
-    return input_ext_dirichlet, output_ext_dirichlet
+    return [sensor_points, sensor_values]
 
 
 ## CREATE OUTPUT FOLDER
@@ -270,6 +301,18 @@ cells, boundary_points = domain.read_mesh(
 )
 # save cells as pickle file
 # print(boundary_points.keys())
+# print("boundary_points[1001]:\n", boundary_points[1001])
+# plt.scatter(boundary_points[1001][:, 0], boundary_points[1001][:, 1])
+# plt.savefig("tests/support_files/internal_boundary.png")
+# plt.close()
+# np.savetxt("tests/support_files/Case2/internal_boundary_v2.txt", boundary_points[1001])
+
+# print("boundary_points[1000]:\n", boundary_points[1000])
+# plt.scatter(boundary_points[1000][:, 0], boundary_points[1000][:, 1])
+# plt.savefig("tests/support_files/external_boundary.png")
+# plt.close()
+# np.savetxt("tests/support_files/Case2/external_boundary_v2.txt", boundary_points[1000])
+# exit(0)
 # cells = domain.load_cell_points(Path(i_output_path) / "cells.pkl")
 # boundary_points = domain.load_boundary_points(Path(i_output_path) / "boundary_points.pkl")
 
@@ -300,24 +343,20 @@ params_dict["n_cells"] = fespace.n_cells
 
 
 # get the input data for the PDE
-# train_dirichlet_input, train_dirichlet_output = datahandler.get_dirichlet_input()
+train_dirichlet_input, train_dirichlet_output = datahandler.get_dirichlet_input()
+# plt.scatter(train_dirichlet_input[:, 0], train_dirichlet_input[:, 1])
+# plt.savefig("tests/support_files/dirichlet.png")
 
-# get the dirichlet input data from external file
-train_dirichlet_input, train_dirichlet_output = get_dirichlet_and_test_data_external(
-    i_external_dirichlet_data, i_dtype
-)
-
-print("train_dirichlet_input:\n", train_dirichlet_input.shape)
-
-
-print("train_dirichlet_output:\n", train_dirichlet_output.shape)
-
+# print(train_dirichlet_input, "break\n",train_dirichlet_output)
+# exit(0)
 # get bilinear parameters
 # this function will obtain the values of the bilinear parameters from the model
 # and convert them into tensors of desired dtype
 bilinear_params_dict = datahandler.get_bilinear_params_dict_as_tensors(
     get_bilinear_params_dict
 )
+
+sensor_list = get_sensor_data(i_external_sensor_data, i_dtype)
 
 model = DenseModel(
     layer_dims=[2, 30, 30, 30, 1],
@@ -335,9 +374,10 @@ model = DenseModel(
         datahandler.grad_y_mat_list,
     ],
     force_function_list=datahandler.forcing_function_list,
+    sensor_list=sensor_list,
     tensor_dtype=i_dtype,
     activation=i_activation,
-    use_adaptive=False,
+    use_adaptive=i_use_adaptive,
     use_polynomial=i_use_polynomial,
     polynomial_coeffs=i_polynomial_coeffs,
     trained_magnetisation_model=magnetisation,
@@ -346,9 +386,9 @@ model = DenseModel(
 loss_array = []  # total loss
 residual_loss_array = []  # residual loss
 dirichlet_loss_array = []  # Dirichlet loss
+sensor_loss_array = []  # Sensor loss
 time_array = []  # time taken for each epoch
 
-# Assuming 'folder' is already defined and concatenated with 'model'
 output_folder = folder / "results"
 
 # Create the output folder if it doesn't exist
@@ -359,10 +399,17 @@ test_points = domain.get_test_points()
 print(f"[bold]Number of Test Points = [/bold] {test_points.shape[0]}")
 y_exact = exact_solution(test_points[:, 0], test_points[:, 1])
 
+# print("Initial coefficients:\n", model.get_polynomial_coefficients())
+
 for epoch in tqdm(range(i_num_epochs)):
     # Train the model
     batch_start_time = time.time()
-    loss = model.train_step(beta=i_beta, bilinear_params_dict=bilinear_params_dict)
+    loss = model.train_step(
+        alpha=i_alpha,
+        beta=i_beta,
+        gamma=i_gamma,
+        bilinear_params_dict=bilinear_params_dict,
+    )
     elapsed = time.time() - batch_start_time
 
     # print(elapsed)
@@ -371,12 +418,14 @@ for epoch in tqdm(range(i_num_epochs)):
     loss_array.append(loss["loss"])
     residual_loss_array.append(loss["loss_pde"])
     dirichlet_loss_array.append(loss["loss_dirichlet"])
+    sensor_loss_array.append(loss["loss_sensor"])
 
     loss_pde = float(loss["loss_pde"].numpy())
     loss_dirichlet = float(loss["loss_dirichlet"].numpy())
+    loss_sensor = float(loss["loss_sensor"].numpy())
     total_loss = float(loss["loss"].numpy())
 
-    if (epoch + 1) % 5000 == 0:
+    if (epoch + 1) % 25000 == 0:
         y_test_pred = model(test_points).numpy().reshape(-1)
 
         error = y_test_pred - y_exact
@@ -384,11 +433,12 @@ for epoch in tqdm(range(i_num_epochs)):
         l1_error = np.mean(np.abs(error))
         l_inf_error = np.max(np.abs(error))
         print(
-            f"loss: {total_loss:.3e}, l2 Error: {l2_error}. l1 Error: {l1_error} linf : {l_inf_error}"
+            f"loss: {total_loss}, l2 Error: {l2_error}. l1 Error: {l1_error} linf : {l_inf_error}"
         )
         print(
-            f"Variational Losses || Pde : {loss_pde:.3e} Dirichlet : {loss_dirichlet:.3e} Total : {total_loss:.3e}"
+            f"Variational Losses || Pde : {loss_pde:.3e} Dirichlet : {loss_dirichlet:.3e} Sensor loss: {loss_sensor:.3e} Total : {total_loss:.3e}"
         )
+
         solution_array = np.c_[y_test_pred, y_exact, np.abs(y_exact - y_test_pred)]
         domain.write_vtk(
             solution_array,
@@ -413,6 +463,7 @@ for epoch in tqdm(range(i_num_epochs)):
         plt.plot(loss_array, label="Total Loss")
         plt.plot(dirichlet_loss_array, label="Dirichlet Loss")
         plt.plot(residual_loss_array, label="Residual Loss")
+        plt.plot(sensor_loss_array, label="Sensor Loss")
         plt.title("Loss Components Plot")
         plt.xlabel("Epochs")
         plt.ylabel("Loss")
@@ -423,8 +474,9 @@ for epoch in tqdm(range(i_num_epochs)):
         plt.close()  # Close the figure to free memory
 
 # Get predicted values from the model
+
 y_pred = model(test_points).numpy()
-y_pred = y_pred.reshape(-1) * i_Ascale
+y_pred = y_pred.reshape(-1)
 
 
 def plot_inference(predicted_path, fig_path):
@@ -547,13 +599,15 @@ def plot_inference(predicted_path, fig_path):
 
 
 if i_test_external:
-    test_points_solution = np.loadtxt(i_test_external_path)
+    test_points_solution = np.loadtxt(
+        "/home/saibhargav/Projects/scirex/SciREX/tests/support_files/Case1/Case1_inference.txt"
+    )
     test_points_external = np.hstack(
         (test_points_solution[:, 0][:, None], test_points_solution[:, 1][:, None])
     )
 
     # predicted solution
-    y_test_pred = model(test_points_external).numpy().reshape(-1) * i_Ascale
+    y_test_pred = model(test_points_external).numpy().reshape(-1)
 
     # exact solution
     y_exact_external = test_points_solution[:, 2].reshape(-1)
@@ -577,20 +631,20 @@ if i_test_external:
 
     b_pred = model.inference(test_points_external)
 
-    # b_exact = test_points_solution[:, 3].reshape(-1)
+    b_exact = test_points_solution[:, 3].reshape(-1)
 
     bx = b_pred["Bx"].numpy().reshape(-1)
     by = b_pred["By"].numpy().reshape(-1)
     mag_b = b_pred["B"].numpy().reshape(-1)
 
-    # b_error = mag_b - b_exact
-    # b_l2_error = np.sqrt(np.mean(b_error**2))
-    # b_l1_error = np.mean(np.abs(b_error))
-    # b_l_inf_error = np.max(np.abs(b_error))
+    b_error = mag_b - b_exact
+    b_l2_error = np.sqrt(np.mean(b_error**2))
+    b_l1_error = np.mean(np.abs(b_error))
+    b_l_inf_error = np.max(np.abs(b_error))
 
-    # print(
-    #     f"Inference Metrices B:\n l2 Error: {b_l2_error}. l1 Error: {b_l1_error} linf : {b_l_inf_error}"
-    # )
+    print(
+        f"Inference Metrices B:\n l2 Error: {b_l2_error}. l1 Error: {b_l1_error} linf : {b_l_inf_error}"
+    )
 
     solution_array = np.c_[
         y_test_pred,
@@ -599,7 +653,9 @@ if i_test_external:
         bx,
         by,
         mag_b,
-    ]  # , b_exact, np.abs(b_exact - mag_b)]
+        b_exact,
+        np.abs(b_exact - mag_b),
+    ]
 
     domain.write_vtk(
         solution_array,
@@ -612,7 +668,9 @@ if i_test_external:
             "Bx",
             "By",
             "B",
-        ],  # , "B_exact", "B_error"],
+            "B_exact",
+            "B_error",
+        ],
     )
 
     # write the inference outputs to a txt file
@@ -620,6 +678,21 @@ if i_test_external:
     np.savetxt(output_folder / "inference_results.txt", solution_array)
 
     print("Saved Inference results!")
+
+    print(output_folder)
+    # exit(0)
+
+    plot_inference(output_folder / "inference_results.txt", output_folder)
+    os.system(
+        f"cp scirex/core/sciml/fastvpinns/model/model_magnetostatic_bvp_hard_constraints_perm.py {output_folder}"
+    )
+    os.system(
+        f"cp examples/sciml/fastvpinns/forward_problems/example_magnetostatics_stator_hard_constraints_laplace.py {output_folder}"
+    )
+    # np.savetxt(output_folder / "inference_results.txt", "scirex/core/sciml/fastvpinns/model/model_magnetostatic_bvp_hard_constraints_perm.py")
+    # np.savetxt(output_folder / "inference_results.txt", "scirex/examples/sciml/fastvpinns/forward_problems/example_magnetostatics_stator_hard_constraints_laplace.py")
+
+    print("Saved inference plots!")
 
 
 # compute the error
@@ -645,15 +718,14 @@ domain.write_vtk(
     data_names=["Bx", "By", "B"],
 )
 
-## Figure Plots
-# 1. Total Loss Plot
+## Figure Plots.
+# 1. Loss Plot
 plt.figure(figsize=(6.4, 4.8), dpi=300)
-plt.plot(loss_array, label="Total Loss")
+plt.plot(loss_array)
 plt.title("Loss Plot")
 plt.xlabel("Epochs")
 plt.ylabel("Loss")
 plt.yscale("log")
-plt.legend()
 plt.tight_layout()
 plt.savefig(str(output_folder / "loss_plot.png"))
 plt.close()  # Close the figure to free memory
@@ -663,6 +735,7 @@ plt.figure(figsize=(6.4, 4.8), dpi=300)
 plt.plot(loss_array, label="Total Loss")
 plt.plot(dirichlet_loss_array, label="Dirichlet Loss")
 plt.plot(residual_loss_array, label="Residual Loss")
+plt.plot(sensor_loss_array, label="Sensor Loss")
 plt.title("Loss Components Plot")
 plt.xlabel("Epochs")
 plt.ylabel("Loss")
@@ -672,7 +745,7 @@ plt.tight_layout()
 plt.savefig(str(output_folder / "loss_components_plot.png"))
 plt.close()  # Close the figure to free memory
 
-# 3. Exact Solution Contour Plot
+# 2. Exact Solution Contour Plot
 # plt.figure(figsize=(6.4, 4.8), dpi=300)
 # contour_exact = plt.tricontourf(test_points[:, 0], test_points[:, 1], y_exact, 100)
 # plt.title("Exact Solution")
@@ -683,7 +756,7 @@ plt.close()  # Close the figure to free memory
 # plt.savefig(str(output_folder / "exact_solution.png"))
 # plt.close()
 
-# # 4. Predicted Solution Contour Plot
+# # 3. Predicted Solution Contour Plot
 # plt.figure(figsize=(6.4, 4.8), dpi=300)
 # contour_pred = plt.tricontourf(test_points[:, 0], test_points[:, 1], y_pred, 100)
 # plt.title("Predicted Solution")
@@ -694,7 +767,7 @@ plt.close()  # Close the figure to free memory
 # plt.savefig(str(output_folder / "predicted_solution.png"))
 # plt.close()
 
-# # 5. Error Contour Plot
+# # 4. Error Contour Plot
 # plt.figure(figsize=(6.4, 4.8), dpi=300)
 # contour_error = plt.tricontourf(test_points[:, 0], test_points[:, 1], error, 100)
 # plt.title("Error")

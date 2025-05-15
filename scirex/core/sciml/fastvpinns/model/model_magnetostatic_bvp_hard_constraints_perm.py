@@ -50,10 +50,215 @@ Versions:
 import tensorflow as tf
 from tensorflow.keras import layers
 from tensorflow.keras import initializers
+from tensorflow.keras import backend as K
 import copy
 
 # import tensorflow wrapper
 from ....dl.tensorflow_wrapper import TensorflowDense
+
+
+class CustomActivation(layers.Layer):
+    def __init__(self, a, dtype=tf.float64, **kwargs):
+        super(CustomActivation, self).__init__(**kwargs)
+        self.a = tf.Variable(a, dtype=dtype)  # Use the provided value of a
+        self.constant = tf.constant(10.0, dtype=dtype)
+        self.dtype_val = dtype
+        # self.b = b
+
+    @tf.function
+    def call(self, inputs):
+        input_tensor = tf.cast(inputs, tf.float64)
+        val1 = tf.tanh(self.constant * self.a * input_tensor)
+
+        return val1
+
+
+class PolynomialActivation(tf.keras.layers.Layer):
+    """
+    Polynomial activation function for neural networks implemented with TensorFlow,
+    based on the ICLR 2020 paper.
+
+    PolynomialActivation(x) = fn(g(x))/sqrt(2^n)
+
+    Where:
+    - fn(x) is an n-th order polynomial with trainable weights
+    - g(x) is the dynamic input scaling function
+    - weights are normalized when their L2 norm exceeds 3
+    """
+
+    def __init__(self, coefficients=None, degree=1, dtype=tf.float32, name=None):
+        """
+        Initialize the polynomial activation function.
+
+        Args:
+            coefficients: Optional list of initial coefficients [w0, w1, w2, ..., wn]
+                         If provided, degree will be set to len(coefficients)-1
+            degree: The degree of the polynomial (n), used only if coefficients is None
+            dtype: Data type for the coefficients
+            name: Optional name for the activation function
+        """
+        super(PolynomialActivation, self).__init__(name=name)
+
+        # Set degree and initial coefficients
+        if coefficients is not None:
+            self._initial_coefficients = list(
+                coefficients
+            )  # Convert to list to be safe
+            self._degree = len(self._initial_coefficients) - 1
+        else:
+            self._initial_coefficients = None
+            self._degree = degree
+
+        # Set data type
+        self._dtype_value = dtype
+
+    def build(self, input_shape):
+        """
+        Build the layer, creating the trainable weights.
+        """
+        # Create trainable variables for the coefficients [w_0, w_1, ..., w_n]
+        if self._initial_coefficients is not None:
+            # Use provided coefficients as initializer
+            initializer = tf.constant_initializer(self._initial_coefficients)
+        else:
+            # Default to Glorot uniform initializer
+            initializer = tf.keras.initializers.GlorotUniform()
+
+        self.coefficients = self.add_weight(
+            name="coefficients",  # Use a simple name, TensorFlow will prefix with layer name
+            shape=(self._degree + 1,),
+            initializer=initializer,
+            trainable=True,
+            dtype=self._dtype_value,
+        )
+
+        # Store constraint norm value (3 as mentioned in the paper)
+        self.max_norm = tf.constant(3.0, dtype=self._dtype_value)
+
+        self.built = True
+
+    def dynamic_input_scaling(self, inputs):
+        """
+        Implement the g(x) dynamic input scaling function:
+
+        g(x_i) = sqrt(2) * x_i / max_1≤j≤k|x_j|
+
+        As defined in the paper to constrain max(g(x_i)) = sqrt(2)
+        """
+        # Calculate the maximum absolute value in each sample
+        # Keep dims to ensure proper broadcasting
+        abs_inputs = tf.abs(inputs)
+        max_abs = tf.reduce_max(abs_inputs, axis=-1, keepdims=True)
+
+        # Avoid division by zero
+        max_abs = tf.maximum(max_abs, tf.keras.backend.epsilon())
+
+        # Apply the scaling: sqrt(2) * x_i / max|x_j|
+        sqrt_2 = tf.sqrt(tf.constant(2.0, dtype=inputs.dtype))
+        scaled_inputs = sqrt_2 * inputs / max_abs
+
+        return scaled_inputs
+
+    def normalize_weights(self):
+        """
+        Normalize weights when their L2 norm exceeds 3,
+        as specified in the paper: w_j * 3/||w_j||_2
+        """
+        # Calculate L2 norm of weights
+        weights_norm = tf.norm(self.coefficients, ord=2)
+        # Add epsilon to avoid division by zero
+        weights_norm = tf.maximum(weights_norm, tf.keras.backend.epsilon())
+
+        # Create a condition to apply normalization only when norm > 3
+        condition = tf.greater(weights_norm, self.max_norm)
+
+        # When condition is true, normalize weights to have norm = 3
+        normalized_weights = self.coefficients * (self.max_norm / weights_norm)
+
+        # Apply normalization only when condition is true
+        self.coefficients.assign(
+            tf.cond(condition, lambda: normalized_weights, lambda: self.coefficients)
+        )
+
+    def compute_polynomial(self, x):
+        """
+        Compute the polynomial: w_0 + w_1*x + w_2*x^2 + ... + w_n*x^n
+        """
+        # Get coefficients with the right dtype
+        w = tf.cast(self.coefficients, x.dtype)
+
+        # Initialize with the constant term (w[0])
+        result = tf.ones_like(x) * w[0]
+
+        # Compute higher-order terms
+        x_power = x
+        for i in range(1, self._degree + 1):
+            result = result + w[i] * x_power
+            # Prepare for the next power
+            if i < self._degree:
+                x_power = x_power * x
+
+        return result
+
+    def call(self, inputs):
+        """
+        Apply the polynomial activation function with dynamic scaling and normalization.
+
+        Args:
+            inputs: Input tensor
+
+        Returns:
+            Output tensor after applying polynomial activation
+        """
+        # First normalize weights if needed
+        self.normalize_weights()
+
+        # Apply dynamic input scaling g(x)
+        scaled_inputs = self.dynamic_input_scaling(inputs)
+
+        # Compute polynomial function f_n(g(x))
+        poly_output = self.compute_polynomial(scaled_inputs)
+
+        # Scale the output by 1/sqrt(2^n) as defined in the paper
+        scaling_factor = tf.sqrt(
+            tf.pow(
+                tf.constant(2.0, dtype=inputs.dtype),
+                tf.cast(self._degree, inputs.dtype),
+            )
+        )
+        final_output = poly_output / scaling_factor
+
+        return final_output
+
+    def get_config(self):
+        """
+        Return configuration for serialization.
+        """
+        config = super(PolynomialActivation, self).get_config()
+        config.update(
+            {
+                "degree": self._degree,
+                "dtype": self._dtype_value,
+                # Get current coefficients if available, otherwise use initial ones
+                "coefficients": (
+                    self.coefficients.numpy().tolist()
+                    if hasattr(self, "coefficients")
+                    else self._initial_coefficients
+                ),
+            }
+        )
+        return config
+
+    def get_coefficients(self):
+        """
+        Get the current values of the coefficients.
+
+        Returns:
+            List of current coefficient values
+        """
+        if hasattr(self, "coefficients"):
+            return self.coefficients.numpy().tolist()
+        return self._initial_coefficients
 
 
 class MagnetisationModel(tf.keras.Model):
@@ -183,6 +388,9 @@ class DenseModel(tf.keras.Model):
         tensor_dtype,
         use_attention=False,
         activation="tanh",
+        use_adaptive=False,
+        use_polynomial=False,
+        polynomial_coeffs=[0.0, 1.0],
         hessian=False,
         trained_magnetisation_model=None,
     ):
@@ -221,11 +429,18 @@ class DenseModel(tf.keras.Model):
         self.layer_dims = layer_dims
         self.use_attention = use_attention
         self.activation = activation
+        self.use_adaptive = use_adaptive
+        self.use_polynomial = use_polynomial
+        self.polynomial_coeffs = polynomial_coeffs
+        self.degree = len(self.polynomial_coeffs) - 1
         self.layer_list = []
+        self.polynomial_activations = []  # Track polynomial activation layers
         self.loss_function = loss_function
         self.hessian = hessian
+        self.a = 0.1
 
         self.tensor_dtype = tensor_dtype
+        # self.a_param = tf.Variable(0.1, dtype=self.tensor_dtype, trainable=True)
 
         # if dtype is not a valid tensorflow dtype, raise an error
         if not isinstance(self.tensor_dtype, tf.DType):
@@ -310,28 +525,95 @@ class DenseModel(tf.keras.Model):
         ## --------------------- MODEL ARCHITECTURE ------------------------ ##
         ## ----------------------------------------------------------------- ##
 
-        # Build dense layers based on the input list
-        for dim in range(len(self.layer_dims) - 2):
+        if self.use_adaptive:
+
+            adaptive_activation = CustomActivation(self.a, self.tensor_dtype)
+
+            # Build dense layers based on the i/p list
+            for dim in range(len(self.layer_dims) - 2):
+                self.layer_list.append(
+                    layers.Dense(
+                        self.layer_dims[dim + 1],
+                        activation=None,
+                        kernel_initializer="glorot_uniform",
+                        dtype=self.tensor_dtype,
+                        bias_initializer="zeros",
+                    )
+                )
+                self.layer_list.append(adaptive_activation)
+
+            # Add a output layer with no activation
+            self.layer_list.append(
+                layers.Dense(
+                    self.layer_dims[-1],
+                    activation=None,
+                    kernel_initializer="glorot_uniform",
+                    dtype=self.tensor_dtype,
+                    bias_initializer="zeros",
+                )
+            )
+
+        elif self.use_polynomial:
+
+            # Build dense layers based on the i/p list
+            for dim in range(len(self.layer_dims) - 2):
+                self.layer_list.append(
+                    layers.Dense(
+                        self.layer_dims[dim + 1],
+                        activation=None,
+                        kernel_initializer="glorot_uniform",
+                        dtype=self.tensor_dtype,
+                        bias_initializer="zeros",
+                    )
+                )
+                # Create a NEW instance of PolynomialActivation for each layer with a unique name to avoid variable conflicts
+                poly_name = f"poly_act_{dim}"
+                poly_act = PolynomialActivation(
+                    coefficients=self.polynomial_coeffs,
+                    degree=self.degree,
+                    dtype=self.tensor_dtype,
+                    name=poly_name,
+                )
+                self.layer_list.append(poly_act)
+                self.polynomial_activations.append(
+                    poly_act
+                )  # Keep track of polynomial activations
+
+            # Add a output layer with no activation
+            self.layer_list.append(
+                layers.Dense(
+                    self.layer_dims[-1],
+                    activation=None,
+                    kernel_initializer="glorot_uniform",
+                    dtype=self.tensor_dtype,
+                    bias_initializer="zeros",
+                )
+            )
+
+        else:
+
+            # Build dense layers based on the input list
+            for dim in range(len(self.layer_dims) - 2):
+                self.layer_list.append(
+                    TensorflowDense.create_layer(
+                        units=self.layer_dims[dim + 1],
+                        activation=self.activation,
+                        dtype=self.tensor_dtype,
+                        kernel_initializer="glorot_uniform",
+                        bias_initializer="zeros",
+                    )
+                )
+
+            # Add a output layer with no activation
             self.layer_list.append(
                 TensorflowDense.create_layer(
-                    units=self.layer_dims[dim + 1],
-                    activation=self.activation,
+                    units=self.layer_dims[-1],
+                    activation="sigmoid",
                     dtype=self.tensor_dtype,
                     kernel_initializer="glorot_uniform",
                     bias_initializer="zeros",
                 )
             )
-
-        # Add a output layer with no activation
-        self.layer_list.append(
-            TensorflowDense.create_layer(
-                units=self.layer_dims[-1],
-                activation=None,
-                dtype=self.tensor_dtype,
-                kernel_initializer="glorot_uniform",
-                bias_initializer="zeros",
-            )
-        )
 
         # Add attention layer if required
         if self.use_attention:
@@ -369,6 +651,26 @@ class DenseModel(tf.keras.Model):
         for layer in self.layer_list:
             x = layer(x)
 
+        x = (
+            tf.cast(
+                (tf.sqrt(tf.square(inputs[:, 0:1]) + tf.square(inputs[:, 1:2])) - 1),
+                dtype=self.tensor_dtype,
+            )
+            * x
+        )
+
+        # x = tf.clip_by_value(x, 0.0, 1.0)
+
+        # x = (
+        #         tf.cast(
+        #             tf.exp(-1.0 * tf.cast(tf.square(inputs[:, 0:1]) + tf.square(inputs[:, 1:2]), self.tensor_dtype) / self.a_param),
+        #             dtype=self.tensor_dtype,
+        #         )
+        #         * x
+        #     )
+
+        # print("Trainable parameter, a:", self.a_param)
+
         return x
 
     def get_config(self) -> dict:
@@ -400,9 +702,28 @@ class DenseModel(tf.keras.Model):
 
         return base_config
 
+    @property
+    def trainable_variables(self):
+        """Get all trainable variables including polynomial activation coefficients."""
+        # Get all standard Keras trainable variables
+        keras_vars = super().trainable_variables
+
+        # Add polynomial activation coefficients
+        poly_vars = []
+        for layer in self.layer_list:
+            if (
+                hasattr(layer, "coefficients")
+                and hasattr(layer.coefficients, "trainable")
+                and layer.coefficients.trainable
+            ):
+                poly_vars.append(layer.coefficients)
+
+        # Return combined list
+        return keras_vars + poly_vars
+
     @tf.function
     def train_step(
-        self, beta=10, bilinear_params_dict=None
+        self, alpha=10, beta=10, bilinear_params_dict=None
     ) -> dict:  # pragma: no cover
         """
         The train step method for the model.
@@ -414,10 +735,12 @@ class DenseModel(tf.keras.Model):
         Returns:
             dict: The loss values for the model.
         """
+        # print(self.dirichlet_input, "\n self.dirichlet_input shape:", self.dirichlet_input.shape)
+        # exit(0)
 
         with tf.GradientTape(persistent=True) as tape:
             # Predict the values for dirichlet boundary conditions
-            predicted_values_dirichlet = self(self.dirichlet_input)
+            predicted_values_dirichlet = self(self.dirichlet_input)  # * 0.02 #* 0.04625
 
             # initialize total loss as a tensor with shape (1,) and value 0.0
             total_pde_loss = 0.0
@@ -444,8 +767,8 @@ class DenseModel(tf.keras.Model):
                 predicted_Az, [self.n_cells, self.pre_multiplier_val.shape[-1]]
             )  # shape : (N_cells , N_quadrature_points)
 
-            predicted_Bx = gradients[:, 0]
-            predicted_By = gradients[:, 1]
+            predicted_Bx = 0.02 * gradients[:, 1] / (0.04625)
+            predicted_By = -0.02 * gradients[:, 0] / (0.04625)
 
             calculated_B = tf.sqrt(tf.square(predicted_Bx) + tf.square(predicted_By))
             calculated_B = tf.reshape(calculated_B, [-1, 1])
@@ -457,7 +780,10 @@ class DenseModel(tf.keras.Model):
                 predicted_H * self.trained_magnetisation_model.std_h
                 + self.trained_magnetisation_model.mean_h
             )
-            calculated_permeability = calculated_B / calculated_H
+            # calculated_permeability = calculated_B / calculated_H
+
+            calculated_permeability = calculated_H / calculated_B
+
             calculated_permeability = tf.reshape(
                 calculated_permeability,
                 [self.n_cells, self.pre_multiplier_val.shape[-1]],
@@ -486,7 +812,7 @@ class DenseModel(tf.keras.Model):
             )
 
             # Compute Total Loss
-            total_loss = total_pde_loss + beta * boundary_loss
+            total_loss = alpha * total_pde_loss + beta * boundary_loss
 
         trainable_vars = self.trainable_variables
         self.gradients = tape.gradient(total_loss, trainable_vars)
@@ -496,7 +822,20 @@ class DenseModel(tf.keras.Model):
             "loss_pde": total_pde_loss,
             "loss_dirichlet": boundary_loss,
             "loss": total_loss,
+            # "trainable_param": self.a_param
         }
+
+    # method to get polynomial coefficients
+    def get_polynomial_coefficients(self):
+        """
+        Returns the current values of all polynomial activation coefficients in the model.
+        Call this method after training to check if coefficients have been updated.
+        """
+        coeffs = []
+        for i, layer in enumerate(self.layer_list):
+            if hasattr(layer, "get_coefficients"):
+                coeffs.append({f"layer_{i}": layer.get_coefficients()})
+        return coeffs
 
     def inference(self, test_tensor):
         """
@@ -506,18 +845,26 @@ class DenseModel(tf.keras.Model):
             dict: The predicted values from the model.
         """
         test_tensor = tf.convert_to_tensor(test_tensor, dtype=self.tensor_dtype)
+        test_tensor_x, test_tensor_y = test_tensor[:, 0], test_tensor[:, 1]
+
         with tf.GradientTape(persistent=True) as tape:
             # tape gradient
-            tape.watch(test_tensor)
+            tape.watch(test_tensor_x)
+            tape.watch(test_tensor_y)
             # Compute the predicted values from the model
-            predicted_Az = self(test_tensor)
 
-        gradients = tape.gradient(predicted_Az, test_tensor)
+            coords = tf.stack([test_tensor_x, test_tensor_y], axis=-1)
 
-        Bx = gradients[:, 1]
-        By = -1.0 * gradients[:, 0]
+            predicted_Az = self(coords)
+
+        # gradients = tape.gradient(predicted_Az, test_tensor)
+
+        Bx = (0.02 / 0.04625) * tape.gradient(predicted_Az, test_tensor_y)
+        By = -(0.02 / 0.04625) * tape.gradient(predicted_Az, test_tensor_x)
 
         B = tf.sqrt(tf.square(Bx) + tf.square(By))
+
+        del tape
 
         return {
             "Az": predicted_Az,
