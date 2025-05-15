@@ -91,19 +91,27 @@ def pde_loss_magnetostatics(
         The implementation uses efficient tensor operations for
         computing the variational residual.
     """
+    # tf.print("bilinear_params['mu0']:", bilinear_params["mu0"])
+    # tf.print("diff_permeability", tf.reduce_min(diff_permeability), tf.reduce_max(diff_permeability))
+    # tf.print("diff_permeability * bilinear_params['mu0']:", diff_permeability * bilinear_params["mu0"])
+    # tf.print("diff_permeability * bilinear_params['mu0']:", tf.reduce_min(diff_permeability * bilinear_params["mu0"]), tf.reduce_max(diff_permeability * bilinear_params["mu0"]))
 
     # ∫du/dx. dv/dx dΩ
     pde_diffusion_x = tf.transpose(
-        tf.linalg.matvec(test_grad_x_mat, pred_grad_x_nn * diff_permeability)
+        tf.linalg.matvec(
+            test_grad_x_mat, pred_grad_x_nn * diff_permeability * bilinear_params["mu0"]
+        )
     )
 
     # ∫du/dy. dv/dy dΩ
     pde_diffusion_y = tf.transpose(
-        tf.linalg.matvec(test_grad_y_mat, pred_grad_y_nn * diff_permeability)
+        tf.linalg.matvec(
+            test_grad_y_mat, pred_grad_y_nn * diff_permeability * bilinear_params["mu0"]
+        )
     )
 
     # eps * ∫ (du/dx. dv/dx + du/dy. dv/dy) dΩ
-    pde_diffusion = (1 / (46.25**2)) * (pde_diffusion_x + pde_diffusion_y)
+    pde_diffusion = (1 / (0.04625**2)) * (pde_diffusion_x + pde_diffusion_y)
 
     residual_matrix = pde_diffusion - forcing_function
 

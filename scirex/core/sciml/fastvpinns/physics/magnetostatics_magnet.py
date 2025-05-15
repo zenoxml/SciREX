@@ -92,8 +92,8 @@ def pde_loss_magnetostatics_magnet(
         computing the variational residual.
     """
 
-    # ∫du/dx. dv/dx dΩ
     # tf.print("diff_permeability:\n", diff_permeability)
+    # ∫du/dx. dv/dx dΩ
 
     pde_diffusion_x = tf.transpose(
         tf.linalg.matvec(test_grad_x_mat, pred_grad_x_nn * diff_permeability)
