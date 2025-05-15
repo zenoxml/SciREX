@@ -966,22 +966,42 @@ class DenseModel(tf.keras.Model):
         # tf.print("interface_weight:", interface_weight, type(interface_weight))
         # tf.print("interface_grads:", interface_grads, type(interface_grads))
 
-        
         # Apply weights to each gradient tensor individually
-        weighted_pde_grads = [g * alpha_weight if g is not None else None for g in pde_grads]
-        weighted_boundary_grads = [g * boundary_weight if g is not None else None for g in boundary_grads]
-        weighted_interface_grads = [g * interface_weight if g is not None else None for g in interface_grads]
+        weighted_pde_grads = [
+            g * alpha_weight if g is not None else None for g in pde_grads
+        ]
+        weighted_boundary_grads = [
+            g * boundary_weight if g is not None else None for g in boundary_grads
+        ]
+        weighted_interface_grads = [
+            g * interface_weight if g is not None else None for g in interface_grads
+        ]
 
         # Sum the weighted gradients element-wise
         total_grads = []
         for i in range(len(weighted_pde_grads)):
             # Handle None gradients safely
             pde_grad = weighted_pde_grads[i] if weighted_pde_grads[i] is not None else 0
-            boundary_grad = weighted_boundary_grads[i] if weighted_boundary_grads[i] is not None else 0
-            interface_grad = weighted_interface_grads[i] if weighted_interface_grads[i] is not None else 0
-            
+            boundary_grad = (
+                weighted_boundary_grads[i]
+                if weighted_boundary_grads[i] is not None
+                else 0
+            )
+            interface_grad = (
+                weighted_interface_grads[i]
+                if weighted_interface_grads[i] is not None
+                else 0
+            )
+
             # Sum the gradients
-            if all(g is None for g in [weighted_pde_grads[i], weighted_boundary_grads[i], weighted_interface_grads[i]]):
+            if all(
+                g is None
+                for g in [
+                    weighted_pde_grads[i],
+                    weighted_boundary_grads[i],
+                    weighted_interface_grads[i],
+                ]
+            ):
                 total_grads.append(None)
             else:
                 total_grads.append(pde_grad + boundary_grad + interface_grad)

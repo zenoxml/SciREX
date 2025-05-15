@@ -479,7 +479,7 @@ class DenseModel(tf.keras.Model):
                 pred_grad_y_nn=pred_Az_grad_y,
                 forcing_function=self.force_matrix,
                 bilinear_params=bilinear_params_dict,
-                diff_permeability=calculated_permeability,
+                # diff_permeability=calculated_permeability,
             )
 
             residual = tf.reduce_sum(cells_residual)
@@ -513,18 +513,26 @@ class DenseModel(tf.keras.Model):
             dict: The predicted values from the model.
         """
         test_tensor = tf.convert_to_tensor(test_tensor, dtype=self.tensor_dtype)
+        test_tensor_x, test_tensor_y = test_tensor[:, 0], test_tensor[:, 1]
+
         with tf.GradientTape(persistent=True) as tape:
             # tape gradient
-            tape.watch(test_tensor)
+            tape.watch(test_tensor_x)
+            tape.watch(test_tensor_y)
             # Compute the predicted values from the model
-            predicted_Az = self(test_tensor)
 
-        gradients = tape.gradient(predicted_Az, test_tensor)
+            coords = tf.stack([test_tensor_x, test_tensor_y], axis=-1)
 
-        Bx = gradients[:, 1]
-        By = -1.0 * gradients[:, 0]
+            predicted_Az = self(coords)
+
+        # gradients = tape.gradient(predicted_Az, test_tensor)
+
+        Bx = tape.gradient(predicted_Az, test_tensor_y) / 0.04625
+        By = -(1.0 / 0.04625) * tape.gradient(predicted_Az, test_tensor_x)
 
         B = tf.sqrt(tf.square(Bx) + tf.square(By))
+
+        del tape
 
         return {
             "Az": predicted_Az,
