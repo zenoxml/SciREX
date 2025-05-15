@@ -53,8 +53,8 @@ from scirex.core.sciml.fastvpinns.model.model_magnetostatic_bvp_hard_constraints
     DenseModel,
     MagnetisationModel,
 )
-from scirex.core.sciml.fastvpinns.physics.magnetostatics_magnet import (
-    pde_loss_magnetostatics_magnet,
+from scirex.core.sciml.fastvpinns.physics.magnetostatics_exp import (
+    pde_loss_magnetostatics,
 )
 
 i_mesh_type = "quadrilateral"  # "quadrilateral"
@@ -92,7 +92,7 @@ i_learning_rate_dict = {
 i_dtype = tf.float64
 i_activation = "tanh"
 i_use_adaptive = False
-i_use_polynomial = True
+i_use_polynomial = False
 i_polynomial_coeffs = [0.1, 0.5, 0.3, 0.25]
 i_alpha = 1e0
 i_beta = 1e0  # Boundary Loss Penalty ( Adds more weight to the boundary loss)
@@ -108,7 +108,9 @@ print(f"Experiment running with beta value= {i_beta}, alpha value  {i_alpha}")
 print(f"--------------------------------------------------------------------")
 
 # i_output_path = f"output/Case1/Hyperparameter/Test_alpha_{i_alpha}_beta_{i_beta}_soft"  # Output path
-i_output_path = f"output/Case1/Hyperparameter/Test"  # Output path
+i_output_path = (
+    f"output/Case_Fresh/Case1/ipbc_scaling_no_perm_tanh_sigmoid_exit"  # Output path
+)
 
 # Epochs
 i_num_epochs = 100000
@@ -116,6 +118,7 @@ i_num_epochs = 100000
 # Parameters to test external data
 i_test_external = True
 i_test_external_path = "/home/saibhargav/Projects/scirex/SciREX/tests/support_files/Case1/Case1_inference.txt"
+i_Ascale = 0.02
 
 
 bh_data = np.loadtxt(
@@ -170,7 +173,8 @@ def inner_boundary(x, y):
     """
     This function will return the boundary value for given component of a boundary
     """
-    r = 0.02
+    # r = 0.02
+    r = 1.0
     return np.ones_like(x) * r
 
 
@@ -232,7 +236,7 @@ def get_bilinear_params_dict():
     """
     This function will return a dictionary of bilinear parameters
     """
-    mu0 = 0.0
+    mu0 = 4 * np.pi * 1e-7
     return {"mu0": mu0}
 
 
@@ -349,7 +353,7 @@ model = DenseModel(
     layer_dims=[2, 30, 30, 30, 1],
     learning_rate_dict=i_learning_rate_dict,
     params_dict=params_dict,
-    loss_function=pde_loss_magnetostatics_magnet,
+    loss_function=pde_loss_magnetostatics,
     input_tensors_list=[
         datahandler.x_pde_list,
         train_dirichlet_input,
@@ -408,7 +412,7 @@ for epoch in tqdm(range(i_num_epochs)):
     # print("Updated polynomial coefficients:\n", model.get_polynomial_coefficients())
     # print("Updated trainable parameter:\n", float(loss["trainable_param"].numpy()))
 
-    if (epoch + 1) % 25000 == 0:
+    if (epoch + 1) % 5000 == 0:
         y_test_pred = model(test_points).numpy().reshape(-1)
 
         error = y_test_pred - y_exact
@@ -458,7 +462,7 @@ for epoch in tqdm(range(i_num_epochs)):
 # Get predicted values from the model
 
 y_pred = model(test_points).numpy()
-y_pred = y_pred.reshape(-1)
+y_pred = y_pred.reshape(-1) * i_Ascale
 
 
 def plot_inference(predicted_path, fig_path):
@@ -589,7 +593,7 @@ if i_test_external:
     )
 
     # predicted solution
-    y_test_pred = model(test_points_external).numpy().reshape(-1)
+    y_test_pred = model(test_points_external).numpy().reshape(-1) * i_Ascale
 
     # exact solution
     y_exact_external = test_points_solution[:, 2].reshape(-1)

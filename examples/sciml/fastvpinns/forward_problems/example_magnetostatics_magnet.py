@@ -49,7 +49,7 @@ from scirex.core.sciml.fe.fespace2d import Fespace2D
 from scirex.core.sciml.fastvpinns.data.datahandler2d import DataHandler2D
 from scirex.core.dl.tf_backend.datautils import convert_to_tensor, reshape
 
-from scirex.core.sciml.fastvpinns.model.model_magnetostatics_magnet_v2 import (
+from scirex.core.sciml.fastvpinns.model.model_magnetostatics_magnet import (
     DenseModel,
     MagnetisationModel,
 )
@@ -90,7 +90,7 @@ i_quad_type = "gauss-jacobi"
 
 # Neural Network Variables
 i_learning_rate_dict_airgap = {
-    "initial_learning_rate": 0.0025,  # Initial learning rate
+    "initial_learning_rate": 0.001,  # Initial learning rate
     "use_lr_scheduler": True,  # Use learning rate scheduler
     "decay_steps": 10000,  # Decay steps
     "decay_rate": 0.9,  # Decay rate
@@ -108,14 +108,16 @@ i_learning_rate_dict_stator = {
 i_dtype = tf.float64
 i_activation = "tanh"
 i_use_adaptive = False
-i_use_polynomial = False
-i_polynomial_coeffs = [0.1, 0.5, 0.3, 0.25]
+i_use_polynomial = True
+i_polynomial_coeffs = [0.1, 0.5, 0.3, 0.25, 0.2, 0.15]
 
 i_alpha_stator = 1e0
 i_beta_stator = 1e0  # Boundary Loss Penalty ( Adds more weight to the boundary loss)
+i_gamma_stator = 1e0
 
 i_alpha_air = 1e0
-i_beta_air = 1e15
+i_beta_air = 1e6
+i_gamma_air = 1e0
 
 # Script for hyperparameter search
 # Check if an argument is passed
@@ -134,7 +136,7 @@ print(f"--------------------------------------------------------------------")
 
 # i_output_path = f"output/Case_magnet/Hyperparameter/Magnetostatics_poly_{i_alpha}_beta_{i_beta}"  # Output path
 
-i_output_path = f"output/Case_magnet/LRA_check"  # Output path
+i_output_path = f"output/Case_magnet/Perm_check/perm_v4_poly"  # Output path
 # i_external_dirichlet_data = "tests/support_files/Case_magnet/20250415_magnet_edge_Az.txt"
 
 i_external_dirichlet_data = (
@@ -142,14 +144,17 @@ i_external_dirichlet_data = (
 )
 i_external_interface_data = "tests/support_files/Case_magnet/interface_points.txt"
 
-i_use_adaptive_loss_weights= True
+# i_use_adaptive_loss_weights= True
 
 # Epochs
 i_num_epochs = 100000
 
 # Parameters to test external data
 i_test_external = True
-i_test_external_path = "/home/saibhargav/Projects/SciREX/tests/support_files/Case_magnet/Case2_inference.txt"
+i_test_external_path_stator = "/home/saibhargav/Projects/SciREX/tests/support_files/Case_magnet/Case2_inference_v2.txt"
+i_test_external_path_airgap = "/home/saibhargav/Projects/SciREX/tests/support_files/Case_magnet/Case2_inference_airgap_v2.txt"
+i_test_external_path_magB_stator = "/home/saibhargav/Projects/SciREX/tests/support_files/Case_magnet/Ref_MagB_stator.txt"
+i_test_external_path__magB_airgap = "/home/saibhargav/Projects/SciREX/tests/support_files/Case_magnet/Ref_MagB_airgap.txt"
 
 
 bh_data = np.loadtxt(
@@ -179,7 +184,7 @@ for epoch in range(50000):
     if (epoch + 1) % 100 == 0:
         training_loss = loss["loss"].numpy()
         print(f"Epoch: {epoch+1}, Loss: {training_loss}")
-        if training_loss < 1e-6:
+        if training_loss < 1e-8:
             print("Converged")
             break
 
@@ -254,7 +259,7 @@ def get_bilinear_params_dict_stator():
     """
     This function will return a dictionary of bilinear parameters
     """
-    mu0 = 0.0
+    mu0 = 4.0 * np.pi * 1e-7
     return {"mu0": mu0}
 
 
@@ -313,7 +318,7 @@ def get_bilinear_params_dict_air():
     """
     This function will return a dictionary of bilinear parameters
     """
-    mu0 = 1.0 / (4.0 * np.pi * 1e-7)
+    mu0 = 1.0  # / (4.0 * np.pi * 1e-7)
     return {"mu0": mu0}
 
 
@@ -547,14 +552,14 @@ model_air = DenseModel(
     use_adaptive=i_use_adaptive,
     use_polynomial=i_use_polynomial,
     polynomial_coeffs=i_polynomial_coeffs,
-    use_adaptive_loss_weights=i_use_adaptive_loss_weights
+    # use_adaptive_loss_weights=i_use_adaptive_loss_weights
 )
 
 model_stator = DenseModel(
     layer_dims=[2, 30, 30, 30, 1],
     learning_rate_dict=i_learning_rate_dict_stator,
     params_dict=params_dict_stator,
-    loss_function=pde_loss_magnetostatics_magnet,
+    loss_function=pde_loss_magnetostatics,
     input_tensors_list=[
         datahandler_stator.x_pde_list,
         train_dirichlet_input_stator[:5056, :],
@@ -573,7 +578,7 @@ model_stator = DenseModel(
     use_polynomial=i_use_polynomial,
     polynomial_coeffs=i_polynomial_coeffs,
     trained_magnetisation_model=magnetisation,
-    use_adaptive_loss_weights=i_use_adaptive_loss_weights
+    # use_adaptive_loss_weights=i_use_adaptive_loss_weights
 )
 
 # air loss components
@@ -614,9 +619,10 @@ for epoch in tqdm(range(i_num_epochs)):
     # Train the model for air zone
     batch_start_time = time.time()
     loss_air = model_air.train_step(
-        epoch=epoch,
+        # epoch=epoch,
         alpha=i_alpha_air,
         beta=i_beta_air,
+        gamma=i_gamma_air,
         bilinear_params_dict=get_bilinear_params_dict_air,
         trained_conjugate_model=model_stator,
     )
@@ -641,9 +647,10 @@ for epoch in tqdm(range(i_num_epochs)):
     # Train the model for stator zone
     batch_start_time = time.time()
     loss_stator = model_stator.train_step(
-        epoch=epoch,
+        # epoch=epoch,
         alpha=i_alpha_stator,
         beta=i_beta_stator,
+        gamma=i_gamma_stator,
         bilinear_params_dict=get_bilinear_params_dict_stator,
         trained_conjugate_model=model_air,
     )
@@ -904,7 +911,7 @@ def plot_inference(predicted_path, fig_path):
     """
     Plotting code for external inference data
     """
-    inference_data = np.loadtxt(i_test_external_path)
+    inference_data = np.loadtxt(i_test_external_path_stator)
 
     # Extract x and y coordinates
     x, y = inference_data[:, 0], inference_data[:, 1]
@@ -964,108 +971,261 @@ def plot_inference(predicted_path, fig_path):
 
     plt.close()
 
-    # B_pred = prediction_data[:, 5]
-    # B_exact = prediction_data[:, 6]
-    # B_err = prediction_data[:, 7]
 
-    # # Create figure with three subplots sharing the y-axis
-    # fig, axes = plt.subplots(1, 3, figsize=(18, 6), sharey=True)
+def plot_inference_bothzones(predicted_path_stator, predicted_path_airgap, fig_path):
+    """
+    Plotting code for external inference data for both stator and airgap
+    """
+    inference_data = np.loadtxt(i_test_external_path_stator)
 
-    # # Create a common colorbar normalization for the first two plots
-    # vmin = min(np.min(B_pred), np.min(B_exact))
-    # vmax = max(np.max(B_pred), np.max(B_exact))
-    # norm = Normalize(vmin=vmin, vmax=vmax)
+    inference_data_airgap = np.loadtxt(i_test_external_path_airgap)
 
-    # # Error plot needs its own normalization
-    # error_norm = Normalize(vmin=np.min(B_err), vmax=np.max(B_err))
+    # Extract x and y coordinates stator
+    x, y = inference_data[:, 0], inference_data[:, 1]
+    x_airgap, y_airgap = inference_data_airgap[:, 0], inference_data_airgap[:, 1]
 
-    # # Create scatter plots with the points
-    # scatter1 = axes[0].scatter(x, y, c=B_pred, cmap=cm.viridis, s=5)
-    # scatter2 = axes[1].scatter(x, y, c=B_exact, cmap=cm.viridis, s=5, norm=norm)
-    # scatter3 = axes[2].scatter(x, y, c=B_err, cmap=cm.magma, s=5, norm=error_norm)
+    prediction_data_stator = np.loadtxt(predicted_path_stator)
+    prediction_data_airgap = np.loadtxt(predicted_path_airgap)
 
-    # # Add colorbars
-    # cbar1 = fig.colorbar(scatter1, ax=axes[0])
-    # cbar1.set_label(r'$B$')
-    # cbar2 = fig.colorbar(scatter2, ax=axes[1])
-    # cbar2.set_label(r'$B$')
-    # cbar3 = fig.colorbar(scatter3, ax=axes[2])
-    # cbar3.set_label('Error')
+    # stator
+    A_pred_stator = prediction_data_stator[:, 0]
+    A_exact_stator = prediction_data_stator[:, 1]
+    A_err_stator = prediction_data_stator[:, 2]
 
-    # # Set titles for each subplot
-    # axes[0].set_title('Predicted Solution')
-    # axes[1].set_title('Exact Solution')
-    # axes[2].set_title('Error')
+    # airgap
+    A_pred_airgap = prediction_data_airgap[:, 0]
+    A_exact_airgap = prediction_data_airgap[:, 1]
+    A_err_airgap = prediction_data_airgap[:, 2]
 
-    # # Set x-labels for each subplot
-    # axes[0].set_xlabel('X')
-    # axes[1].set_xlabel('X')
-    # axes[2].set_xlabel('X')
+    # Create figure with three subplots sharing the y-axis
+    fig, axes = plt.subplots(1, 3, figsize=(18, 6), sharey=True)
 
-    # # Set a common y-label for all subplots
-    # fig.text(0.01, 0.5, 'Y', va='center', rotation='vertical', fontsize=12)
-    # fig.suptitle("Case 1 - Mag B, Poly Activation function (ord = 2)")
+    # Create a common colorbar normalization for the first two plots
+    vmin = min(
+        np.min(A_pred_stator),
+        np.min(A_exact_stator),
+        np.min(A_pred_airgap),
+        np.min(A_exact_airgap),
+    )
+    vmax = max(
+        np.max(A_pred_stator),
+        np.max(A_exact_stator),
+        np.max(A_pred_airgap),
+        np.max(A_exact_airgap),
+    )
+    norm = Normalize(vmin=vmin, vmax=vmax)
 
-    # # Set uniform aspect ratio for all subplots
-    # for ax in axes:
-    #     ax.set_aspect('equal')
+    # Error plot needs its own normalization
+    error_norm = Normalize(
+        vmin=min(np.min(A_err_stator), np.min(A_err_airgap)),
+        vmax=max(np.max(A_err_stator), np.max(A_err_airgap)),
+    )
 
-    # # Adjust layout for better spacing
-    # plt.tight_layout(rect=[0.03, 0, 1, 1])  # Adjust left margin for y-label
+    # Create scatter plots with the points
+    scatter1 = axes[0].scatter(x, y, c=A_pred_stator, cmap=cm.viridis, s=5, norm=norm)
+    scatter1_air = axes[0].scatter(
+        x_airgap, y_airgap, c=A_pred_airgap, cmap=cm.viridis, s=6, norm=norm
+    )
+    scatter2 = axes[1].scatter(x, y, c=A_exact_stator, cmap=cm.viridis, s=5, norm=norm)
+    scatter2_air = axes[1].scatter(
+        x_airgap, y_airgap, c=A_exact_airgap, cmap=cm.viridis, s=6, norm=norm
+    )
+    scatter3 = axes[2].scatter(
+        x, y, c=A_err_stator, cmap=cm.magma, s=5, norm=error_norm
+    )
+    scatter3_air = axes[2].scatter(
+        x_airgap, y_airgap, c=A_err_airgap, cmap=cm.magma, s=6, norm=error_norm
+    )
 
-    # # Save figure if needed
-    # plt.savefig(fig_path / 'FieldB_Comp.png', dpi=300, bbox_inches='tight')
+    # Add colorbars
+    cbar1 = fig.colorbar(scatter1, ax=axes[0])
+    cbar1.set_label(r"$A$")
+    cbar2 = fig.colorbar(scatter2, ax=axes[1])
+    cbar2.set_label(r"$A$")
+    cbar3 = fig.colorbar(scatter3, ax=axes[2])
+    cbar3.set_label("Error")
 
-    # plt.close()
+    # Set titles for each subplot
+    axes[0].set_title("Predicted Solution")
+    axes[1].set_title("Exact Solution")
+    axes[2].set_title("Error")
+
+    # Set x-labels for each subplot
+    axes[0].set_xlabel("X")
+    axes[1].set_xlabel("X")
+    axes[2].set_xlabel("X")
+
+    # Set a common y-label for all subplots
+    fig.text(0.01, 0.5, "Y", va="center", rotation="vertical", fontsize=12)
+    fig.suptitle("Case 1 - Mag A, Poly Activation function (ord = 2)")
+    # Set uniform aspect ratio for all subplots
+    for ax in axes:
+        ax.set_aspect("equal")
+
+    # Adjust layout for better spacing
+    plt.tight_layout(rect=[0.03, 0, 1, 1])  # Adjust left margin for y-label
+
+    # Save figure if needed
+    plt.savefig(fig_path / "FieldA_Comp.png", dpi=300, bbox_inches="tight")
+
+    plt.close()
+
+    # mag B plots
+
+    inference_data_magB_stator = np.loadtxt(
+        i_test_external_path_magB_stator, skiprows=1
+    )
+
+    inference_data_magB_airgap = np.loadtxt(
+        i_test_external_path__magB_airgap, skiprows=1
+    )
+
+    magB_stator_pred = prediction_data_stator[:, -1]
+    magB_stator_exact = inference_data_magB_stator[:, -1]
+
+    magB_airgap_pred = prediction_data_airgap[:, -1]
+    magB_airgap_exact = inference_data_magB_airgap[:, -1]
+
+    magB_err_stator = np.abs(magB_stator_pred - magB_stator_exact)
+    magB_err_airgap = np.abs(magB_airgap_pred - magB_airgap_exact)
+
+    # Create figure with three subplots sharing the y-axis
+    fig, axes = plt.subplots(1, 3, figsize=(18, 6), sharey=True)
+
+    # Create a common colorbar normalization for the first two plots
+    vmin_magB = min(
+        np.min(magB_stator_pred),
+        np.min(magB_stator_exact),
+        np.min(magB_airgap_pred),
+        np.min(magB_stator_exact),
+    )
+    vmax_magB = max(
+        np.max(magB_stator_pred),
+        np.max(magB_stator_exact),
+        np.max(magB_airgap_pred),
+        np.max(magB_stator_exact),
+    )
+    norm = Normalize(vmin=vmin_magB, vmax=vmax_magB)
+
+    # Error plot needs its own normalization
+    error_norm_magB = Normalize(
+        vmin=min(np.min(magB_err_stator), np.min(magB_err_airgap)),
+        vmax=max(np.max(magB_err_stator), np.max(magB_err_airgap)),
+    )
+
+    # Create scatter plots with the points
+    scatter1 = axes[0].scatter(
+        x, y, c=magB_stator_pred, cmap=cm.viridis, s=5, norm=norm
+    )
+    scatter1_air = axes[0].scatter(
+        x_airgap, y_airgap, c=magB_airgap_pred, cmap=cm.viridis, s=6, norm=norm
+    )
+    scatter2 = axes[1].scatter(
+        x, y, c=magB_stator_exact, cmap=cm.viridis, s=5, norm=norm
+    )
+    scatter2_air = axes[1].scatter(
+        x_airgap, y_airgap, c=magB_airgap_exact, cmap=cm.viridis, s=6, norm=norm
+    )
+    scatter3 = axes[2].scatter(
+        x, y, c=magB_err_stator, cmap=cm.magma, s=5, norm=error_norm_magB
+    )
+    scatter3_air = axes[2].scatter(
+        x_airgap, y_airgap, c=magB_err_airgap, cmap=cm.magma, s=6, norm=error_norm_magB
+    )
+
+    # Add colorbars
+    cbar1 = fig.colorbar(scatter1, ax=axes[0])
+    cbar1.set_label(r"$A$")
+    cbar2 = fig.colorbar(scatter2, ax=axes[1])
+    cbar2.set_label(r"$A$")
+    cbar3 = fig.colorbar(scatter3, ax=axes[2])
+    cbar3.set_label("Error")
+
+    # Set titles for each subplot
+    axes[0].set_title("Predicted Solution")
+    axes[1].set_title("Exact Solution")
+    axes[2].set_title("Error")
+
+    # Set x-labels for each subplot
+    axes[0].set_xlabel("X")
+    axes[1].set_xlabel("X")
+    axes[2].set_xlabel("X")
+
+    # Set a common y-label for all subplots
+    fig.text(0.01, 0.5, "Y", va="center", rotation="vertical", fontsize=12)
+    fig.suptitle(
+        f"Case 3 - Mag B {'poly order ' + str(len(i_polynomial_coeffs) - 1) if i_use_polynomial else 'tanh'}"
+    )
+
+    for ax in axes:
+        ax.set_aspect("equal")
+
+    # Adjust layout for better spacing
+    plt.tight_layout(rect=[0.03, 0, 1, 1])  # Adjust left margin for y-label
+
+    # Save figure if needed
+    plt.savefig(fig_path / "FieldB_Comp.png", dpi=300, bbox_inches="tight")
+
+    plt.close()
 
 
 if i_test_external:
     test_points_solution = np.loadtxt(
-        "/home/saibhargav/Projects/SciREX/tests/support_files/Case_magnet/Case2_inference.txt"
+        "/home/saibhargav/Projects/SciREX/tests/support_files/Case_magnet/Case2_inference_v2.txt"
     )
+
+    # airgap solution
+    test_points_solution_airgap = np.loadtxt(
+        "/home/saibhargav/Projects/SciREX/tests/support_files/Case_magnet/Case2_inference_airgap_v2.txt"
+    )
+
     test_points_external = np.hstack(
         (test_points_solution[:, 0][:, None], test_points_solution[:, 1][:, None])
     )
 
+    # airgap testpoints
+    test_points_external_airgap = np.hstack(
+        (
+            test_points_solution_airgap[:, 0][:, None],
+            test_points_solution_airgap[:, 1][:, None],
+        )
+    )
+
     # predicted solution
     y_test_pred = model_stator(test_points_external)[:, 0].numpy().reshape(-1)
+    y_test_pred_airgap = (
+        model_air(test_points_external_airgap)[:, 0].numpy().reshape(-1)
+    )
 
     # exact solution
     y_exact_external = test_points_solution[:, 2].reshape(-1)
+    y_exact_external_airgap = test_points_solution_airgap[:, 2].reshape(-1)
 
+    # error stator
     error = y_test_pred - y_exact_external
     l2_error = np.sqrt(np.mean(error**2))
     l1_error = np.mean(np.abs(error))
     l_inf_error = np.max(np.abs(error))
 
     print(
-        f"Inference Metrices A:\n l2 Error: {l2_error}. l1 Error: {l1_error} linf : {l_inf_error}"
+        f"Inference Metrices Stator A:\n l2 Error: {l2_error}. l1 Error: {l1_error} linf : {l_inf_error}"
     )
 
-    # solution_array = np.c_[y_test_pred, y_exact_external, np.abs(y_exact_external - y_test_pred)]
-    # domain.write_vtk(
-    #     solution_array,
-    #     output_path=i_output_path,
-    #     filename=f"prediction_{epoch+1}.vtk",
-    #     data_names=["Sol", "Exact", "Abs_Error"],
-    # )
+    # error airgap
+    error_airgap = y_test_pred_airgap - y_exact_external_airgap
+    l2_error_airgap = np.sqrt(np.mean(error_airgap**2))
+    l1_error_airgap = np.mean(np.abs(error_airgap))
+    l_inf_error_airgap = np.max(np.abs(error_airgap))
+
+    print(
+        f"Inference Metrices Airgap A:\n l2 Error: {l2_error_airgap}. l1 Error: {l1_error_airgap} linf : {l_inf_error_airgap}"
+    )
 
     b_pred = model_stator.inference(test_points_external)
-
-    # b_exact = test_points_solution[:, 3].reshape(-1)
 
     bx = b_pred["Bx"].numpy().reshape(-1)
     by = b_pred["By"].numpy().reshape(-1)
     mag_b = b_pred["B"].numpy().reshape(-1)
-
-    # b_error = mag_b - b_exact
-    # b_l2_error = np.sqrt(np.mean(b_error**2))
-    # b_l1_error = np.mean(np.abs(b_error))
-    # b_l_inf_error = np.max(np.abs(b_error))
-
-    # print(
-    #     f"Inference Metrices B:\n l2 Error: {b_l2_error}. l1 Error: {b_l1_error} linf : {b_l_inf_error}"
-    # )
 
     solution_array = np.c_[
         y_test_pred,
@@ -1075,34 +1235,35 @@ if i_test_external:
         by,
         mag_b,
     ]
-    #     b_exact,
-    #     np.abs(b_exact - mag_b),
-    # ]
 
-    # domain_stator.write_vtk(
-    #     solution_array,
-    #     output_path=i_output_path,
-    #     filename=f"prediction_external.vtk",
-    #     data_names=[
-    #         "Sol_A",
-    #         "Exact_A",
-    #         "Abs_Error_A",
-    #         "Bx",
-    #         "By",
-    #         "B",
-    #     ]
-    #         "B_exact",
-    #         "B_error",
-    #     ],
-    # )
+    b_pred_airgap = model_air.inference(test_points_external_airgap)
+
+    bx_airgap = b_pred_airgap["Bx"].numpy().reshape(-1)
+    by_airgap = b_pred_airgap["By"].numpy().reshape(-1)
+    mag_b_airgap = b_pred_airgap["B"].numpy().reshape(-1)
+
+    solution_array_airgap = np.c_[
+        y_test_pred_airgap,
+        y_exact_external_airgap,
+        np.abs(y_exact_external_airgap - y_test_pred_airgap),
+        bx_airgap,
+        by_airgap,
+        mag_b_airgap,
+    ]
 
     # write the inference outputs to a txt file
 
     np.savetxt(output_folder / "inference_results.txt", solution_array)
 
+    np.savetxt(output_folder / "inference_results_airgap.txt", solution_array_airgap)
+
     print("Saved Inference results!")
 
-    plot_inference(output_folder / "inference_results.txt", output_folder)
+    plot_inference_bothzones(
+        output_folder / "inference_results.txt",
+        output_folder / "inference_results_airgap.txt",
+        output_folder,
+    )
     os.system(
         f"cp scirex/core/sciml/fastvpinns/model/model_magnetostatics_magnet.py {output_folder}"
     )

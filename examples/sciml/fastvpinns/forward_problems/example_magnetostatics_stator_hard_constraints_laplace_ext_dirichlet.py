@@ -34,6 +34,7 @@ Author: Sai Bhargav P.
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from matplotlib.colors import Normalize
 from pathlib import Path
 import tensorflow as tf
 import time
@@ -45,11 +46,11 @@ from scirex.core.sciml.fe.fespace2d import Fespace2D
 from scirex.core.sciml.fastvpinns.data.datahandler2d import DataHandler2D
 from scirex.core.dl.tf_backend.datautils import convert_to_tensor, reshape
 
-from scirex.core.sciml.fastvpinns.model.model_magnetostatic_bvp_hard_constraints_laplace import (
+from scirex.core.sciml.fastvpinns.model.model_magnetostatic_bvp_hard_constraints_perm import (
     DenseModel,
     MagnetisationModel,
 )
-from scirex.core.sciml.fastvpinns.physics.magnetostatics_laplace import (
+from scirex.core.sciml.fastvpinns.physics.magnetostatics_exp import (
     pde_loss_magnetostatics,
 )
 
@@ -65,8 +66,8 @@ i_y_max = 1  # maximum y value
 i_n_cells_x = 4  # Number of cells in the x direction
 i_n_cells_y = 4  # Number of cells in the y direction
 i_n_boundary_points = 400  # Number of points on the boundary
-i_output_path = "output/Case2/magnetostatics_stator_inference_tanh"  # Output path
-i_external_dirichlet_data = "tests/support_files/Case2/dirichlet_case2.txt"
+i_output_path = "home/saibhargav/Projects/SciREX/output/Case_Fresh/ipbc_scaling_no_perm_tanh"  # Output path
+i_external_dirichlet_data = "tests/support_files/Case2/dirichlet_case2_v2.txt"
 
 i_n_test_points_x = 100  # Number of test points in the x direction
 i_n_test_points_y = 100  # Number of test points in the y direction
@@ -91,13 +92,16 @@ i_activation = "tanh"
 i_use_adaptive = False
 i_use_polynomial = False
 i_polynomial_coeffs = [0.1, 0.5, 0.3]
-i_beta = 1e8  # Boundary Loss Penalty ( Adds more weight to the boundary loss)
+i_alpha = 1e0
+i_beta = 1e0  # Boundary Loss Penalty ( Adds more weight to the boundary loss)
 
 # Epochs
 i_num_epochs = 100000
 
 # Parameters to test external data
 i_test_external = True
+i_test_external_path = "/home/saibhargav/Projects/scirex/SciREX/tests/support_files/Case2/Case2_inference.txt"
+i_Ascale = 0.0114070131508068
 
 bh_data = np.loadtxt(
     "tests/support_files/stator_bh_curve.csv", delimiter=",", skiprows=1
@@ -198,7 +202,7 @@ def get_bilinear_params_dict():
     """
     This function will return a dictionary of bilinear parameters
     """
-    mu0 = 0.0
+    mu0 = 4 * np.pi * 1e-7
     return {"mu0": mu0}
 
 
@@ -225,7 +229,7 @@ def get_dirichlet_and_test_data_external(filename, dtype):
     input_ext_dirichlet = np.hstack((x_bc[:, None], y_bc[:, None]))
 
     # input A bc
-    output_ext_dirichlet = a_bc[:, None]
+    output_ext_dirichlet = a_bc[:, None] / a_bc[:, None].max()
 
     input_ext_dirichlet = tf.constant(input_ext_dirichlet, dtype=dtype)
     output_ext_dirichlet = tf.constant(output_ext_dirichlet, dtype=dtype)
@@ -372,7 +376,7 @@ for epoch in tqdm(range(i_num_epochs)):
     loss_dirichlet = float(loss["loss_dirichlet"].numpy())
     total_loss = float(loss["loss"].numpy())
 
-    if (epoch + 1) % 10000 == 0:
+    if (epoch + 1) % 5000 == 0:
         y_test_pred = model(test_points).numpy().reshape(-1)
 
         error = y_test_pred - y_exact
@@ -420,18 +424,136 @@ for epoch in tqdm(range(i_num_epochs)):
 
 # Get predicted values from the model
 y_pred = model(test_points).numpy()
-y_pred = y_pred.reshape(-1)
+y_pred = y_pred.reshape(-1) * i_Ascale
+
+
+def plot_inference(predicted_path, fig_path):
+    """
+    Plotting code for external inference data
+    """
+    inference_data = np.loadtxt(i_test_external_path)
+
+    # Extract x and y coordinates
+    x, y = inference_data[:, 0], inference_data[:, 1]
+
+    prediction_data = np.loadtxt(predicted_path)
+
+    A_pred = prediction_data[:, 0]
+    A_exact = prediction_data[:, 1]
+    A_err = prediction_data[:, 2]
+
+    # Create figure with three subplots sharing the y-axis
+    fig, axes = plt.subplots(1, 3, figsize=(18, 6), sharey=True)
+
+    # Create a common colorbar normalization for the first two plots
+    vmin = min(np.min(A_pred), np.min(A_exact))
+    vmax = max(np.max(A_pred), np.max(A_exact))
+    norm = Normalize(vmin=vmin, vmax=vmax)
+
+    # Error plot needs its own normalization
+    error_norm = Normalize(vmin=np.min(A_err), vmax=np.max(A_err))
+
+    # Create scatter plots with the points
+    scatter1 = axes[0].scatter(x, y, c=A_pred, cmap=cm.viridis, s=5, norm=norm)
+    scatter2 = axes[1].scatter(x, y, c=A_exact, cmap=cm.viridis, s=5, norm=norm)
+    scatter3 = axes[2].scatter(x, y, c=A_err, cmap=cm.magma, s=5, norm=error_norm)
+
+    # Add colorbars
+    cbar1 = fig.colorbar(scatter1, ax=axes[0])
+    cbar1.set_label(r"$A$")
+    cbar2 = fig.colorbar(scatter2, ax=axes[1])
+    cbar2.set_label(r"$A$")
+    cbar3 = fig.colorbar(scatter3, ax=axes[2])
+    cbar3.set_label("Error")
+
+    # Set titles for each subplot
+    axes[0].set_title("Predicted Solution")
+    axes[1].set_title("Exact Solution")
+    axes[2].set_title("Error")
+
+    # Set x-labels for each subplot
+    axes[0].set_xlabel("X")
+    axes[1].set_xlabel("X")
+    axes[2].set_xlabel("X")
+
+    # Set a common y-label for all subplots
+    fig.text(0.01, 0.5, "Y", va="center", rotation="vertical", fontsize=12)
+    fig.suptitle("Case 1 - Mag A, Poly Activation function (ord = 2)")
+    # Set uniform aspect ratio for all subplots
+    for ax in axes:
+        ax.set_aspect("equal")
+
+    # Adjust layout for better spacing
+    plt.tight_layout(rect=[0.03, 0, 1, 1])  # Adjust left margin for y-label
+
+    # Save figure if needed
+    plt.savefig(fig_path / "FieldA_Comp.png", dpi=300, bbox_inches="tight")
+
+    plt.close()
+
+    B_pred = prediction_data[:, 5]
+    B_exact = prediction_data[:, 6]
+    B_err = prediction_data[:, 7]
+
+    # Create figure with three subplots sharing the y-axis
+    fig, axes = plt.subplots(1, 3, figsize=(18, 6), sharey=True)
+
+    # Create a common colorbar normalization for the first two plots
+    vmin = min(np.min(B_pred), np.min(B_exact))
+    vmax = max(np.max(B_pred), np.max(B_exact))
+    norm = Normalize(vmin=vmin, vmax=vmax)
+
+    # Error plot needs its own normalization
+    error_norm = Normalize(vmin=np.min(B_err), vmax=np.max(B_err))
+
+    # Create scatter plots with the points
+    scatter1 = axes[0].scatter(x, y, c=B_pred, cmap=cm.viridis, s=5)
+    scatter2 = axes[1].scatter(x, y, c=B_exact, cmap=cm.viridis, s=5, norm=norm)
+    scatter3 = axes[2].scatter(x, y, c=B_err, cmap=cm.magma, s=5, norm=error_norm)
+
+    # Add colorbars
+    cbar1 = fig.colorbar(scatter1, ax=axes[0])
+    cbar1.set_label(r"$B$")
+    cbar2 = fig.colorbar(scatter2, ax=axes[1])
+    cbar2.set_label(r"$B$")
+    cbar3 = fig.colorbar(scatter3, ax=axes[2])
+    cbar3.set_label("Error")
+
+    # Set titles for each subplot
+    axes[0].set_title("Predicted Solution")
+    axes[1].set_title("Exact Solution")
+    axes[2].set_title("Error")
+
+    # Set x-labels for each subplot
+    axes[0].set_xlabel("X")
+    axes[1].set_xlabel("X")
+    axes[2].set_xlabel("X")
+
+    # Set a common y-label for all subplots
+    fig.text(0.01, 0.5, "Y", va="center", rotation="vertical", fontsize=12)
+    fig.suptitle("Case 1 - Mag B, Poly Activation function (ord = 2)")
+
+    # Set uniform aspect ratio for all subplots
+    for ax in axes:
+        ax.set_aspect("equal")
+
+    # Adjust layout for better spacing
+    plt.tight_layout(rect=[0.03, 0, 1, 1])  # Adjust left margin for y-label
+
+    # Save figure if needed
+    plt.savefig(fig_path / "FieldB_Comp.png", dpi=300, bbox_inches="tight")
+
+    plt.close()
+
 
 if i_test_external:
-    test_points_solution = np.loadtxt(
-        "/home/saibhargav/Projects/scirex/SciREX/tests/support_files/Case2/Case2_inference.txt"
-    )
+    test_points_solution = np.loadtxt(i_test_external_path)
     test_points_external = np.hstack(
         (test_points_solution[:, 0][:, None], test_points_solution[:, 1][:, None])
     )
 
     # predicted solution
-    y_test_pred = model(test_points_external).numpy().reshape(-1)
+    y_test_pred = model(test_points_external).numpy().reshape(-1) * i_Ascale
 
     # exact solution
     y_exact_external = test_points_solution[:, 2].reshape(-1)
