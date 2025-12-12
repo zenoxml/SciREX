@@ -115,15 +115,16 @@ def gelu(x):
 
 
 def glu(x):
-
     return x * tf.nn.sigmoid(x)
 
 
 def squareplus(x):
-    
     return (x + tf.sqrt(tf.square(x) + 4.0)) / 2.0
 
 
 def mish(x):
-    
     return x * tf.math.tanh(tf.nn.softplus(x))
+
+
+if __name__ == "__main__":
+    pass
