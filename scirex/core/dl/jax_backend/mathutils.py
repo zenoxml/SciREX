@@ -98,7 +98,7 @@ def reduce_min(x, axis=None):
 
 
 def dot(x, y):
-    return jnp.dot(x, y)
+    return jnp.tensordot(x, y,axes=1)
 
 
 if __name__ == "__main__":
