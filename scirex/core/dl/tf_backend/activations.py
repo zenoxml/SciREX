@@ -28,7 +28,7 @@
                  used in deep learning, using the tensorflow backend.
 
     Authors:
-        - Divij Ghose (divijghose@{iisc.ac.in})
+        - Divij Ghose (divijghose@{iisc.ac.in}), R.Shrinivass (github:Shrini14)
 
     Version Info:
         - 31/01/2025: Initial version
@@ -50,5 +50,80 @@ def tanh(x):
     return tf.nn.tanh(x)
 
 
-if __name__ == "__main__":
-    pass
+def relu6(x):
+    return tf.nn.relu6(x)
+
+
+def softplus(x):
+    return tf.nn.softplus(x)
+
+
+def sparse_plus(x):
+    return tf.nn.relu(x) + 1e-6 * x
+
+
+def sparse_sigmoid(x):
+    return tf.nn.sigmoid(x) + 1e-6 * x
+
+
+def soft_sign(x):
+    return tf.nn.softsign(x)
+
+
+def silu(x):
+    return tf.nn.silu(x)
+
+
+def swish(x):
+    return tf.nn.swish(x)
+
+
+def log_sigmoid(x):
+    return tf.math.log_sigmoid(x)
+
+
+def leaky_relu(x):
+    return tf.nn.leaky_relu(x)
+
+
+def hard_sigmoid(x):
+    return tf.keras.activations.hard_sigmoid(x)
+
+
+def hard_swish(x):
+    return tf.nn.hard_swish(x)
+
+
+def hard_tanh(x):
+    return tf.clip_by_value(x, -1.0, 1.0)
+
+
+def elu(x):
+    return tf.nn.elu(x)
+
+
+def celu(x):
+    return tf.nn.celu(x)
+
+
+def selu(x):
+    return tf.nn.selu(x)
+
+
+def gelu(x):
+    return tf.nn.gelu(x)
+
+
+def glu(x):
+
+    return x * tf.nn.sigmoid(x)
+
+
+def squareplus(x):
+    
+    return (x + tf.sqrt(tf.square(x) + 4.0)) / 2.0
+
+
+def mish(x):
+    
+    return x * tf.math.tanh(tf.nn.softplus(x))
