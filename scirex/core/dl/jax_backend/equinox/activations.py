@@ -245,3 +245,13 @@ def mish(x: jax.Array) -> jax.Array:
         x: input data
     """
     return jax.nn.mish(x)
+
+def tanh(x: jax.Array) -> jax.Array:
+    """
+    Compute tanh activation
+
+    Args:
+        x: input data
+    """
+    return jax.nn.tanh(x)
+
