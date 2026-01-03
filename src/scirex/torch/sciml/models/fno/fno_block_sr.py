@@ -23,15 +23,37 @@
 # please contact: contact@scirex.org
 
 # Author: Diya
-# Version Info: 3/Jan/2025
-"""
+# Version Info: 29/Dec/2025
 
-Data generation utilities for FNO models.
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from .spectral_conv_sr import SpectralConv1d
 
-This package provides tools for generating synthetic datasets for training
-Fourier Neural Operator models on various PDE problems.
-"""
+class FNOBlock1d(nn.Module):
+    """
+    Args:
+        width: Number of channels in the input and output tensor
+        modes: Number of Fourier modes to use in the spectral convolution   
 
-from .generate_sr import DataGenerator
-
-__all__ = ['DataGenerator']
+    Returns:
+        Output tensor of shape (batch, width, nx)
+    """ 
+    def __init__(self, width: int, modes: int):
+        super().__init__()
+        self.spectral_conv = SpectralConv1d(width, width, modes)
+        self.linear = nn.Conv1d(width, width, 1)
+        self.norm = nn.BatchNorm1d(width)
+        
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            x: Input tensor of shape (batch, width, nx)
+        Returns:
+            Output tensor of shape (batch, width, nx)
+        """
+        x1 = self.spectral_conv(x)
+        x2 = self.linear(x)
+        x = self.norm(x1 + x2)
+        x = F.gelu(x)
+        return x

@@ -23,15 +23,37 @@
 # please contact: contact@scirex.org
 
 # Author: Diya
-# Version Info: 3/Jan/2025
-"""
+# Version Info: 29/Dec/2025
 
-Data generation utilities for FNO models.
+from dataclasses import dataclass
 
-This package provides tools for generating synthetic datasets for training
-Fourier Neural Operator models on various PDE problems.
-"""
+@dataclass
+class FNOConfig:
+    """Configuration for FNO model"""
+    modes: int = 12
+    width: int = 32
+    n_layers: int = 4
+    in_channels: int = 2
+    out_channels: int = 1
 
-from .generate_sr import DataGenerator
 
-__all__ = ['DataGenerator']
+@dataclass
+class TrainingConfig:
+    """Configuration for training"""
+    epochs: int = 200
+    learning_rate: float = 5e-4
+    batch_size: int = 20
+    weight_decay: float = 1e-4
+    grad_clip_norm: float = 1.0
+    lr_patience: int = 10
+    lr_factor: float = 0.5
+
+
+@dataclass
+class DataConfig:
+    """Configuration for data generation"""
+    nx: int = 256
+    nt: int = 100
+    L: float = 1.0
+    n_train: int = 200
+    n_test: int = 40

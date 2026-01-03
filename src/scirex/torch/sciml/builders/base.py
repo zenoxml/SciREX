@@ -23,15 +23,17 @@
 # please contact: contact@scirex.org
 
 # Author: Diya
-# Version Info: 3/Jan/2025
-"""
+# Version Info: 29/Dec/2025
 
-Data generation utilities for FNO models.
+import numpy as np
 
-This package provides tools for generating synthetic datasets for training
-Fourier Neural Operator models on various PDE problems.
-"""
-
-from .generate_sr import DataGenerator
-
-__all__ = ['DataGenerator']
+class PDESolver:
+    """Base class for PDE solvers"""
+    
+    @staticmethod
+    def _check_stability(u: np.ndarray, step: int) -> bool:
+        # Check if solution is stable (no NaNs or Infs)
+        if np.any(np.isnan(u)) or np.any(np.isinf(u)):
+            print(f"Solution became unstable at step {step}")
+            return False
+        return True
