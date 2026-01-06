@@ -84,3 +84,7 @@ output/
 
 results.png
 lib64
+support_files/*
+../output/*
+../results/*
+checkpoints/*
