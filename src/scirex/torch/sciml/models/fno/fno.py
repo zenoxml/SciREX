@@ -17,14 +17,6 @@ Number = Union[float, int]
 class FNOBlock(nn.Module):
     """
     A single Fourier Neural Operator Block.
-    
-    Operations:
-    1. Spectral Convolution (Rx)
-    2. Skip Connection (Wx)
-    3. Sum (Rx + Wx)
-    4. Normalization (optional)
-    5. Activation
-    6. Channel MLP (optional)
     """
     def __init__(
         self,
@@ -36,7 +28,7 @@ class FNOBlock(nn.Module):
         channel_mlp_expansion: float = 0.5,
         channel_mlp_dropout: float = 0.0,
         non_linearity: nn.Module = F.gelu,
-        stabilizer: str = None, # 'tanh'
+        stabilizer: str = None,
         norm: Literal["ada_in", "group_norm", "instance_norm", "batch_norm"] = None,
         fno_skip: str = "linear",
         channel_mlp_skip: str = "soft-gating",
@@ -56,7 +48,6 @@ class FNOBlock(nn.Module):
         self.preactivation = preactivation
         self.complex_data = complex_data
         
-        # 1. Spectral Convolution
         self.spectral_conv = SpectralConv(
             in_channels=in_channels,
             out_channels=out_channels,
@@ -72,27 +63,21 @@ class FNOBlock(nn.Module):
             bias=False
         )
         
-        # 2. Skip Connection (W)
         self.skip = skip_connection(
             in_features=in_channels,
             out_features=out_channels,
             skip_type=fno_skip,
             n_dim=self.n_dim,
-            bias=True # FNO paper uses bias in W
+            bias=True
         )
 
-        # 3. Normalization
         self.norm = self._get_norm(norm, in_channels if preactivation else out_channels)
-        
-        # 4. Activation
         self.non_linearity = non_linearity
         
-        # 5. Stabilizer (optional, e.g. tanh)
         self.stabilizer = None
         if stabilizer == "tanh":
             self.stabilizer = torch.tanh
 
-        # 6. Channel MLP (optional)
         self.channel_mlp = None
         if use_channel_mlp:
             self.channel_mlp = ChannelMLP(
@@ -115,59 +100,31 @@ class FNOBlock(nn.Module):
     def _get_norm(self, norm_type, channels):
         if norm_type is None:
             return None
-        if norm_type == "ada_in":
-            # AdaIN usually requires embedding, for simplicity in this block we assume
-            # external embedding isn't passed yet or we need a way to support it. 
-            # The user requested 'ada_in', but typical AdaIN needs an embedding vector.
-            # We will use InstanceNorm as a fallback if no embedding mechanism is wired
-            # or raise error. 
-            # Actually, standard FNO implementation of AdaIN passes 'embedding' to forward.
-            # We will instantiate AdaIN.
-            # Note: The AdaIN class in scirex requires `embed_dim`. 
-            # Since we don't have that info here easily without messy args, 
-            # we might default to InstanceNorm or require embed_dim.
-            # For "simple" FNO, let's assume InstanceNorm for now unless specified.
-            # Or better, let's check input args.
-            pass # TODO: handle proper AdaIN wiring if needed
-        
         if norm_type == "instance_norm":
-            return InstanceNorm(affine=False) # Or True? usually False for IN in FNO
+            return InstanceNorm(affine=False)
         elif norm_type == "batch_norm":
             return BatchNorm(n_dim=self.n_dim, num_features=channels)
         elif norm_type == "group_norm":
-            return nn.GroupNorm(num_groups=1, num_channels=channels) # effectively LayerNorm if groups=1?
+            return nn.GroupNorm(num_groups=1, num_channels=channels)
         return None
 
     def forward(self, x, output_shape=None, embedding=None):
-        # x: (B, C, D1, ..., DN)
-        
-        x_in = x
-        
         if self.preactivation and self.norm is not None:
              x = self.norm(x)
 
-        # Spectral Conv branch
         x_fnoir = self.spectral_conv(x, output_shape=output_shape)
         
-        # Skip branch logic
-        # If resolution changes (output_shape is different), we simply interpolate x for skip
         if output_shape is not None and list(x.shape[2:]) != list(output_shape):
-             # Use the skip connection's handling or manual interpolate?
-             # skip_connection module wraps a conv 1x1... it assumes simple pass.
-             # We should interpolate x before skip if shape changes
              x_res = F.interpolate(x, size=output_shape, mode='bilinear' if self.n_dim==2 else 'trilinear', align_corners=False)
         else:
              x_res = x
 
         x_skip = self.skip(x_res)
-
-        # Combine
         x = x_fnoir + x_skip
 
-        # Post-activation norm
         if not self.preactivation and self.norm is not None:
              if isinstance(self.norm, AdaIN) and embedding is not None:
-                 self.norm.set_embedding(embedding)
+                  self.norm.set_embedding(embedding)
              x = self.norm(x)
 
         if self.stabilizer is not None:
@@ -176,20 +133,19 @@ class FNOBlock(nn.Module):
         if self.non_linearity is not None:
             x = self.non_linearity(x)
 
-        # Channel MLP
         if self.channel_mlp is not None:
             x_mlp = self.channel_mlp(x)
-            if self.channel_mlp_skip is not None:
-                x = x + self.channel_mlp_skip(x_mlp)
+            if self.channel_mlp_skip is None:
+                x = x_mlp
             else:
-                x = x_mlp # Or x + x_mlp? Usually residual.
+                x = x + self.channel_mlp_skip(x_mlp)
                 
         return x
 
 
-class SimpleFNO(BaseModel):
+class FNO(BaseModel):
     """
-    Fourier Neural Operator (FNO) model.
+    Unified Fourier Neural Operator (FNO) model.
     """
     def __init__(
         self,
@@ -233,7 +189,6 @@ class SimpleFNO(BaseModel):
         self.output_scaling_factor = resolution_scaling_factor
         self.complex_data = complex_data
 
-        # 1. Positional Embedding
         if positional_embedding == "grid":
             self.pos_embed = GridEmbeddingND(in_channels, self.n_dim)
             lifting_in = self.pos_embed.out_channels
@@ -244,7 +199,6 @@ class SimpleFNO(BaseModel):
              self.pos_embed = None
              lifting_in = in_channels
 
-        # 2. Lifting Layer
         lifting_channels = int(hidden_channels * lifting_channel_ratio)
         self.lifting = ChannelMLP(
             in_channels=lifting_in,
@@ -257,15 +211,12 @@ class SimpleFNO(BaseModel):
         if complex_data:
             self.lifting = ComplexValued(self.lifting)
 
-        # 3. Domain Padding
         self.domain_padding = None
         if domain_padding is not None:
             self.domain_padding = DomainPadding(domain_padding=domain_padding, resolution_scaling_factor=resolution_scaling_factor)
 
-        # 4. FNO Blocks
         blocks = []
         for i in range(n_layers):
-            # scalable resolution support
             if resolution_scaling_factor is not None:
                 if isinstance(resolution_scaling_factor, list):
                     scaling = resolution_scaling_factor[i]
@@ -299,7 +250,6 @@ class SimpleFNO(BaseModel):
             ))
         self.fno_blocks = nn.ModuleList(blocks)
 
-        # 5. Projection
         projection_channels = int(hidden_channels * projection_channel_ratio)
         self.projection = ChannelMLP(
             in_channels=hidden_channels,
@@ -313,71 +263,27 @@ class SimpleFNO(BaseModel):
             self.projection = ComplexValued(self.projection)
 
     def forward(self, x, output_shape=None, embedding=None, **kwargs):
-        # 1. Positional Embedding
         if self.pos_embed is not None:
              x = self.pos_embed(x)
 
-        # 2. Lifting
         x = self.lifting(x)
         
-        # 3. Padding
         if self.domain_padding is not None:
              x = self.domain_padding.pad(x)
         
-        # 4. Blocks
-        # Handle output shapes per block if list
         if output_shape is None:
              out_shapes = [None]*self.n_layers
         elif isinstance(output_shape, list):
              out_shapes = output_shape
         else:
-             # Only last layer has specific shape?
              out_shapes = [None]*(self.n_layers-1) + [output_shape]
 
         for i, block in enumerate(self.fno_blocks):
              x = block(x, output_shape=out_shapes[i], embedding=embedding)
 
-        # 5. Unpad
         if self.domain_padding is not None:
              x = self.domain_padding.unpad(x)
         
-        # 6. Projection
         x = self.projection(x)
         
         return x
-
-if __name__ == "__main__":
-    # Smoke test
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    
-    print("Testing 2D SimpleFNO with full config...")
-    n_modes = (16, 16)
-    in_channels = 1
-    out_channels = 1
-    hidden_channels = 32
-    n_layers = 4
-    
-    model = SimpleFNO(
-        n_modes=n_modes,
-        in_channels=in_channels,
-        out_channels=out_channels,
-        hidden_channels=hidden_channels,
-        n_layers=n_layers,
-        use_channel_mlp=True,
-        norm="batch_norm",
-        fno_skip="linear"
-    ).to(device)
-    
-    batch_size = 2
-    resolution = (64, 64)
-    x = torch.randn(batch_size, in_channels, *resolution, device=device)
-    
-    print(f"Input shape: {x.shape}")
-    try:
-        out = model(x)
-        print(f"Output shape: {out.shape}")
-        print("Success!")
-    except Exception as e:
-        print(f"Failed: {e}")
-        import traceback
-        traceback.print_exc()
