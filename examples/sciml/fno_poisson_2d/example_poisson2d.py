@@ -25,20 +25,28 @@ def get_activation(name):
     return activations.get(name.lower(), F.gelu)
 
 # ------------------------------------------------------------------
-# MAIN
+# MAIN PIPELINE
 # ------------------------------------------------------------------
 def main():
+    # 1. Initialize Configuration
+    # We use the PoissonConfig which contains default settings for data, model, and optimization.
+    # You can customize these defaults in config/poisson.py.
     cfg = PoissonConfig()
+    
+    # 2. Setup Device
+    # Automatically use the GPU (cuda) if available, otherwise fallback to CPU.
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
     print(f"Configuration: {cfg.name}")
 
+    # 3. Setup Output Directory
+    # Results like loss plots and prediction images will be saved here.
     output_dir = os.path.join(os.path.dirname(__file__), "outputs", "poisson_2d_fno_v2")
     os.makedirs(output_dir, exist_ok=True)
 
-    # ------------------------------------------------------------
-    # Data Generation
-    # ------------------------------------------------------------
+    # 4. Data Generation
+    # Since we are solving a PDE (Poisson Equation -∇²u = f), we generate synthetic data
+    # by creating random source terms 'f' and solving for 'u' using a spectral solver.
     input_f, output_u = generate_poisson_data(
         n_samples=cfg.data.n_train + cfg.data.n_test, 
         nx=cfg.data.nx, 
@@ -49,17 +57,17 @@ def main():
     ntrain, ntest = cfg.data.n_train, cfg.data.n_test
     print(f"Split: {ntrain} train, {ntest} test")
 
-    # ------------------------------------------------------------
-    # Normalization
-    # ------------------------------------------------------------
+    # 5. Normalization
+    # Neural operators perform better when inputs and outputs are normalized.
+    # Here we use UnitGaussianNormalizer which scales data to have zero mean and unit variance.
+    # CRITICAL: We compute statistics only on the training set to avoid data leakage.
     x_normalizer = UnitGaussianNormalizer(input_f[:ntrain])
     y_normalizer = UnitGaussianNormalizer(output_u[:ntrain])
     input_f = x_normalizer.encode(input_f)
     output_u = y_normalizer.encode(output_u)
 
-    # ------------------------------------------------------------
-    # DataLoaders
-    # ------------------------------------------------------------
+    # 6. Create PyTorch DataLoaders
+    # This handles batching and shuffling of the data during training.
     train_loader = torch.utils.data.DataLoader(
         torch.utils.data.TensorDataset(input_f[:ntrain], output_u[:ntrain]),
         batch_size=cfg.optimization.batch_size, shuffle=True
@@ -69,9 +77,9 @@ def main():
         batch_size=cfg.optimization.batch_size, shuffle=False
     )
 
-    # ------------------------------------------------------------
-    # Model: FNO
-    # ------------------------------------------------------------
+    # 7. Initialize Unified FNO Model
+    # We map the fields from our PoissonConfig directly into the FNO constructor.
+    # This includes settings for Fourier modes, latent width, and architecture depth.
     model_params = {
         "n_modes": cfg.model.n_modes,
         "in_channels": cfg.model.in_channels,
@@ -99,9 +107,8 @@ def main():
     print("Initializing FNO model...")
     model = FNO(**model_params).to(device)
 
-    # ------------------------------------------------------------
-    # Optimizer & Scheduler
-    # ------------------------------------------------------------
+    # 8. Setup Optimizer and Learning Rate Scheduler
+    # We use Adam optimizer and a StepLR scheduler as defined in the configuration.
     optimizer = torch.optim.Adam(
         model.parameters(),
         lr=cfg.optimization.learning_rate,
@@ -116,11 +123,10 @@ def main():
 
     criterion = nn.MSELoss()
 
-    # ------------------------------------------------------------
-    # Training loop
-    # ------------------------------------------------------------
+    # 9. Training Loop
+    # The training loop iterates over multiple epochs, performing backpropagation
+    # to minimize the Mean Squared Error (MSE) between FNO predictions and ground truth.
     train_losses, test_losses = [] , []
-
     y_normalizer.to(device)
 
     print("Starting Training...")
@@ -133,22 +139,22 @@ def main():
         for x, y in train_loader:
             x, y = x.to(device), y.to(device)
 
-            optimizer.zero_grad()
-            out = model(x)
-            loss = criterion(out, y)
-            loss.backward()
-            optimizer.step()
+            optimizer.zero_grad() # Clear gradients
+            out = model(x)        # Forward pass
+            loss = criterion(out, y) # Compute loss
+            loss.backward()       # Backward pass (compute gradients)
+            optimizer.step()      # Update weights
 
             ep_loss += loss.item()
 
-        scheduler.step()
+        scheduler.step() # Update learning rate
         ep_loss /= len(train_loader)
         train_losses.append(ep_loss)
 
-        # Validation
+        # Validation Step
         model.eval()
         test_loss = 0.0
-        with torch.no_grad():
+        with torch.no_grad(): # Disable gradient calculation for efficiency
             for x, y in test_loader:
                 x, y = x.to(device), y.to(device)
                 out = model(x)
@@ -167,9 +173,8 @@ def main():
     t1 = default_timer()
     print(f"Training completed in {t1 - t0:.2f} seconds")
 
-    # ------------------------------------------------------------
-    # Evaluation (un-normalized)
-    # ------------------------------------------------------------
+    # 10. Evaluation (Decoding Normalization)
+    # To get physically meaningful errors, we must decode (un-normalize) the predictions.
     print("\nEvaluating final metrics...")
     model.eval()
 
@@ -180,7 +185,7 @@ def main():
             x, y = x.to(device), y.to(device)
             out = model(x)
 
-            y_pred = y_normalizer.decode(out)
+            y_pred = y_normalizer.decode(out) # Decode to original physical scale
             y_true = y_normalizer.decode(y)
 
             all_y_true.append(y_true.cpu())
@@ -189,10 +194,12 @@ def main():
     all_y_true = torch.cat(all_y_true).numpy()
     all_y_pred = torch.cat(all_y_pred).numpy()
 
+    # Compute Relative L2 Error (Standard metric for neural operators)
     l2_diff = np.linalg.norm(all_y_true - all_y_pred)
     l2_true = np.linalg.norm(all_y_true)
     rel_l2_error = l2_diff / l2_true
 
+    # Compute R2 Score (Accuracy of fit)
     ss_res = np.sum((all_y_true - all_y_pred) ** 2)
     ss_tot = np.sum((all_y_true - np.mean(all_y_true)) ** 2)
     r2_score = 1.0 - ss_res / ss_tot
@@ -200,9 +207,8 @@ def main():
     print(f"Final Relative L2 Error: {rel_l2_error:.6f}")
     print(f"Final R2 Score:          {r2_score:.6f}")
 
-    # ------------------------------------------------------------
-    # Plots
-    # ------------------------------------------------------------
+    # 11. Plotting Results
+    # Generate a loss history plot.
     plt.figure()
     plt.plot(train_losses, label="Train MSE")
     plt.plot(test_losses, label="Test MSE")
@@ -213,7 +219,7 @@ def main():
     plt.savefig(os.path.join(output_dir, "loss_history.png"))
     plt.close()
 
-    # Sample visualization
+    # Generate a sample prediction visualization.
     idx = 0
     if all_y_true.shape[0] > 0:
         y_true = all_y_true[idx, 0]
@@ -222,7 +228,7 @@ def main():
         fig, axs = plt.subplots(1, 3, figsize=(18, 5))
 
         im0 = axs[0].imshow(y_true, cmap="jet")
-        axs[0].set_title("Ground Truth")
+        axs[0].set_title("Ground Truth (u)")
         plt.colorbar(im0, ax=axs[0])
 
         im1 = axs[1].imshow(y_pred, cmap="jet")
@@ -233,12 +239,13 @@ def main():
         axs[2].set_title(f"Abs Error (RelL2={rel_l2_error:.4f})")
         plt.colorbar(im2, ax=axs[2])
 
-        plt.suptitle(f"Poisson 2D - {cfg.name}")
+        plt.suptitle(f"Poisson 2D Solver - {cfg.name}")
         plt.tight_layout()
         plt.savefig(os.path.join(output_dir, "results.png"))
         plt.close()
 
     print(f"Results saved to {output_dir}")
+
 
 
 if __name__ == "__main__":
