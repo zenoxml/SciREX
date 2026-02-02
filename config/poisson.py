@@ -35,7 +35,7 @@ from dataclasses import dataclass, field
 from typing import Optional, Tuple, Literal
 
 from .opt import OptimizationConfig, SchedulerConfig, LossConfig
-from .models import FNO2DConfig
+from .models import FNO2DConfig, FNO3DConfig
 
 
 @dataclass
@@ -66,6 +66,24 @@ class PoissonDataConfig:
     source_type: Literal["gaussian", "random_fourier", "single_peak"] = "gaussian"
     n_source_features: int = 3  # Number of Gaussian peaks, etc.
     boundary_type: Literal["dirichlet", "neumann", "periodic"] = "dirichlet"
+    normalize: bool = True
+    include_mesh: bool = True
+
+
+@dataclass
+class Poisson3DDataConfig:
+    """Configuration for 3D Poisson equation data."""
+    data_path: Optional[str] = None
+    n_train: int = 500
+    n_test: int = 100
+    batch_size: int = 8
+    nx: int = 32
+    ny: int = 32
+    nz: int = 32
+    domain: Tuple[Tuple[float, float], Tuple[float, float], Tuple[float, float]] = ((0.0, 1.0), (0.0, 1.0), (0.0, 1.0))
+    source_type: Literal["gaussian", "random_fourier"] = "gaussian"
+    n_source_features: int = 3
+    boundary_type: Literal["dirichlet", "periodic"] = "dirichlet"
     normalize: bool = True
     include_mesh: bool = True
 
@@ -153,6 +171,42 @@ class PoissonMultiscaleConfig:
         batch_size=32,
         scheduler=SchedulerConfig(
             scheduler_type="CosineAnnealingLR"
+        )
+    ))
+
+
+@dataclass
+class Poisson3DConfig:
+    """Complete configuration for 3D Poisson equation."""
+    name: str = "poisson_3d"
+    description: str = "3D Poisson equation: -∇²u = f"
+    
+    # Model configuration
+    model: FNO3DConfig = field(default_factory=lambda: FNO3DConfig(
+        in_channels=4,      # Source term + mesh (x, y, z)
+        out_channels=1,     # Solution u(x, y, z)
+        hidden_channels=32,
+        n_layers=4,
+        n_modes=(8, 8, 8),
+        activation="gelu",
+        use_channel_mlp=True
+    ))
+    
+    # Data configuration
+    data: Poisson3DDataConfig = field(default_factory=Poisson3DDataConfig)
+    
+    # Optimization configuration
+    optimization: OptimizationConfig = field(default_factory=lambda: OptimizationConfig(
+        learning_rate=1e-3,
+        n_epochs=50,
+        batch_size=8,
+        scheduler=SchedulerConfig(
+            scheduler_type="StepLR",
+            step_size=20,
+            gamma=0.5
+        ),
+        loss=LossConfig(
+            training_loss="mse"
         )
     ))
 
