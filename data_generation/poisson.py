@@ -1,67 +1,148 @@
-import numpy as np
 import torch
+import numpy as np
 
-def generate_poisson_data(n_samples=600, nx=64, ny=64, include_mesh=True):
-    """
-    Generate synthetic data for the 2D Poisson equation:
+def generate_poisson_data(n_samples=1200, nx=64, ny=64, device='cpu', include_mesh=True):
+    """Generate data for the 2D Poisson equation:
     -∇²u = f with Dirichlet boundary conditions
     
-    Returns:
-        input_f  : (N, C, nx, ny)  (Source term + optional mesh)
-        output_u : (N, 1, nx, ny)  (Solution)
+    The equation: -∂²u/∂x² - ∂²u/∂y² = f(x,y)
+    Domain: [0,1] × [0,1]
+    Boundary conditions: u = 0 on the boundary
     """
-    print(f"Generating synthetic Poisson 2D data (samples={n_samples}, grid={nx}x{ny})...")
-    
-    # 1. Define the spatial grid [0, 1] x [0, 1]
-    x = np.linspace(0, 1, nx)
-    y = np.linspace(0, 1, ny)
-    X, Y = np.meshgrid(x, y, indexing='ij')
-    
-    # Pre-allocate arrays
-    # f is the source term, mesh adds (x, y) coordinates to the input
-    n_channels = 3 if include_mesh else 1
-    input_f = np.zeros((n_samples, n_channels, nx, ny), dtype=np.float32)
-    output_u = np.zeros((n_samples, 1, nx, ny), dtype=np.float32)
-    
-    # 2. Setup Spectral Solver
-    # In Fourier space, the Laplacian operator ∇² becomes -mesh_grid_of_frequencies^2.
-    # The equation -∇²u = f becomes (kx^2 + ky^2) * U_hat = F_hat.
-    kx = 2 * np.pi * np.fft.fftfreq(nx)
-    ky = 2 * np.pi * np.fft.fftfreq(ny)
-    KX, KY = np.meshgrid(kx, ky, indexing='ij')
-    
-    # The denominator for inversion is (kx^2 + ky^2)
-    denominator = (KX**2 + KY**2)
-    denominator[0, 0] = 1.0  # Prevent division by zero for the DC component
-    
-    for i in range(n_samples):
-        # 3. Generate Random Source Term 'f'
-        # We create a random number of Gaussian "blobs" as the source term.
-        n_sources = np.random.randint(2, 6)
-        f = np.zeros((nx, ny))
-        for _ in range(n_sources):
-            cx, cy = np.random.uniform(0.2, 0.8, 2) # Random center
-            width = np.random.uniform(0.05, 0.15)    # Random width
-            amp = np.random.uniform(-50, 50)        # Random amplitude
-            gaussian = amp * np.exp(-((X - cx)**2 + (Y - cy)**2) / (2 * width**2))
-            f += gaussian
-            
-        input_f[i, 0] = f
-        if include_mesh:
-            input_f[i, 1] = X
-            input_f[i, 2] = Y
+    # Spatial domain [0,1] × [0,1]
+    x = torch.linspace(0, 1, nx, device=device)
+    y = torch.linspace(0, 1, ny, device=device)
+    X, Y = torch.meshgrid(x, y, indexing='ij')
+
+    def generate_source_term():
+        """Generate random source term f(x,y) as a sum of Gaussian functions"""
+        n_sources = 3
+        # Random parameters for Gaussian sources
+        amplitudes = (torch.rand(n_sources, device=device) * 2.0) - 1.0
+        centers_x = (torch.rand(n_sources, device=device) * 0.6) + 0.2
+        centers_y = (torch.rand(n_sources, device=device) * 0.6) + 0.2
+
+        f = torch.zeros((nx, ny), device=device)
+        for i in range(n_sources):
+            f += amplitudes[i] * torch.exp(-50 * ((X - centers_x[i]) ** 2 + (Y - centers_y[i]) ** 2))
+        return f
+
+    def solve_poisson(f):
+        """Solve Poisson equation using spectral method"""
+        # Wave numbers
+        kx = 2 * np.pi * torch.fft.fftfreq(nx, device=device)
+        ky = 2 * np.pi * torch.fft.fftfreq(ny, device=device)
+        KX, KY = torch.meshgrid(kx, ky, indexing='ij')
+
+        # Compute solution in Fourier space
+        f_hat = torch.fft.fft2(f)
+        denominator = (KX**2 + KY**2)
         
-        # 4. Solve the equation using FFT
-        # U_hat = F_hat / (kx^2 + ky^2)
-        f_hat = np.fft.fftn(f)
+        # Avoid division by zero at DC component
+        denominator[0, 0] = 1.0
         u_hat = f_hat / denominator
-        
-        # Set the DC component (mean) of u to zero to ensure a unique solution
-        u_hat[0, 0] = 0.0
-        
-        # Inverse transform to get back to physical space
-        u = np.real(np.fft.ifftn(u_hat))
-        output_u[i, 0] = u
+        u_hat[0, 0] = 0.0  # Set mean to zero
 
-    return torch.from_numpy(input_f), torch.from_numpy(output_u)
+        # Transform back to real space
+        u = torch.real(torch.fft.ifft2(u_hat))
 
+        # Enforce Dirichlet boundary conditions
+        u[0, :] = 0
+        u[-1, :] = 0
+        u[:, 0] = 0
+        u[:, -1] = 0
+
+        return u
+
+    # Generate dataset
+    source_terms = []
+    solutions = []
+    
+    for _ in range(n_samples):
+        f = generate_source_term()
+        u = solve_poisson(f)
+        source_terms.append(f)
+        solutions.append(u)
+
+    source_terms = torch.stack(source_terms)
+    solutions = torch.stack(solutions)
+
+    # Prepare input-output pairs
+    if include_mesh:
+        # Include spatial coordinates in input
+        mesh_x = X.unsqueeze(0).repeat(n_samples, 1, 1)
+        mesh_y = Y.unsqueeze(0).repeat(n_samples, 1, 1)
+        # Input shape: (N, 3, nx, ny)
+        input_data = torch.stack([source_terms, mesh_x, mesh_y], dim=1)
+    else:
+        # Input shape: (N, 1, nx, ny)
+        input_data = source_terms.unsqueeze(1)
+
+    # Output shape: (N, 1, nx, ny)
+    output_data = solutions.unsqueeze(1)
+
+    return input_data, output_data
+
+
+def generate_poisson_3d_data(n_samples=100, nx=32, ny=32, nz=32, n_sources=3, device='cpu', include_mesh=True):
+    """Generate data for the 3D Poisson equation:
+    -∇²u = f with Dirichlet boundary conditions
+    """
+    x = torch.linspace(0, 1, nx, device=device)
+    y = torch.linspace(0, 1, ny, device=device)
+    z = torch.linspace(0, 1, nz, device=device)
+    X, Y, Z = torch.meshgrid(x, y, z, indexing='ij')
+
+    def generate_source_term():
+        # n_sources is now from outer scope argument
+        amplitudes = (torch.rand(n_sources, device=device) * 2.0) - 1.0
+        centers_x = (torch.rand(n_sources, device=device) * 0.6) + 0.2
+        centers_y = (torch.rand(n_sources, device=device) * 0.6) + 0.2
+        centers_z = (torch.rand(n_sources, device=device) * 0.6) + 0.2
+
+        f = torch.zeros((nx, ny, nz), device=device)
+        for i in range(n_sources):
+            f += amplitudes[i] * torch.exp(-50 * ((X - centers_x[i]) ** 2 + (Y - centers_y[i]) ** 2 + (Z - centers_z[i]) ** 2))
+        return f
+
+    def solve_poisson(f):
+        kx = 2 * np.pi * torch.fft.fftfreq(nx, device=device)
+        ky = 2 * np.pi * torch.fft.fftfreq(ny, device=device)
+        kz = 2 * np.pi * torch.fft.fftfreq(nz, device=device)
+        KX, KY, KZ = torch.meshgrid(kx, ky, kz, indexing='ij')
+
+        f_hat = torch.fft.fftn(f)
+        denominator = (KX**2 + KY**2 + KZ**2)
+        denominator[0, 0, 0] = 1.0
+        u_hat = f_hat / denominator
+        u_hat[0, 0, 0] = 0.0
+
+        u = torch.real(torch.fft.ifftn(u_hat))
+        
+        # Dirichlet BCs
+        u[0, :, :] = 0; u[-1, :, :] = 0
+        u[:, 0, :] = 0; u[:, -1, :] = 0
+        u[:, :, 0] = 0; u[:, :, -1] = 0
+        return u
+
+    source_terms = []
+    solutions = []
+    for _ in range(n_samples):
+        f = generate_source_term()
+        u = solve_poisson(f)
+        source_terms.append(f)
+        solutions.append(u)
+
+    source_terms = torch.stack(source_terms)
+    solutions = torch.stack(solutions)
+
+    if include_mesh:
+        mesh_x = X.unsqueeze(0).repeat(n_samples, 1, 1, 1)
+        mesh_y = Y.unsqueeze(0).repeat(n_samples, 1, 1, 1)
+        mesh_z = Z.unsqueeze(0).repeat(n_samples, 1, 1, 1)
+        input_data = torch.stack([source_terms, mesh_x, mesh_y, mesh_z], dim=1)
+    else:
+        input_data = source_terms.unsqueeze(1)
+
+    output_data = solutions.unsqueeze(1)
+    return input_data, output_data

@@ -74,8 +74,8 @@ class PoissonDataConfig:
 class Poisson3DDataConfig:
     """Configuration for 3D Poisson equation data."""
     data_path: Optional[str] = None
-    n_train: int = 500
-    n_test: int = 100
+    n_train: int = 100
+    n_test: int = 20
     batch_size: int = 8
     nx: int = 32
     ny: int = 32
@@ -198,11 +198,11 @@ class Poisson3DConfig:
     # Optimization configuration
     optimization: OptimizationConfig = field(default_factory=lambda: OptimizationConfig(
         learning_rate=1e-3,
-        n_epochs=50,
+        n_epochs=100,
         batch_size=8,
         scheduler=SchedulerConfig(
             scheduler_type="StepLR",
-            step_size=20,
+            step_size=10,
             gamma=0.5
         ),
         loss=LossConfig(
