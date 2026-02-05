@@ -32,7 +32,7 @@ examples/**/output_*
 examples/**/__pycache__/
 
 output/*
-
+src/support_files/poisson2d/*
 
 # pytest 
 *.vtk
@@ -84,3 +84,7 @@ output/
 
 results.png
 lib64
+support_files/*
+../output/*
+../results/*
+checkpoints/*
