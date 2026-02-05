@@ -53,7 +53,7 @@ from .heat import HeatConfig
 from .wave import WaveConfig
 from .advection import AdvectionConfig
 from .darcy import DarcyConfig
-from .navier_stokes import NavierStokesConfig
+from .navier_stokes import NavierStokesConfig, NavierStokes3DConfig
 
 __all__ = [
     # Optimizer Configs
@@ -77,4 +77,5 @@ __all__ = [
     "AdvectionConfig",
     "DarcyConfig",
     "NavierStokesConfig",
+    "NavierStokes3DConfig",
 ]

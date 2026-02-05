@@ -6,7 +6,7 @@
 from dataclasses import dataclass, field
 from typing import Optional, Tuple, Literal
 from .opt import OptimizationConfig, SchedulerConfig, LossConfig
-from .models import FNO2DConfig
+from .models import FNO2DConfig, FNO3DConfig
 
 
 @dataclass
@@ -23,6 +23,36 @@ class NavierStokesDataConfig:
     viscosity: float = 1e-3
     reynolds_number: Optional[float] = None
     flow_type: str = "decaying"  # "decaying", "forced", "channel"
+    normalize: bool = True
+    include_mesh: bool = True
+
+
+@dataclass
+class NavierStokes3DDataConfig:
+    """Configuration for 3D Navier-Stokes equation data.
+    
+    Attributes:
+        data_path: Path to data directory (optional).
+        n_train: Number of training samples.
+        n_test: Number of test samples.
+        batch_size: Training batch size.
+        nx, ny, nz: Spatial resolution in each direction.
+        nt: Number of time steps to store as input.
+        t_final: Final simulation time.
+        viscosity: Kinematic viscosity (ν).
+        normalize: Whether to normalize data.
+        include_mesh: Whether to include mesh coordinates as input.
+    """
+    data_path: Optional[str] = None
+    n_train: int = 200
+    n_test: int = 50
+    batch_size: int = 4
+    nx: int = 32
+    ny: int = 32
+    nz: int = 32
+    nt: int = 5  # Number of time snapshots as input
+    t_final: float = 1.0
+    viscosity: float = 1e-3
     normalize: bool = True
     include_mesh: bool = True
 
@@ -70,6 +100,54 @@ class TurbulentFlowConfig:
     ))
     optimization: OptimizationConfig = field(default_factory=lambda: OptimizationConfig(
         learning_rate=5e-4, n_epochs=1000, gradient_clip=0.5
+    ))
+
+
+@dataclass
+class NavierStokes3DConfig:
+    """Complete configuration for 3D Navier-Stokes equations.
+    
+    Problem: ∂ω/∂t + (u·∇)ω - (ω·∇)u = ν∇²ω (3D vorticity formulation)
+    Input: Vorticity magnitude snapshots + mesh coordinates
+    Output: Vorticity magnitude at t = T
+    
+    Note: 3D Navier-Stokes includes vortex stretching term (ω·∇)u which
+    makes the dynamics significantly more complex than 2D.
+    """
+    name: str = "navier_stokes_3d"
+    description: str = "3D Navier-Stokes in vorticity formulation"
+    
+    # Model configuration: FNO3D for volumetric data
+    model: FNO3DConfig = field(default_factory=lambda: FNO3DConfig(
+        in_channels=8,      # nt=5 time snapshots + 3 mesh coordinates
+        out_channels=1,     # Vorticity magnitude at final time
+        hidden_channels=32,
+        n_layers=4,
+        n_modes=(8, 8, 8),
+        activation="gelu",
+        use_channel_mlp=True
+    ))
+    
+    # Data configuration
+    data: NavierStokes3DDataConfig = field(default_factory=NavierStokes3DDataConfig)
+    
+    # Optimization configuration
+    optimization: OptimizationConfig = field(default_factory=lambda: OptimizationConfig(
+        learning_rate=1e-3,
+        n_epochs=100,
+        batch_size=4,
+        gradient_clip=1.0,
+        early_stopping=True,
+        early_stopping_patience=20,
+        scheduler=SchedulerConfig(
+            scheduler_type="StepLR",
+            step_size=30,
+            gamma=0.5
+        ),
+        loss=LossConfig(
+            training_loss="mse",
+            testing_loss="mse"
+        )
     ))
 
 
